@@ -53,12 +53,12 @@ struct PlayerView: View {
         let columns: [GridItem] = Array(repeating: .init(.flexible(), spacing: 10), count: isPortrait ? 2 : 3)
         
         return LazyVGrid(columns: columns, spacing: 10) {
-
-
+            
+            
             ForEach(items.indices, id: \.self) { index in
                 HStack(spacing: 0) {
                     HStack {
-                        Text("\(items[index].startingPoint)")
+                        Rectangle()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(items[index].backgroundColor)
                             .opacity(isPressed ? 0.75: opacities[index][0] )
@@ -77,7 +77,7 @@ struct PlayerView: View {
                     }
                     
                     HStack {
-                        Text("Segunda parte")
+                        Rectangle()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(items[index].backgroundColor)
                             .opacity(opacities[index][1])
@@ -98,9 +98,13 @@ struct PlayerView: View {
                 .font(.system(size: 24))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
+                .overlay(Text("40").frame(maxWidth: .infinity), alignment: .center)
+                .foregroundColor(.red)
+                .font(.system(size: 24))
+
             }
         }
-//        
+        //
         
     }
     
