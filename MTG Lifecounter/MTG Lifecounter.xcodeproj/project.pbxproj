@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		0971D8E62CC7A164009F5533 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 0971D8E52CC7A161009F5533 /* .gitignore */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		1CFCDCD72C99F1EB006804D3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -28,7 +24,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0971D8E52CC7A161009F5533 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		1CFCDCC32C99F1EA006804D3 /* MTG Lifecounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MTG Lifecounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CFCDCD62C99F1EB006804D3 /* MTG LifecounterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MTG LifecounterTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CFCDCE02C99F1EB006804D3 /* MTG LifecounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MTG LifecounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -84,7 +79,6 @@
 				1CFCDCD92C99F1EB006804D3 /* MTG LifecounterTests */,
 				1CFCDCE32C99F1EB006804D3 /* MTG LifecounterUITests */,
 				1CFCDCC42C99F1EA006804D3 /* Products */,
-				0971D8E52CC7A161009F5533 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -218,7 +212,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0971D8E62CC7A164009F5533 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -396,11 +389,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "MTG Lifecounter/MTG_Lifecounter.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"MTG Lifecounter/Preview Content\"";
-				DEVELOPMENT_TEAM = BC8SGNY82N;
+				DEVELOPMENT_TEAM = BJYT7G6SPX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -420,8 +414,9 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "github.com.MTG-Lifecounter";
+				PRODUCT_BUNDLE_IDENTIFIER = "github.com-vinirossado-MTG-Lifecounter";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -441,7 +436,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"MTG Lifecounter/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = BJYT7G6SPX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

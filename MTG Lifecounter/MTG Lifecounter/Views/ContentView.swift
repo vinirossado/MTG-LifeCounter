@@ -16,7 +16,7 @@ struct ContentView: View {
     }
     
     var body: some View {
-        PlayerView(lifeTotal: .constant(20), playerImage: "player1", size: 200)
+        GameView(lifeTotal: .constant(20), playerImage: "player1", size: 200)
         //        TabView(selection: $selection) {
         //            Counter()
         //                .tabItem {
