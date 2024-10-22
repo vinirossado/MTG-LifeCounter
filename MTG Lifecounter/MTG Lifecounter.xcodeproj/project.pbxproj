@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0971D8E62CC7A164009F5533 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 0971D8E52CC7A161009F5533 /* .gitignore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1CFCDCD72C99F1EB006804D3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0971D8E52CC7A161009F5533 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		1CFCDCC32C99F1EA006804D3 /* MTG Lifecounter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MTG Lifecounter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CFCDCD62C99F1EB006804D3 /* MTG LifecounterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MTG LifecounterTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1CFCDCE02C99F1EB006804D3 /* MTG LifecounterUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MTG LifecounterUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +84,7 @@
 				1CFCDCD92C99F1EB006804D3 /* MTG LifecounterTests */,
 				1CFCDCE32C99F1EB006804D3 /* MTG LifecounterUITests */,
 				1CFCDCC42C99F1EA006804D3 /* Products */,
+				0971D8E52CC7A161009F5533 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0971D8E62CC7A164009F5533 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
