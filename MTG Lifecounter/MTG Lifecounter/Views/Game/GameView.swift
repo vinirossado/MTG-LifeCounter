@@ -7,21 +7,18 @@
 
 import SwiftUI
 
+struct Player {
+    let id = UUID()
+    var HP: Int
+    var name: String
+}
+
 struct GameView: View {
-    @Binding var lifeTotal: Int
-    let playerImage: String
-    let size: CGFloat
-    
-    @State private var items: [Item] = (1...6).map { _ in Item(startingPoint: 40) }
-    
-    struct Item: Identifiable {
-        let id = UUID()
-        var startingPoint: Int
-    }
+    @State private var players: [Player] = (1...5).map { idx in Player(HP: 40, name: "Player \(idx)")}
     
     var body: some View {
         GeometryReader { geometry in
-            generateItems(count: 4, geometry: geometry)
+            generateLayout(geometry: geometry, itemCount: players.count)
                 .padding(10)
                 .edgesIgnoringSafeArea(.trailing)
                 .onAppear {
@@ -33,22 +30,101 @@ struct GameView: View {
         }
     }
     
-    func generateItems(count: Int, geometry: GeometryProxy) -> some View {
-        let isPortrait = geometry.size.height > geometry.size.width
-        let columns: [GridItem] = Array(repeating: .init(.flexible(), spacing: 10), count: isPortrait ? 2 : 3)
-        let itemWidth = isPortrait ? (geometry.size.width - 30) / 2 : (geometry.size.width - 50) / 3
-        let itemHeight = (geometry.size.height - 30) / (isPortrait ? 3 : 2)
+    func generateLayout(geometry: GeometryProxy, itemCount: Int) -> some View {
+        let layouts: [Int: [[Int]]] = [
+            2: [[1, 2]],
+            3: [[1, 2], [3, 2]],
+            4: [[1, 2], [3, 4]],
+            5: [[1, 2, 3], [4, 5, 3]],
+            6: [[1, 2, 3], [4, 5, 6]]
+        ]
         
-        return LazyVGrid(columns: columns, spacing: 10) {
-            ForEach(items.indices, id: \.self) { index in
-                PlayerView(playerHP: $items[index].startingPoint)
-                    .frame(width: itemWidth, height: itemHeight)
-            }
+        guard layouts[itemCount] != nil else {
+            return AnyView(EmptyView())
+        }
+        
+        if itemCount == 2 {
+            return AnyView(
+                HStack(spacing: 10) {
+                    PlayerView(player: $players[0]) // 1
+                    PlayerView(player: $players[1]) // 2
+                }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            )
+        } else if itemCount == 3 {
+            return AnyView(
+                HStack(spacing: 10) {
+                    VStack(spacing: 10) {
+                        PlayerView(player: $players[0]) // 1
+                        PlayerView(player: $players[2]) // 3
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    PlayerView(player: $players[1]) // 2
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            )
+        } else if itemCount == 4 {
+            return AnyView(
+                VStack(spacing: 10) {
+                    HStack(spacing: 10) {
+                        PlayerView(player: $players[0]) // 1
+                        PlayerView(player: $players[1]) // 2
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    HStack(spacing: 10) {
+                        PlayerView(player: $players[2]) // 3
+                        PlayerView(player: $players[3]) // 4
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            )
+        } else if itemCount == 5 {
+            return AnyView(
+                HStack(spacing: 10) {
+                    VStack(spacing: 10) {
+                        PlayerView(player: $players[0]) // 1
+                        PlayerView(player: $players[2]) // 3
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    VStack(spacing: 10) {
+                        PlayerView(player: $players[1]) // 2
+                        PlayerView(player: $players[3]) // 4
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    PlayerView(player: $players[4]) // 5
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            )
+        } else if itemCount == 6 {
+            return AnyView(
+                VStack(spacing: 10) {
+                    HStack(spacing: 10) {
+                        PlayerView(player: $players[0]) // 1
+                        PlayerView(player: $players[1]) // 2
+                        PlayerView(player: $players[2]) // 3
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    HStack(spacing: 10) {
+                        PlayerView(player: $players[3]) // 4
+                        PlayerView(player: $players[4]) // 5
+                        PlayerView(player: $players[5]) // 6
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            )
+        } else {
+            return AnyView(EmptyView())
         }
     }
+    
 }
 
 #Preview {
-    GameView(lifeTotal: .constant(40), playerImage: "", size: 200)
+    GameView()
 }
 

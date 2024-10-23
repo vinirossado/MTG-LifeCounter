@@ -23,7 +23,8 @@ let DEFAULT_STYLES = Style(
 )
 
 struct PlayerView: View {
-    @Binding var playerHP: Int
+    @Binding var player: Player
+//    @Binding var player.HP: Int
     @State private var isLeftPressed: Bool = false
     @State private var isRightPressed: Bool = false
     @State private var cumulativeChange: Int = 0
@@ -57,7 +58,7 @@ struct PlayerView: View {
         .foregroundColor(.white)
         .overlay(
             ZStack {
-                Text("\(playerHP)")
+                Text("\(player.HP)")
                     .font(.system(size: 48))
                 
                 HStack {
@@ -84,6 +85,14 @@ struct PlayerView: View {
                         .opacity(showChange ? 1 : 0)
                         .animation(.easeInOut(duration: 0.3), value: showChange)
                 }
+                
+                VStack {
+                    Text(player.name)
+                        .font(.system(size: 24))
+                        .foregroundColor(DEFAULT_STYLES.foreground)
+                    Spacer()
+                }
+                .padding(.top, 12)
             }
         )
     }
@@ -91,10 +100,10 @@ struct PlayerView: View {
     private func updatePoints(for side: Side, amount: Int) {
         switch side {
         case .left:
-            playerHP -= amount
+            player.HP -= amount
             cumulativeChange -= amount
         case .right:
-            playerHP += amount
+            player.HP += amount
             cumulativeChange += amount
         }
         
@@ -162,6 +171,14 @@ struct PressableRectangle: View {
     }
 }
 
-#Preview {
-    PlayerView(playerHP: .constant(20))
+struct NameView: View {
+    let name: String;
+    
+    var body: some View {
+        // name
+        VStack {
+            Text("\(name)")
+        }
+    }
+    
 }
