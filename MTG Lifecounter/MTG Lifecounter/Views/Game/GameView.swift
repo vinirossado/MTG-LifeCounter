@@ -31,19 +31,13 @@ struct GameView: View {
     }
     
     func generateLayout(geometry: GeometryProxy, itemCount: Int) -> some View {
-        let layouts: [Int: [[Int]]] = [
-            2: [[1, 2]],
-            3: [[1, 2], [3, 2]],
-            4: [[1, 2], [3, 4]],
-            5: [[1, 2, 3], [4, 5, 3]],
-            6: [[1, 2, 3], [4, 5, 6]]
-        ]
-        
-        guard layouts[itemCount] != nil else {
+        guard itemCount >= 2 && itemCount <= 6 else {
             return AnyView(EmptyView())
         }
         
         if itemCount == 2 {
+            // Layout:
+            // 1 2
             return AnyView(
                 HStack(spacing: 10) {
                     PlayerView(player: $players[0])
@@ -52,6 +46,10 @@ struct GameView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             )
         } else if itemCount == 3 {
+            // Layout:
+            // 1 2
+            // 3 2
+            
             return AnyView(
                 HStack(spacing: 10) {
                     VStack(spacing: 10) {
@@ -65,6 +63,10 @@ struct GameView: View {
                 }
             )
         } else if itemCount == 4 {
+            // Layout:
+            // 1 2
+            // 3 4
+            
             return AnyView(
                 VStack(spacing: 10) {
                     HStack(spacing: 10) {
@@ -81,6 +83,10 @@ struct GameView: View {
                 }
             )
         } else if itemCount == 5 {
+            // Layout:
+            // 1 2 3
+            // 4 5 3
+            
             return AnyView(
                 HStack(spacing: 10) {
                     VStack(spacing: 10) {
@@ -100,6 +106,10 @@ struct GameView: View {
                 }
             )
         } else if itemCount == 6 {
+            // Layout:
+            // 1 2 3
+            // 4 5 6
+            
             return AnyView(
                 VStack(spacing: 10) {
                     HStack(spacing: 10) {
