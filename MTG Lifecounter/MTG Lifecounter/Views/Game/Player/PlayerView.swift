@@ -16,7 +16,7 @@ struct Style {
 }
 
 let DEFAULT_STYLES = Style(
-    background: Color.mint.opacity(0.8),
+    background: Color.mint.opacity(0.2),
     foreground: Color.white,
     opacity: 1,
     hoverOpacity: 0.75
@@ -79,7 +79,7 @@ struct PlayerView: View {
                 if cumulativeChange != 0 {
                     Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
                         .font(.system(size: 24))
-                        .foregroundColor(cumulativeChange > 0 ? .green : .red)
+                        .foregroundColor(DEFAULT_STYLES.foreground)
                         .offset(x: cumulativeChange > 0 ? 60 : -60)
                         .opacity(showChange ? 1 : 0)
                         .animation(.easeInOut(duration: 0.3), value: showChange)
@@ -126,8 +126,8 @@ struct PlayerView: View {
         
         changeWorkItem = newWorkItem
         
-        // Schedule the work item to be executed after 2s
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
+        // Schedule the work item to be executed after 4s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: newWorkItem)
     }
 }
 

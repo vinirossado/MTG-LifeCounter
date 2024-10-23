@@ -26,6 +26,7 @@ struct MTG_LifecounterApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
         }
        
     }
