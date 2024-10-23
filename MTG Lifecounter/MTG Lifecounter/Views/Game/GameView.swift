@@ -46,8 +46,8 @@ struct GameView: View {
         if itemCount == 2 {
             return AnyView(
                 HStack(spacing: 10) {
-                    PlayerView(player: $players[0]) // 1
-                    PlayerView(player: $players[1]) // 2
+                    PlayerView(player: $players[0])
+                    PlayerView(player: $players[1])
                 }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             )
@@ -55,8 +55,8 @@ struct GameView: View {
             return AnyView(
                 HStack(spacing: 10) {
                     VStack(spacing: 10) {
-                        PlayerView(player: $players[0]) // 1
-                        PlayerView(player: $players[2]) // 3
+                        PlayerView(player: $players[0])
+                        PlayerView(player: $players[2])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
@@ -68,14 +68,14 @@ struct GameView: View {
             return AnyView(
                 VStack(spacing: 10) {
                     HStack(spacing: 10) {
-                        PlayerView(player: $players[0]) // 1
-                        PlayerView(player: $players[1]) // 2
+                        PlayerView(player: $players[0])
+                        PlayerView(player: $players[1])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     HStack(spacing: 10) {
-                        PlayerView(player: $players[2]) // 3
-                        PlayerView(player: $players[3]) // 4
+                        PlayerView(player: $players[2])
+                        PlayerView(player: $players[3])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -84,18 +84,18 @@ struct GameView: View {
             return AnyView(
                 HStack(spacing: 10) {
                     VStack(spacing: 10) {
-                        PlayerView(player: $players[0]) // 1
-                        PlayerView(player: $players[2]) // 3
+                        PlayerView(player: $players[0])
+                        PlayerView(player: $players[2])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     VStack(spacing: 10) {
-                        PlayerView(player: $players[1]) // 2
-                        PlayerView(player: $players[3]) // 4
+                        PlayerView(player: $players[1])
+                        PlayerView(player: $players[3])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
-                    PlayerView(player: $players[4]) // 5
+                    PlayerView(player: $players[4])
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             )
@@ -103,16 +103,16 @@ struct GameView: View {
             return AnyView(
                 VStack(spacing: 10) {
                     HStack(spacing: 10) {
-                        PlayerView(player: $players[0]) // 1
-                        PlayerView(player: $players[1]) // 2
-                        PlayerView(player: $players[2]) // 3
+                        PlayerView(player: $players[0])
+                        PlayerView(player: $players[1])
+                        PlayerView(player: $players[2])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     
                     HStack(spacing: 10) {
-                        PlayerView(player: $players[3]) // 4
-                        PlayerView(player: $players[4]) // 5
-                        PlayerView(player: $players[5]) // 6
+                        PlayerView(player: $players[3])
+                        PlayerView(player: $players[4])
+                        PlayerView(player: $players[5])
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }

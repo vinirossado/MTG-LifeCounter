@@ -24,12 +24,13 @@ let DEFAULT_STYLES = Style(
 
 struct PlayerView: View {
     @Binding var player: Player
-//    @Binding var player.HP: Int
+    //    @Binding var player.HP: Int
     @State private var isLeftPressed: Bool = false
     @State private var isRightPressed: Bool = false
     @State private var cumulativeChange: Int = 0
     @State private var showChange: Bool = false
     @State private var holdTimer: Timer?
+    @State private var isHoldTimerActive: Bool = false
     @State private var changeWorkItem: DispatchWorkItem?
     
     enum Side {
@@ -111,6 +112,12 @@ struct PlayerView: View {
     }
     
     private func startHoldTimer(for side: Side, amount: Int) {
+         guard !isHoldTimerActive else {
+            return
+        }
+        
+        isHoldTimerActive = true
+        
         holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
             updatePoints(for: side, amount: amount)
         }
@@ -119,6 +126,7 @@ struct PlayerView: View {
     private func stopHoldTimer() {
         holdTimer?.invalidate()
         holdTimer = nil
+        isHoldTimerActive = false
     }
     
     private func showPointChange() {
@@ -175,7 +183,6 @@ struct NameView: View {
     let name: String;
     
     var body: some View {
-        // name
         VStack {
             Text("\(name)")
         }
