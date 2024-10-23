@@ -41,7 +41,7 @@ struct GameView: View {
         
         return LazyVGrid(columns: columns, spacing: 10) {
             ForEach(items.indices, id: \.self) { index in
-                PlayerView(startingPoint: $items[index].startingPoint)
+                PlayerView(playerHP: $items[index].startingPoint)
                     .frame(width: itemWidth, height: itemHeight)
             }
         }

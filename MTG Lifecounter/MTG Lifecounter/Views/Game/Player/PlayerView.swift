@@ -23,12 +23,13 @@ let DEFAULT_STYLES = Style(
 )
 
 struct PlayerView: View {
-    @Binding var startingPoint: Int
+    @Binding var playerHP: Int
     @State private var isLeftPressed: Bool = false
     @State private var isRightPressed: Bool = false
     @State private var cumulativeChange: Int = 0
     @State private var showChange: Bool = false
     @State private var holdTimer: Timer?
+    @State private var changeWorkItem: DispatchWorkItem?
     
     enum Side {
         case left, right
@@ -56,7 +57,7 @@ struct PlayerView: View {
         .foregroundColor(.white)
         .overlay(
             ZStack {
-                Text("\(startingPoint)")
+                Text("\(playerHP)")
                     .font(.system(size: 48))
                 
                 HStack {
@@ -90,10 +91,10 @@ struct PlayerView: View {
     private func updatePoints(for side: Side, amount: Int) {
         switch side {
         case .left:
-            startingPoint -= amount
+            playerHP -= amount
             cumulativeChange -= amount
         case .right:
-            startingPoint += amount
+            playerHP += amount
             cumulativeChange += amount
         }
         
@@ -104,7 +105,6 @@ struct PlayerView: View {
         holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
             updatePoints(for: side, amount: amount)
         }
-        
     }
     
     private func stopHoldTimer() {
@@ -112,27 +112,25 @@ struct PlayerView: View {
         holdTimer = nil
     }
     
-    var changeWorkItem: DispatchWorkItem?
-
     private func showPointChange() {
-
-        // Define showChange como verdadeiro
-        if !showChange {
-            showChange = true
-            
-            let workItem = DispatchWorkItem {
-                withAnimation {
-                    showChange = false
-                    
-                }
+        changeWorkItem?.cancel()
+        
+        showChange = true
+        
+        let newWorkItem = DispatchWorkItem {
+            withAnimation {
+                showChange = false
+                cumulativeChange = 0
             }
-            cumulativeChange = 0
-          
-            // Executa a nova tarefa após um delay de 4 segundos
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: workItem)
         }
+        
+        changeWorkItem = newWorkItem
+        
+        // Schedule the work item to be executed after 2s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
     }
 }
+
 
 struct PressableRectangle: View {
     @Binding var isPressed: Bool
@@ -149,7 +147,7 @@ struct PressableRectangle: View {
             .onTapGesture {
                 updatePoints(side, 1)
             }
-            .onLongPressGesture(minimumDuration: 0.3, maximumDistance: 0.4, pressing: { pressing in
+            .onLongPressGesture(minimumDuration: 0.2, maximumDistance: 0.4, pressing: { pressing in
                 withAnimation {
                     isPressed = pressing
                 }
@@ -165,5 +163,5 @@ struct PressableRectangle: View {
 }
 
 #Preview {
-    PlayerView(startingPoint: .constant(20))
+    PlayerView(playerHP: .constant(20))
 }
