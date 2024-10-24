@@ -15,6 +15,23 @@ struct Style {
     var hoverOpacity: Double
 }
 
+enum OrientationLayout {
+    case normal
+    case inverted
+    case left
+    case right
+    
+    func toAngle() -> Angle {
+        switch self {
+        case .normal: return Angle(degrees: 0)
+        case .right: return Angle(degrees: 90)
+        case .inverted: return Angle(degrees: 180)
+        case .left: return Angle(degrees: 270)
+        }
+    }
+}
+
+
 let DEFAULT_STYLES = Style(
     background: Color.mint.opacity(0.2),
     foreground: Color.white,
@@ -24,7 +41,7 @@ let DEFAULT_STYLES = Style(
 
 struct PlayerView: View {
     @Binding var player: Player
-    //    @Binding var player.HP: Int
+    var orientation: OrientationLayout
     @State private var isLeftPressed: Bool = false
     @State private var isRightPressed: Bool = false
     @State private var cumulativeChange: Int = 0
@@ -41,6 +58,7 @@ struct PlayerView: View {
         HStack(spacing: 0) {
             PressableRectangle(
                 isPressed: $isLeftPressed,
+                player: $player,
                 side: .left,
                 updatePoints: updatePoints,
                 startHoldTimer: startHoldTimer,
@@ -49,12 +67,14 @@ struct PlayerView: View {
             
             PressableRectangle(
                 isPressed: $isRightPressed,
+                player: $player,
                 side: .right,
                 updatePoints: updatePoints,
                 startHoldTimer: startHoldTimer,
                 stopHoldTimer: stopHoldTimer
             )
         }
+        
         .cornerRadius(16)
         .foregroundColor(.white)
         .overlay(
@@ -95,7 +115,7 @@ struct PlayerView: View {
                 }
                 .padding(.top, 12)
             }
-        )
+        ).rotationEffect((orientation.toAngle()))
     }
     
     private func updatePoints(for side: Side, amount: Int) {
@@ -112,7 +132,7 @@ struct PlayerView: View {
     }
     
     private func startHoldTimer(for side: Side, amount: Int) {
-         guard !isHoldTimerActive else {
+        guard !isHoldTimerActive else {
             return
         }
         
@@ -151,6 +171,7 @@ struct PlayerView: View {
 
 struct PressableRectangle: View {
     @Binding var isPressed: Bool
+    @Binding var player: Player
     var side: PlayerView.Side
     var updatePoints: (PlayerView.Side, Int) -> Void
     var startHoldTimer: (PlayerView.Side, Int) -> Void
