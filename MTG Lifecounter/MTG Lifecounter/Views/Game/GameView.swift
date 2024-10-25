@@ -55,8 +55,8 @@ struct TwoPlayersLayout: View {
     
     var body: some View {
         HStack(spacing: 10) {
-            PlayerView(player: players[0], orientation: .inverted)
-            PlayerView(player: players[1], orientation: .normal)
+            PlayerView(player: players[0], orientation: .right)
+            PlayerView(player: players[1], orientation: .left)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -116,7 +116,7 @@ struct FivePlayersLayout: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            PlayerView(player: players[4], orientation: .normal)
+            PlayerView(player: players[4], orientation: .left)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }

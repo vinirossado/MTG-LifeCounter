@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+enum Side {
+    case left, right
+}
 
 struct Style {
     var background: Color
@@ -50,9 +53,106 @@ struct PlayerView: View {
     @State private var isHoldTimerActive: Bool = false
     @State private var changeWorkItem: DispatchWorkItem?
     
-    enum Side {
-        case left, right
+    var body: some View {
+        orientation == .normal || orientation == .inverted
+        ? AnyView(
+            HorizontalPlayerView(
+                player: $player,
+                isLeftPressed: $isLeftPressed,
+                isRightPressed: $isRightPressed,
+                cumulativeChange: $cumulativeChange,
+                showChange: $showChange,
+                holdTimer: $holdTimer,
+                isHoldTimerActive: $isHoldTimerActive,
+                changeWorkItem: $changeWorkItem,
+                updatePoints: updatePoints,
+                startHoldTimer: startHoldTimer,
+                stopHoldTimer: stopHoldTimer,
+                orientation: orientation
+            )
+        )
+        : AnyView(
+            VerticalPlayerView(
+                player: $player,
+                isLeftPressed: $isLeftPressed,
+                isRightPressed: $isRightPressed,
+                cumulativeChange: $cumulativeChange,
+                showChange: $showChange,
+                holdTimer: $holdTimer,
+                isHoldTimerActive: $isHoldTimerActive,
+                changeWorkItem: $changeWorkItem,
+                updatePoints: updatePoints,
+                startHoldTimer: startHoldTimer,
+                stopHoldTimer: stopHoldTimer,
+                orientation: orientation
+            )
+        )
     }
+    
+    
+    private func updatePoints(for side: Side, amount: Int) {
+        switch side {
+        case .left:
+            player.HP -= amount
+            cumulativeChange -= amount
+        case .right:
+            player.HP += amount
+            cumulativeChange += amount
+        }
+        
+        showPointChange()
+    }
+    
+    private func startHoldTimer(for side: Side, amount: Int) {
+        guard !isHoldTimerActive else {
+            return
+        }
+        
+        isHoldTimerActive = true
+        
+        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
+            updatePoints(for: side, amount: amount)
+        }
+    }
+    
+    private func stopHoldTimer() {
+        holdTimer?.invalidate()
+        holdTimer = nil
+        isHoldTimerActive = false
+    }
+    
+    private func showPointChange() {
+        changeWorkItem?.cancel()
+        
+        showChange = true
+        
+        let newWorkItem = DispatchWorkItem {
+            withAnimation {
+                showChange = false
+                cumulativeChange = 0
+            }
+        }
+        
+        changeWorkItem = newWorkItem
+        
+        // Schedule the work item to be executed after 4s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: newWorkItem)
+    }
+}
+
+struct HorizontalPlayerView: View {
+    @Binding var player: Player
+    @Binding var isLeftPressed: Bool
+    @Binding var isRightPressed: Bool
+    @Binding var cumulativeChange: Int
+    @Binding var showChange: Bool
+    @Binding var holdTimer: Timer?
+    @Binding var isHoldTimerActive: Bool
+    @Binding var changeWorkItem: DispatchWorkItem?
+    let updatePoints: (Side, Int) -> Void
+    let startHoldTimer: (Side, Int) -> Void
+    let stopHoldTimer: () -> Void
+    var orientation: OrientationLayout
     
     var body: some View {
         HStack(spacing: 0) {
@@ -117,54 +217,88 @@ struct PlayerView: View {
             }
         ).rotationEffect((orientation.toAngle()))
     }
+}
+
+struct VerticalPlayerView: View {
+    @Binding var player: Player
+    @Binding var isLeftPressed: Bool
+    @Binding var isRightPressed: Bool
+    @Binding var cumulativeChange: Int
+    @Binding var showChange: Bool
+    @Binding var holdTimer: Timer?
+    @Binding var isHoldTimerActive: Bool
+    @Binding var changeWorkItem: DispatchWorkItem?
+    let updatePoints: (Side, Int) -> Void
+    let startHoldTimer: (Side, Int) -> Void
+    let stopHoldTimer: () -> Void
+    var orientation: OrientationLayout
     
-    private func updatePoints(for side: Side, amount: Int) {
-        switch side {
-        case .left:
-            player.HP -= amount
-            cumulativeChange -= amount
-        case .right:
-            player.HP += amount
-            cumulativeChange += amount
+    var body: some View {
+        VStack(spacing: 0) {
+            PressableRectangle(
+                isPressed: $isLeftPressed,
+                player: $player,
+                side: .right,
+                updatePoints: updatePoints,
+                startHoldTimer: startHoldTimer,
+                stopHoldTimer: stopHoldTimer
+            )
+            
+            PressableRectangle(
+                isPressed: $isRightPressed,
+                player: $player,
+                side: .left,
+                updatePoints: updatePoints,
+                startHoldTimer: startHoldTimer,
+                stopHoldTimer: stopHoldTimer
+            )
         }
         
-        showPointChange()
-    }
-    
-    private func startHoldTimer(for side: Side, amount: Int) {
-        guard !isHoldTimerActive else {
-            return
-        }
-        
-        isHoldTimerActive = true
-        
-        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
-            updatePoints(for: side, amount: amount)
-        }
-    }
-    
-    private func stopHoldTimer() {
-        holdTimer?.invalidate()
-        holdTimer = nil
-        isHoldTimerActive = false
-    }
-    
-    private func showPointChange() {
-        changeWorkItem?.cancel()
-        
-        showChange = true
-        
-        let newWorkItem = DispatchWorkItem {
-            withAnimation {
-                showChange = false
-                cumulativeChange = 0
+        .cornerRadius(16)
+        .foregroundColor(.white)
+        .overlay(
+            ZStack {
+                Text("\(player.HP)")
+                    .font(.system(size: 48))
+                    .rotationEffect(Angle(degrees: 270))
+                
+                VStack {
+                    Spacer()
+                    Image(systemName: "minus")
+                        .foregroundColor(DEFAULT_STYLES.foreground)
+                        .font(.system(size: 24))
+                        .rotationEffect(Angle(degrees: 90))
+                }
+                .padding(.bottom, 24)
+                
+                VStack {
+                    Image(systemName: "plus")
+                        .foregroundColor(DEFAULT_STYLES.foreground)
+                        .font(.system(size: 24))
+                    Spacer()
+                }
+                .padding(.top, 24)
+                
+                if cumulativeChange != 0 {
+                    Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+                        .font(.system(size: 24))
+                        .foregroundColor(DEFAULT_STYLES.foreground)
+                        .offset(x: cumulativeChange > 0 ? 60 : -60)
+                        .opacity(showChange ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.3), value: showChange)
+                        .rotationEffect(Angle(degrees: 270))
+                }
+                
+                HStack {
+                    Text(player.name)
+                        .font(.system(size: 24))
+                        .foregroundColor(DEFAULT_STYLES.foreground)
+                        .rotationEffect(Angle(degrees: 270))
+                    Spacer()
+                }
             }
-        }
-        
-        changeWorkItem = newWorkItem
-        
-        // Schedule the work item to be executed after 4s
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: newWorkItem)
+        )
+        .rotationEffect((Angle(degrees: orientation == .left ? 0 : 180)))
     }
 }
 
@@ -172,9 +306,9 @@ struct PlayerView: View {
 struct PressableRectangle: View {
     @Binding var isPressed: Bool
     @Binding var player: Player
-    var side: PlayerView.Side
-    var updatePoints: (PlayerView.Side, Int) -> Void
-    var startHoldTimer: (PlayerView.Side, Int) -> Void
+    var side: Side
+    var updatePoints: (Side, Int) -> Void
+    var startHoldTimer: (Side, Int) -> Void
     var stopHoldTimer: () -> Void
     
     var body: some View {
