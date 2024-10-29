@@ -146,15 +146,13 @@ struct SixPlayersLayout: View {
 
 // MARK: - Main View
 struct GameView: View {
-    @State private var players: [Player] = (1...5).map { idx in
+    @State private var players: [Player] = (1...6).map { idx in
         Player(HP: 40, name: "Player \(idx)")
     }
     
     var body: some View {
         GeometryReader { geometry in
             GameLayoutBuilder.buildLayout(for: players.indices.map { $players[$0] })
-                .padding(10)
-                .edgesIgnoringSafeArea(.trailing)
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = true
                 }
@@ -162,6 +160,8 @@ struct GameView: View {
                     UIApplication.shared.isIdleTimerDisabled = false
                 }
         }
+        .navigationBarHidden(true)
+        .ignoresSafeArea() 
     }
 }
 

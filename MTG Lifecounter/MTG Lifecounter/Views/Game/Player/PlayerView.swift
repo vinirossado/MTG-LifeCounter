@@ -36,8 +36,8 @@ enum OrientationLayout {
 
 
 let DEFAULT_STYLES = Style(
-    background: Color.mint.opacity(0.2),
-    foreground: Color.white,
+    background: .oceanBlueBackground,
+    foreground: .lightGrayText,
     opacity: 1,
     hoverOpacity: 0.75
 )
