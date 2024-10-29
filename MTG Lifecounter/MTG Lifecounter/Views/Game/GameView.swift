@@ -153,12 +153,6 @@ struct GameView: View {
     var body: some View {
         GeometryReader { geometry in
             GameLayoutBuilder.buildLayout(for: players.indices.map { $players[$0] })
-                .onAppear {
-                    UIApplication.shared.isIdleTimerDisabled = true
-                }
-                .onDisappear {
-                    UIApplication.shared.isIdleTimerDisabled = false
-                }
         }
         .navigationBarHidden(true)
         .ignoresSafeArea() 
