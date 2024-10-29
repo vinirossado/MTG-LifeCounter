@@ -32,9 +32,9 @@ struct CountryPickerField: View {
     // List of countries with their flags
     private let countries = [
         Country(name: "Brazil", flag: Country.flagEmoji(for: "BR")),
-        Country(name: "United Kingdom", flag: Country.flagEmoji(for: "GB")),
-        Country(name: "Russia", flag: Country.flagEmoji(for: "RU")),
         Country(name: "Estonia", flag: Country.flagEmoji(for: "EE")),
+        Country(name: "Russia", flag: Country.flagEmoji(for: "RU")),
+        Country(name: "United Kingdom", flag: Country.flagEmoji(for: "GB")),
         Country(name: "United States", flag: Country.flagEmoji(for: "US")),
         Country(name: "Canada", flag: Country.flagEmoji(for: "CA")),
         Country(name: "Portugal", flag: Country.flagEmoji(for: "PT")),

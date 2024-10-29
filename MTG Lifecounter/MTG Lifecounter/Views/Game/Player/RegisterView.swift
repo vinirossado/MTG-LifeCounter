@@ -89,19 +89,14 @@ struct FormField: View {
     let title: String
     @Binding var text: String
     let placeholder: String
-    var isSecure: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
-            if isSecure {
-                SecureField(placeholder, text: $text)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            } else {
-                TextField(placeholder, text: $text)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
+            
+            TextField(placeholder, text: $text)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
         }
     }
 }
