@@ -13,4 +13,5 @@ public class Card
     public bool Foil { get; set; }
     public string Condition { get; set; }
     public string Language { get; set; }
+    
 }

@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 // Register DbContext with DI container
 var configuration = builder.Configuration;
@@ -15,8 +16,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
 // Register ImportRepository with DI container
-builder.Services.AddScoped<ImportService>();
-builder.Services.AddScoped<ImportRepository>();
+builder.Services.AddScoped<CardService>();
+builder.Services.AddScoped<CardRepository>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserRepository>();
 
 
 var app = builder.Build();
