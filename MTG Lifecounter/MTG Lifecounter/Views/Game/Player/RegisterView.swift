@@ -63,8 +63,8 @@ struct RegisterView: View {
     
     var formView: some View {
         VStack(alignment: .center, spacing: manager.value(portrait: 15, landscape: 20)) {
-            FormField(title: "Player Name", text: $playerName, placeholder: "Enter player name")
-            FormField(title: "Deck Name", text: $deckName, placeholder: "Enter deck name")
+            FormField(title: "Player Name *", text: $playerName, placeholder: "Enter player name")
+            FormField(title: "Deck Name *", text: $deckName, placeholder: "Enter deck name")
                 .keyboardType(.emailAddress)
                 .autocapitalization(.none)
             CountryPickerField(title: "Nationality", selectedCountry: $selectedCountry)
