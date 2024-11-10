@@ -1,0 +1,31 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: magic
+    ports:
+      - "5222:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  # app:
+  #   image: mcr.microsoft.com/dotnet/aspnet:8.0
+  #   build:
+  #     context: ./Mtg-Card-Checker
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Development
+  #     ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=magic;Username=postgres;Password=example"
+
+volumes:
+  db-data:

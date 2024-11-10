@@ -79,9 +79,21 @@ struct RegisterView: View {
             return
         }
         
-        // TODO: Implement actual registration logic
-        alertMessage = "Registration successful!"
-        showingAlert = true
+        let country = "BR"
+//        let country = "selectedCountry?.name" // Assuming `Country` has a `name` property
+        let registrationData = RegistrationData(playerName: playerName, deckName: deckName, country: country)
+        
+        NetworkManager.shared.registerPlayer(data: registrationData) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let message):
+                    alertMessage = message
+                case .failure(let error):
+                    alertMessage = "Failed to register: \(error.localizedDescription)"
+                }
+                showingAlert = true
+            }
+        }
     }
 }
 

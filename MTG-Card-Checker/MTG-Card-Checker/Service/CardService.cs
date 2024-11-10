@@ -16,18 +16,37 @@ public class CardService(CardRepository cardRepository, IMemoryCache memoryCache
         await cardRepository.Import(cards);
     }
 
-    public async Task<(List<Card> foundCards, List<Card> missingCards)> CompareWantListWithDb(IFormFile file)
+    public async Task<(List<FilteredCard> foundCards, List<FilteredCard> missingCards)> CompareWantListWithDb(IFormFile file)
     {
         var cardsFromFile = await TextReader(file);
 
         var allCardsInDb = await GetCardsFromCache();
 
-        var foundCards = cardsFromFile
-            .Where(card => allCardsInDb.Any(dbCard => dbCard.Name == card.Name))
+        List<FilteredCard> missingCards;
+
+        missingCards = cardsFromFile
+            .Where(card => allCardsInDb.All(dbCard => dbCard.Name != card.Name))
+            .Select(card => new FilteredCard { Name = card.Name, Quantity = card.Quantity })
             .ToList();
 
-        var missingCards = cardsFromFile
-            .Where(card => allCardsInDb.All(dbCard => dbCard.Name != card.Name))
+        missingCards.AddRange(cardsFromFile
+            .Where(card => allCardsInDb.Any(dbCard =>
+                dbCard.Name == card.Name &&
+                card.Quantity > dbCard.Quantity - dbCard.InUse))
+            .Select(card => new FilteredCard
+            {
+                Name = card.Name,
+                Quantity = card.Quantity - (allCardsInDb
+                    .FirstOrDefault(dbCard => dbCard.Name == card.Name)?
+                    .Quantity - allCardsInDb
+                    .FirstOrDefault(dbCard => dbCard.Name == card.Name)?
+                    .InUse ?? 0)
+            })
+            .ToList());
+
+        var foundCards = cardsFromFile
+            .Where(card => allCardsInDb.Any(dbCard => dbCard.Name == card.Name && card.Quantity <= dbCard.Quantity - dbCard.InUse))
+            .Select(card => new FilteredCard { Name = card.Name, Quantity = card.Quantity })
             .ToList();
 
         return (foundCards, missingCards);
@@ -80,8 +99,8 @@ public class CardService(CardRepository cardRepository, IMemoryCache memoryCache
 
     private async Task<IList<Card>> TextReader(IFormFile file)
     {
-        List<Card> cards = new List<Card>();
-        
+        var cards = new List<Card>();
+
         using (var reader = new StreamReader(file.OpenReadStream()))
         {
             while (reader.Peek() >= 0)
