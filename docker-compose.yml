@@ -18,7 +18,7 @@ services:
   app:
     image: mcr.microsoft.com/dotnet/aspnet:8.0
     build:
-      context: ./MTG-Card-Checker
+      context: ./MTG-Card-Checker/Mtg-Card-Checker
       dockerfile: Dockerfile
     ports:
       - "8080:80"
