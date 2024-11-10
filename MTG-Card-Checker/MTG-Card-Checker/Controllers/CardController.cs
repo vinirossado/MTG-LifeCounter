@@ -30,7 +30,7 @@ public class CardController(CardService cardService) : ControllerBase
 
     [HttpPost("/want-list")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<(List<Card> foundCards, List<Card> missingCards)>> WantList([Required] IFormFile file)
+    public async Task<ActionResult<(List<FilteredCard> foundCards, List<Card> missingCards)>> WantList([Required] IFormFile file)
     {
         if (file.Length == 0)
         {
@@ -52,10 +52,4 @@ public class CardController(CardService cardService) : ControllerBase
         
         return Ok(response);
     }
-}
-
-public class WantListResponse
-{
-    public List<Card> FoundCards { get; set; }
-    public List<Card> MissingCards { get; set; }
 }
