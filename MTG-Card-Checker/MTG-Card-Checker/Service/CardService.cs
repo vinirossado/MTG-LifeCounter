@@ -121,4 +121,9 @@ public class CardService(CardRepository cardRepository, IMemoryCache memoryCache
 
         return cards;
     }
+    
+    public async Task<List<Card>> SelectXCards(int amount)
+    {
+        return await cardRepository.SelectXCards(amount);
+    }
 }

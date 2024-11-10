@@ -27,5 +27,10 @@ public class CardRepository(AppDbContext context)
         await context.Card.AddAsync(card);
         await context.SaveChangesAsync();
     }
+
+    public async Task <List<Card>> SelectXCards(int amount)
+    {
+        return await context.Card.Take(amount).ToListAsync();
+    }
     
 }

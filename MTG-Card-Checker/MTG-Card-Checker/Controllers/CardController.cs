@@ -52,4 +52,12 @@ public class CardController(CardService cardService) : ControllerBase
         
         return Ok(response);
     }
+    
+    [HttpGet("{amount}")]
+    public async Task<IActionResult> SelectXCards([Required] int amount)
+    {
+        var cards = await cardService.SelectXCards(amount);
+        
+        return Ok(cards);
+    }
 }
