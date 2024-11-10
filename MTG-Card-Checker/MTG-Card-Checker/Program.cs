@@ -20,6 +20,8 @@ builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<DeckService>();
+builder.Services.AddScoped<DeckRepository>();
 
 
 var app = builder.Build();
