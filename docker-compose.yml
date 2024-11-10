@@ -14,18 +14,18 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
 
-  app:
-    image: mcr.microsoft.com/dotnet/aspnet:8.0
-    build:
-      context: ./Mtg-Card-Checker
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-    depends_on:
-      - db
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=magic;Username=postgres;Password=example"
+  # app:
+  #   image: mcr.microsoft.com/dotnet/aspnet:8.0
+  #   build:
+  #     context: ./Mtg-Card-Checker
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Development
+  #     ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=magic;Username=postgres;Password=example"
 
 volumes:
   db-data:
