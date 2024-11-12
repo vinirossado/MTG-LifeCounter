@@ -20,7 +20,7 @@ public class Card
     
 }
 
-public class FilteredCard 
+public class FilteredCard
 {
     public string Name { get; set; }
     public int Quantity { get; set; }
@@ -28,6 +28,8 @@ public class FilteredCard
 
 public class WantListResponse
 {
-    public List<FilteredCard> FoundCards { get; set; }
-    public List<FilteredCard> MissingCards { get; set; }
+    public int CardsFound => FoundCards.Count;
+    public List<FilteredCard> FoundCards { get; set; } = [];
+    public int CardsMissing => MissingCards.Count;
+    public List<FilteredCard> MissingCards { get; set; } = [];
 }
