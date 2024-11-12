@@ -14,10 +14,22 @@ public class Card
     public bool Foil { get; set; }
     public string Condition { get; set; }
     public string Language { get; set; }
-    
-    //TODO: Add more properties
-    //TODO: Add CMC, ColorArray, IsCommander,
-    
+    public string? ImageUri { get; set; }
+    public string? Price { get; set; }
+    public double? CMC { get; set; }
+    public string? TypeLine { get; set; } // Legendary Creature, Creature, Instant, Sorcery, Enchantment, Artifact, Planeswalker, Land
+    public string? ColorIdentity { get; set; } // W, U, B, R, G, C, M
+    public string? OracleId { get; set; } // Unique identifier for the card in the Scryfall Db
+    public bool? IsCommander { get; set; }
+    public string? Rarity { get; set; }
+}
+
+public enum Rarity
+{
+    Common,
+    Uncommon,
+    Rare,
+    Mythic
 }
 
 public class FilteredCard

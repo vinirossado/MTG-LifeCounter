@@ -16,9 +16,20 @@ public class CardRepository(AppDbContext context)
         return await context.Card.ToListAsync();
     }
     
+    public async Task<List<Card>> GetMissingSyncCards()
+    {
+        return await context.Card.Where(x => x.TypeLine == null).ToListAsync();
+    }
+    
     public async Task UpdateCard(Card card)
     {
         context.Card.Update(card);
+        await context.SaveChangesAsync();
+    }
+    
+    public async Task UpdateCard(IList<Card> cards)
+    {
+        context.Card.UpdateRange(cards);
         await context.SaveChangesAsync();
     }
     

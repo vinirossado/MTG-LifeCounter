@@ -23,11 +23,13 @@ public class CardController(CardService cardService) : ControllerBase
             return BadRequest("Invalid file type");
         }
 
+        //Task.Run(async () => await cardService.ImportDatabase(file));
         await cardService.ImportDatabase(file);
 
-        return Ok();
+        return Ok(new { message = "Importação iniciada! O processo está em andamento." });
     }
 
+    
     [HttpPost("/want-list")]
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<(List<FilteredCard> foundCards, List<Card> missingCards)>> WantList([Required] IFormFile file)
@@ -60,4 +62,21 @@ public class CardController(CardService cardService) : ControllerBase
         
         return Ok(cards);
     }
+    
+    [HttpPut("/set-commander")]
+    public async Task<IActionResult> SetCommander()
+    {
+        await cardService.SetCommander();
+        
+        return Ok(new { message = "Commanders has been set!" });
+    }
+    
+    [HttpGet("/sync")]
+    public async Task<IActionResult> Sync()
+    {
+        await cardService.Sync();
+        
+        return Ok(new { message = "Commanders has been set!" });
+    }
+    
 }

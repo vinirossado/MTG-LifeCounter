@@ -3,17 +3,45 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using MTG_Card_Checker.Model;
+using MTG_Card_Checker.Repository.External.Scryfall;
 
 namespace MTG_Card_Checker.Repository;
 
-public class CardService(CardRepository cardRepository, IMemoryCache memoryCache)
+public class CardService(CardRepository cardRepository, ScryfallService scryfallService, IMemoryCache memoryCache)
 {
     private const string CacheKey = "AllCardsCache";
 
     public async Task ImportDatabase(IFormFile file)
     {
         var cards = await ReadCardsFromCsv(file);
+
+        await scryfallService.GetCardAsync(cards);
         await cardRepository.Import(cards);
+        
+        await RefreshCache();
+    }
+
+    public async Task SetCommander()
+    {
+        var cards = await cardRepository.GetCards();
+
+        foreach (var card in cards)
+        {
+            if(card.TypeLine == null) continue;
+            
+            card.IsCommander = card.TypeLine.Contains("Legendary Creature") || card.TypeLine.Contains("Summon Legend");
+        }
+        
+        await cardRepository.UpdateCard(cards);
+    }
+
+    public async Task Sync()
+    {
+        var cards = await cardRepository.GetMissingSyncCards();
+        await scryfallService.GetCardAsync(cards);
+        
+        await cardRepository.UpdateCard(cards);
+        
         await RefreshCache();
     }
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MTG_Card_Checker;
 using MTG_Card_Checker.Repository;
+using MTG_Card_Checker.Repository.External.Scryfall;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRepository>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ScryfallService>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<DeckRepository>();
