@@ -140,7 +140,7 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
             {
                 Name = card.Name,
                 Quantity = card.Quantity
-            })
+            }).OrderBy(x => x.Name)
             .ToList();
 
         missingCards.AddRange(cardsFromFile
@@ -155,7 +155,7 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
                     Name = card.Name,
                     Quantity = card.Quantity - ((dbCard?.Quantity ?? 0) - (dbCard?.InUse ?? 0))
                 };
-            })
+            }).OrderBy(x => x.Name)
             .ToList());
 
         return missingCards;
@@ -169,7 +169,7 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
             {
                 Name = card.Name,
                 Quantity = card.Quantity
-            })
+            }).OrderBy(x => x.Name)
             .ToList();
     }
 }
