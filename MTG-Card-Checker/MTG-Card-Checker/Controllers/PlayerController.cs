@@ -9,23 +9,18 @@ namespace MTG_Card_Checker.Controllers;
 [Route("api/[controller]")]
 public class PlayerController(PlayerService playerService) : ControllerBase
 {
-
+    //DATA TRANSFER OBJECT(Dto)
     [HttpPost]
     public async Task<IActionResult> Create([Required] PlayerDto playerDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest("Invalid data");
-        }
-        
-        var user = new Player()
+        var player = new Player()
         {
             Name = playerDto.Name,
             DeckName = playerDto.DeckName,
             Nationality = playerDto.Nationality,
         };
         
-        await playerService.Create(user);
+        await playerService.Create(player);
         
         return Created();
     }

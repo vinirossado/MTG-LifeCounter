@@ -37,7 +37,6 @@ builder.Services.AddScoped<PlayerRepository>();
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<DeckRepository>();
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
