@@ -5,10 +5,11 @@ namespace MTG_Card_Checker.Repository;
 
 public class PlayerRepository(AppDbContext context)
 {
-    public async Task Create(Player user)
+    public async Task<int> Create(Player user)
     {  
-        await context.Player.AddAsync(user);
+        await context.Player.AddAsync(user); 
         await context.SaveChangesAsync();
+        return user.Id;
     }
 
     public async Task<List<Player>> Get()

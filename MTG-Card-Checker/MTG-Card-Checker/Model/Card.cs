@@ -22,6 +22,8 @@ public class Card
     public string? OracleId { get; set; } // Unique identifier for the card in the Scryfall Db
     public bool? IsCommander { get; set; }
     public string? Rarity { get; set; }
+    
+    public List<CardDeck> CardDecks { get; set; } = [];
 }
 
 public enum Rarity

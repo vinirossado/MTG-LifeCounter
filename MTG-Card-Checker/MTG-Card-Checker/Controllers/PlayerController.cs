@@ -7,7 +7,7 @@ namespace MTG_Card_Checker.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PlayerController(PlayerService playerService) : ControllerBase
+public class PlayerController(PlayerService playerService, DeckService deckService) : ControllerBase
 {
     //DATA TRANSFER OBJECT(Dto)
     [HttpPost]
@@ -16,11 +16,19 @@ public class PlayerController(PlayerService playerService) : ControllerBase
         var player = new Player()
         {
             Name = playerDto.Name,
-            DeckName = playerDto.DeckName,
             Nationality = playerDto.Nationality,
         };
         
-        await playerService.Create(player);
+        var playerId = await playerService.Create(player);
+        
+        var deck = new Deck()
+        {
+            Name = playerDto.DeckName,
+            Strategy = playerDto.Strategy,
+            PlayerId = playerId,
+        };
+        
+        await deckService.AddDeck(deck);
         
         return Created();
     }
