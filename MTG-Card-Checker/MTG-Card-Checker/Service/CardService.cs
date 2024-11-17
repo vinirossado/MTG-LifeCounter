@@ -15,19 +15,12 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
     {
         var cards = await ReadCardsFromCsv(file);
         
-        //Get cards that are not in the database
-        var newCards = await cardRepository.GetMissingCards(cards);
-        await scryfallService.GetCard(newCards);
+        await scryfallService.GetCard(cards);
         await cardRepository.Add(cards);
         
         await RefreshCache();
     }
     
-    public async Task<IEnumerable<Card>> GetCards()
-    {
-        return await GetCardsFromCache();
-    }
-
     public async Task SetCommander()
     {
         var cards = await cardRepository.Get();
@@ -63,13 +56,19 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
         return (foundCards, missingCards);
     }
 
-    public async Task UpdateCard(Card card)
+    public async Task Update(Card card)
     {
         await cardRepository.Update(card);
         await RefreshCache();
     }
 
-    public async Task AddCard(Card card)
+    public async Task Add(Card card)
+    {
+        await cardRepository.Add(card);
+        await RefreshCache();
+    }
+    
+    public async Task Add(IList<Card> card)
     {
         await cardRepository.Add(card);
         await RefreshCache();
@@ -146,7 +145,7 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
             .Select(card => new FilteredCard
             {
                 Name = card.Name,
-                Quantity = card.Quantity
+                Quantity = (int)card.Quantity
             }).OrderBy(x => x.Name)
             .ToList();
 
@@ -160,7 +159,7 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
                 return new FilteredCard
                 {
                     Name = card.Name,
-                    Quantity = card.Quantity - ((dbCard?.Quantity ?? 0) - (dbCard?.InUse ?? 0))
+                    Quantity = (int)(card.Quantity - ((dbCard?.Quantity ?? 0) - (dbCard?.InUse ?? 0)))!
                 };
             }).OrderBy(x => x.Name)
             .ToList());
@@ -175,9 +174,13 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
             .Select(card => new FilteredCard
             {
                 Name = card.Name,
-                Quantity = card.Quantity
+                Quantity = (int)card.Quantity
             }).OrderBy(x => x.Name)
             .ToList();
     }
     
+    public async Task<(IList<Card>, IList<int>)> GetMissingCards(IList<Card> cards)
+    {
+        return await cardRepository.GetMissingCards(cards);
+    }
 }

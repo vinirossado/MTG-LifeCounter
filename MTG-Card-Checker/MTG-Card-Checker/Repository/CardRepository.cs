@@ -27,15 +27,26 @@ public class CardRepository(AppDbContext context)
         return await context.Card.Where(x => x.TypeLine == null).ToListAsync();
     }
 
-    public async Task<List<Card>> GetMissingCards(IList<Card> cards)
+    public async Task<(IList<Card>, IList<int>)>  GetMissingCards(IList<Card> cards)
     {
         var cardNames = cards.Select(c => c.Name).ToList();
 
-        return await context.Card
-            .Where(dbCard => !cardNames.Contains(dbCard.Name))
+        var existingCardNames = await context.Card
+            .Where(dbCard => cardNames.Contains(dbCard.Name))
+            .Select(dbCard => dbCard.Name)
             .ToListAsync();
-    }
+        
+        var existingCardIds = await context.Card
+            .Where(dbCard => cardNames.Contains(dbCard.Name))
+            .Select(dbCard => dbCard.Id)
+            .ToListAsync();
 
+        var missingCards = cards
+            .Where(c => !existingCardNames.Contains(c.Name))
+            .ToList();
+
+        return (missingCards, existingCardIds);
+    }
 
     public async Task Update(Card card)
     {
