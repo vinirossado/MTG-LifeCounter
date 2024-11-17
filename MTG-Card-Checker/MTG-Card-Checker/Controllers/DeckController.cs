@@ -9,12 +9,29 @@ namespace MTG_Card_Checker.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 
-public class DeckController(DeckService deckService) : ControllerBase
+public class DeckController(DeckService deckService, CardService cardService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Create([Required] Deck deck)
     {
         await deckService.AddDeck(deck);
+        
+        return Created();
+    }
+    
+    [HttpPost("/upload-deck")]
+    public async Task<IActionResult> UploadDeck([Required] int deckId, IFormFile file)
+    {
+        
+        var cards = await cardService.ReadCardsFromTextFile(file);
+        var cardsDeck = new List<CardDeck>();
+        
+        foreach(Card card in cards)
+        {
+            cardsDeck.Add(new CardDeck(){DeckId =deckId, CardId = card.Id});
+        };
+        
+        await deckService.UploadCards(cardsDeck);
         
         return Created();
     }

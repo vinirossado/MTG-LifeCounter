@@ -9,4 +9,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Card> Card { get; set; }
     public DbSet<Player> Player { get; set; }
     public DbSet<Deck> Deck { get; set; }
+    public DbSet<CardDeck> CardDeck { get; set; }
 }

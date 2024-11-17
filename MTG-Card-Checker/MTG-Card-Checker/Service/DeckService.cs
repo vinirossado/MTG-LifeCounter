@@ -1,8 +1,9 @@
+using System.ComponentModel.DataAnnotations;
 using MTG_Card_Checker.Model;
 
 namespace MTG_Card_Checker.Repository;
 
-public class DeckService(DeckRepository deckRepository)
+public class DeckService(DeckRepository deckRepository, CardDeckRepository cardDeckRepository)
 {
     public async Task UpdateDeck(Deck deck)
     {
@@ -22,5 +23,11 @@ public class DeckService(DeckRepository deckRepository)
     public async Task<Deck?> GetDeckById(int id)
     {
         return await deckRepository.GetDeckById(id);
+    }
+    
+    public async Task UploadCards(List<CardDeck> cards)
+    {
+        
+        await cardDeckRepository.AddCardsToDeck(cards);
     }
 }

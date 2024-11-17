@@ -31,11 +31,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register ImportRepository with DI container
 builder.Services.AddScoped<CardService>();
 builder.Services.AddScoped<CardRepository>();
+
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<ScryfallService>();
 builder.Services.AddScoped<PlayerRepository>();
+
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<DeckRepository>();
+
+builder.Services.AddScoped<CardDeckRepository>();
 
 var app = builder.Build();
 

@@ -114,7 +114,7 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
         }
     }
 
-    private async Task<IList<Card>> ReadCardsFromTextFile(IFormFile file)
+    public async Task<IList<Card>> ReadCardsFromTextFile(IFormFile file)
     {
         var cards = new List<Card>();
         using var reader = new StreamReader(file.OpenReadStream());
@@ -172,4 +172,5 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
             }).OrderBy(x => x.Name)
             .ToList();
     }
+    
 }

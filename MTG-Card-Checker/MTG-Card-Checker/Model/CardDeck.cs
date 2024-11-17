@@ -1,6 +1,6 @@
 namespace MTG_Card_Checker.Model;
 
-public class CardDeck
+public class CardDeck 
 {
     public int Id { get; set; }
     public int DeckId { get; set; }
