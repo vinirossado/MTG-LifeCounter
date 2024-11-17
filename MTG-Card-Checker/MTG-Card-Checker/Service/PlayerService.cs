@@ -4,9 +4,9 @@ namespace MTG_Card_Checker.Repository;
 
 public class PlayerService(PlayerRepository playerRepository)
 {
-    public async Task Create(Player user)
+    public async Task<int> Create(Player player)
     {
-        await playerRepository.Create(user);
+        return await playerRepository.Create(player);
     }
 
     public async Task<IList<Player>> Get()
