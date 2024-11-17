@@ -37,6 +37,9 @@ builder.Services.AddScoped<PlayerRepository>();
 builder.Services.AddScoped<DeckService>();
 builder.Services.AddScoped<DeckRepository>();
 
+//Get all cards from database and store them in memory cache
+// var cardService = builder.Services.BuildServiceProvider().GetService<CardService>();
+// cardService?.RefreshCache().ConfigureAwait(false).GetAwaiter().GetResult();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline

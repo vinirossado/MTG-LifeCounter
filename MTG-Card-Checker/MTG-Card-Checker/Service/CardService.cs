@@ -14,16 +14,23 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
     public async Task ImportDatabase(IFormFile file)
     {
         var cards = await ReadCardsFromCsv(file);
-
-        await scryfallService.GetCardAsync(cards);
-        await cardRepository.Import(cards);
+        
+        //Get cards that are not in the database
+        var newCards = await cardRepository.GetMissingCards(cards);
+        await scryfallService.GetCard(newCards);
+        await cardRepository.Add(cards);
         
         await RefreshCache();
+    }
+    
+    public async Task<IEnumerable<Card>> GetCards()
+    {
+        return await GetCardsFromCache();
     }
 
     public async Task SetCommander()
     {
-        var cards = await cardRepository.GetCards();
+        var cards = await cardRepository.Get();
 
         foreach (var card in cards)
         {
@@ -32,15 +39,15 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
             card.IsCommander = card.TypeLine.Contains("Legendary Creature") || card.TypeLine.Contains("Summon Legend");
         }
         
-        await cardRepository.UpdateCard(cards);
+        await cardRepository.Update(cards);
     }
-
+    
     public async Task Sync()
     {
         var cards = await cardRepository.GetMissingSyncCards();
-        await scryfallService.GetCardAsync(cards);
+        await scryfallService.GetCard(cards);
         
-        await cardRepository.UpdateCard(cards);
+        await cardRepository.Update(cards);
         
         await RefreshCache();
     }
@@ -58,13 +65,13 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
 
     public async Task UpdateCard(Card card)
     {
-        await cardRepository.UpdateCard(card);
+        await cardRepository.Update(card);
         await RefreshCache();
     }
 
     public async Task AddCard(Card card)
     {
-        await cardRepository.AddCard(card);
+        await cardRepository.Add(card);
         await RefreshCache();
     }
 
@@ -77,15 +84,15 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
     {
         if (memoryCache.TryGetValue(CacheKey, out IList<Card> cachedCards)) return cachedCards;
 
-        cachedCards = await cardRepository.GetCards();
+        cachedCards = await cardRepository.Get();
         memoryCache.Set(CacheKey, cachedCards);
 
         return cachedCards;
     }
 
-    private async Task RefreshCache()
+    public async Task RefreshCache()
     {
-        var updatedCards = await cardRepository.GetCards();
+        var updatedCards = await cardRepository.Get();
         memoryCache.Set(CacheKey, updatedCards);
     }
 
