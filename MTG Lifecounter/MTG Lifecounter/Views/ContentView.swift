@@ -23,7 +23,7 @@ struct ContentView: View {
                     GeometryReader { geometry in
                         VStack(spacing: 20) {
                             Button(action: {
-                                path.append("GameSetupView")
+                                path.append("GameView")
                             }) {
                                 Text("Start Game")
                                     .font(.title2)
@@ -69,8 +69,8 @@ struct ContentView: View {
                 }
                 .padding()
                 .navigationDestination(for: String.self) { view in
-                    if view == "GameSetupView" {
-                        GameSetupView()
+                    if view == "GameView" {
+                        GameView()
                     }
                     if view == "RegisterView"{
                         RegisterView()
