@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct RegistrationData: Codable {
-    let playerName: String
+struct PlayerData: Codable {
+    let name: String
     let deckName: String
-    let country: String?
+    let nationality: String?
 }

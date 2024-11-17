@@ -7,7 +7,7 @@ namespace MTG_Card_Checker.Repository.External.Scryfall
     public class ScryfallService
     {
         private static readonly HttpClient client;
-        private static readonly Dictionary<string, Root> _cache = new Dictionary<string, Root>(); // Cache para armazenar o objeto desserializado
+        private static readonly Dictionary<string, Root> _cache = new();
 
         static ScryfallService()
         {
@@ -21,7 +21,7 @@ namespace MTG_Card_Checker.Repository.External.Scryfall
             };
         }
 
-        public async Task GetCardAsync(IList<Card> cards)
+        public async Task GetCard(IList<Card> cards)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace MTG_Card_Checker.Repository.External.Scryfall
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
-
+        
         private static void ProcessScryfallResponse(Card card, Root deserializedCard)
         {
             if (deserializedCard.Data.Count <= 0) return;

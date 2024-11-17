@@ -1,11 +1,15 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct RegisterView: View {
     @State private var playerName = ""
     @State private var deckName = ""
+    @State private var strategy = ""
     @State private var selectedCountry: Country?
     @State private var showingAlert = false
     @State private var alertMessage = ""
+    @State private var isFileImporterPresented = false
+    @State private var isLoading = false // For LoadingOverlay
     
     @State private var manager = DeviceOrientationManager.shared
     
@@ -13,63 +17,123 @@ struct RegisterView: View {
         ScrollView {
             VStack {
                 Spacer()
-                HStack {
-                    Spacer()
-                    VStack(alignment: .center, spacing: manager.adaptiveSpacing) {
-                        Text("New Player")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .padding(.top, manager.value(portrait: 40, landscape: 60))
+                
+                // Title
+                Text("Register New Player")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.top, manager.value(portrait: 40, landscape: 60))
+                
+                VStack(alignment: .center, spacing: 20) {
+                    // Form with shadow and rounded corners
+                    formView
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        .padding(.horizontal, 20)
+                    
+                    // Buttons
+                    VStack(spacing: 15) {
+                        Button(action: {
+                            isFileImporterPresented = true
+                        }) {
+                            Text("Import from File")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(Color.green)
+                                .cornerRadius(10)
+                        }
                         
-                        if manager.isLandscape && manager.isPad {
-                            HStack(alignment: .top, spacing: manager.adaptiveSpacing) {
-                                formView
-                            }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(manager.adaptivePadding)
-                        } else {
-                            VStack(spacing: manager.adaptiveSpacing) {
-                                formView
-                            }
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(manager.adaptivePadding)
+                        Button(action: getUser) {
+                            Text("Get User")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(Color.blue)
+                                .cornerRadius(10)
                         }
                         
                         Button(action: submitForm) {
                             Text("Register")
                                 .font(.headline)
                                 .foregroundColor(.white)
-                                .frame(maxWidth: manager.value(portrait: 300, landscape: 400))
+                                .frame(maxWidth: .infinity)
                                 .frame(height: 50)
                                 .background(Color.blue)
                                 .cornerRadius(10)
                         }
-                        .padding(.vertical, manager.adaptiveSpacing)
                     }
-                    .frame(maxWidth: manager.value(portrait: 600, landscape: 800))
-                    Spacer()
+                    .padding(.horizontal, 20)
                 }
+                
                 Spacer()
             }
             .frame(minHeight: manager.height)
         }
-        .trackDeviceOrientation() // Aplica o modifier de orientação
+        .fileImporter(isPresented: $isFileImporterPresented, allowedContentTypes: [.plainText]) { result in
+            handleFileImport(result: result)
+        }
         .alert("Registration", isPresented: $showingAlert) {
             Button("OK") {}
         } message: {
             Text(alertMessage)
         }
+        .loadingOverlay(isShowing: $isLoading, message: "Processing...") // LoadingOverlay
     }
     
+    // Form View
     var formView: some View {
-        VStack(alignment: .center, spacing: manager.value(portrait: 15, landscape: 20)) {
+        VStack(alignment: .leading, spacing: 20) {
             FormField(title: "Player Name *", text: $playerName, placeholder: "Enter player name")
             FormField(title: "Deck Name *", text: $deckName, placeholder: "Enter deck name")
-                .keyboardType(.emailAddress)
-                .autocapitalization(.none)
+            FormField(title: "Strategy *", text: $strategy, placeholder: "Enter your deck strategy")
+
             CountryPickerField(title: "Nationality", selectedCountry: $selectedCountry)
         }
-        .frame(width: manager.value(portrait: 300, landscape: 400))
+        .padding(20)
+    }
+    
+    // File Import Handler
+    func handleFileImport(result: Result<URL, Error>) {
+        switch result {
+        case .success(let fileURL):
+            do {
+                // Explicitly specify the encoding
+                let contents = try String(contentsOf: fileURL, encoding: .utf8)
+                let lines = contents.components(separatedBy: "\n")
+                if lines.count >= 2 {
+                    playerName = lines[0]
+                    deckName = lines[1]
+                    alertMessage = "File imported successfully!"
+                } else {
+                    alertMessage = "File format incorrect. First line: player name, second line: deck name."
+                }
+            } catch {
+                alertMessage = "Failed to read file contents: \(error.localizedDescription)"
+            }
+            showingAlert = true
+        case .failure(let error):
+            alertMessage = "Failed to import file: \(error.localizedDescription)"
+            showingAlert = true
+        }
+    }
+    
+    func getUser() {
+        isLoading = true // Show loading
+        NetworkManager.shared.getPlayers { result in
+            DispatchQueue.main.async {
+                isLoading = false // Hide loading
+                if case .success(let players) = result {
+                    print(players)
+                } else if case .failure(let error) = result {
+                    alertMessage = "Failed to fetch users: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+        }
     }
     
     func submitForm() {
@@ -79,12 +143,13 @@ struct RegisterView: View {
             return
         }
         
-        let country = "BR"
-//        let country = "selectedCountry?.name" // Assuming `Country` has a `name` property
-        let registrationData = RegistrationData(playerName: playerName, deckName: deckName, country: country)
+        let country = selectedCountry?.name
+        let registrationData = PlayerData(name: playerName, deckName: deckName, nationality: country)
         
+        isLoading = true // Show loading
         NetworkManager.shared.registerPlayer(data: registrationData) { result in
             DispatchQueue.main.async {
+                isLoading = false // Hide loading
                 switch result {
                 case .success(let message):
                     alertMessage = message
@@ -97,6 +162,7 @@ struct RegisterView: View {
     }
 }
 
+// Form Field View
 struct FormField: View {
     let title: String
     @Binding var text: String
@@ -109,20 +175,22 @@ struct FormField: View {
             
             TextField(placeholder, text: $text)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.vertical, 10)
+                .padding(.horizontal, 15)
+                .background(Color.white)
+                .cornerRadius(8)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3)
         }
     }
 }
 
+// Preview
 struct RegisterView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             RegisterView()
                 .previewDevice("iPad Pro (11-inch)")
                 .previewInterfaceOrientation(.portrait)
-            
-            RegisterView()
-                .previewDevice("iPad Pro (11-inch)")
-                .previewInterfaceOrientation(.landscapeLeft)
             
             RegisterView()
                 .previewDevice("iPhone 14 Pro")

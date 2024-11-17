@@ -29,7 +29,6 @@ struct CountryPickerField: View {
     @State private var isShowingPicker = false
     @State private var searchText = ""
     
-    // List of countries with their flags
     private let countries = [
         Country(name: "Brazil", flag: Country.flagEmoji(for: "BR")),
         Country(name: "Estonia", flag: Country.flagEmoji(for: "EE")),

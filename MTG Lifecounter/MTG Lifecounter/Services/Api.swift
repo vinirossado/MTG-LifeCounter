@@ -11,8 +11,8 @@ class NetworkManager {
     static let shared = NetworkManager()
     private init() {}
     
-    func registerPlayer(data: RegistrationData, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let url = URL(string: "http://192.168.1.216:5010/api/user") else {
+    func registerPlayer(data: PlayerData, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: "http://localhost:5010/api/player") else {
             completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
             return
         }
@@ -35,12 +35,58 @@ class NetworkManager {
                 return
             }
             
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                completion(.failure(NSError(domain: "Invalid response", code: 0, userInfo: nil)))
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "No response from server", code: 0, userInfo: nil)))
                 return
             }
             
-            completion(.success("Registration successful!"))
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let statusError = NSError(domain: "HTTP Error", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Received HTTP \(httpResponse.statusCode)"])
+                completion(.failure(statusError))
+                return
+            }
+            
+            if let data = data, let message = String(data: data, encoding: .utf8) {
+                completion(.success(message))
+            } else {
+                completion(.success("Registration successful!"))
+            }
+        }.resume()
+    }
+
+    func getPlayers(completion: @escaping (Result<String, Error>) -> Void) {
+        guard let url = URL(string: "http://localhost:5010/api/player") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: 0, userInfo: nil)))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "No response from server", code: 0, userInfo: nil)))
+                return
+            }
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let statusError = NSError(domain: "HTTP Error", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Received HTTP \(httpResponse.statusCode)"])
+                completion(.failure(statusError))
+                return
+            }
+            
+          
+            if let data = data, let message = String(data: data, encoding: .utf8) {
+                completion(.success(message))
+            } else {
+                completion(.success("Registration successful!"))
+            }
         }.resume()
     }
 }
