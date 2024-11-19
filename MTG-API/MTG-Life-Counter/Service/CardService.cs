@@ -47,13 +47,14 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
 
     public async Task<(List<FilteredCard> foundCards, List<FilteredCard> missingCards)> CompareWantListWithDb(IFormFile file)
     {
-        var cardsFromFile = await ReadCardsFromTextFile(file);
-        var allCardsInDb = await GetCardsFromCache();
+        // var cardsFromFile = await ReadCardsFromTextFile(file);
+        // var allCardsInDb = await GetCardsFromCache();
+        //
+        // var missingCards = GetMissingCards(cardsFromFile, allCardsInDb);
+        // var foundCards = GetFoundCards(cardsFromFile, allCardsInDb);
 
-        var missingCards = GetMissingCards(cardsFromFile, allCardsInDb);
-        var foundCards = GetFoundCards(cardsFromFile, allCardsInDb);
-
-        return (foundCards, missingCards);
+        // return (foundCards, missingCards);
+        return (null, null);
     }
 
     public async Task Update(Card card)
@@ -120,63 +121,47 @@ public class CardService(CardRepository cardRepository, ScryfallService scryfall
         }
     }
 
-    public async Task<IList<Card>> ReadCardsFromTextFile(IFormFile file)
-    {
-        var cards = new List<Card>();
-        using var reader = new StreamReader(file.OpenReadStream());
-
-        while (reader.Peek() >= 0)
-        {
-            var line = await reader.ReadLineAsync();
-            var parts = line?.Split(new[] { ' ' }, 2);
-            if (parts?.Length == 2 && int.TryParse(parts[0], out var quantity))
-            {
-                cards.Add(new Card { Quantity = quantity, Name = parts[1].Trim() });
-            }
-        }
-
-        return cards;
-    }
-
     private List<FilteredCard> GetMissingCards(IList<Card>? cardsFromFile, IList<Card> allCardsInDb)
     {
-        var missingCards = cardsFromFile
-            .Where(card => allCardsInDb.All(dbCard => dbCard.Name != card.Name))
-            .Select(card => new FilteredCard
-            {
-                Name = card.Name,
-                Quantity = (int)card.Quantity
-            }).OrderBy(x => x.Name)
-            .ToList();
+        // var missingCards = cardsFromFile
+        //     .Where(card => allCardsInDb.All(dbCard => dbCard.Name != card.Name))
+        //     .Select(card => new FilteredCard
+        //     {
+        //         Name = card.Name,
+        //         Quantity = 1
+        //     }).OrderBy(x => x.Name)
+        //     .ToList();
+        //
+        // missingCards.AddRange(cardsFromFile
+        //     .Where(card => allCardsInDb.Any(dbCard =>
+        //         dbCard.Name == card.Name &&
+        //         card.Quantity > dbCard.Quantity - dbCard.InUse))
+        //     .Select(card =>
+        //     {
+        //         var dbCard = allCardsInDb.FirstOrDefault(dbCard => dbCard.Name == card.Name);
+        //         return new FilteredCard
+        //         {
+        //             Name = card.Name,
+        //             Quantity = (int)(card.Quantity - ((dbCard?.Quantity ?? 0) - (dbCard?.InUse ?? 0)))!
+        //         };
+        //     }).OrderBy(x => x.Name)
+        //     .ToList());
 
-        missingCards.AddRange(cardsFromFile
-            .Where(card => allCardsInDb.Any(dbCard =>
-                dbCard.Name == card.Name &&
-                card.Quantity > dbCard.Quantity - dbCard.InUse))
-            .Select(card =>
-            {
-                var dbCard = allCardsInDb.FirstOrDefault(dbCard => dbCard.Name == card.Name);
-                return new FilteredCard
-                {
-                    Name = card.Name,
-                    Quantity = (int)(card.Quantity - ((dbCard?.Quantity ?? 0) - (dbCard?.InUse ?? 0)))!
-                };
-            }).OrderBy(x => x.Name)
-            .ToList());
-
-        return missingCards;
+        //return missingCards;
+        return null;
     }
 
     private List<FilteredCard> GetFoundCards(IList<Card> cardsFromFile, IList<Card> allCardsInDb)
     {
-        return cardsFromFile
-            .Where(card => allCardsInDb.Any(dbCard => dbCard.Name == card.Name && card.Quantity <= dbCard.Quantity - dbCard.InUse))
-            .Select(card => new FilteredCard
-            {
-                Name = card.Name,
-                Quantity = (int)card.Quantity
-            }).OrderBy(x => x.Name)
-            .ToList();
+        // return cardsFromFile
+        //     .Where(card => allCardsInDb.Any(dbCard => dbCard.Name == card.Name && card.Quantity <= dbCard.Quantity - dbCard.InUse))
+        //     .Select(card => new FilteredCard
+        //     {
+        //         Name = card.Name,
+        //         Quantity = (int)card.Quantity
+        //     }).OrderBy(x => x.Name)
+        //     .ToList();
+        return null;
     }
     
     public async Task<(IList<Card>, IList<int>)> GetMissingCards(IList<Card> cards)

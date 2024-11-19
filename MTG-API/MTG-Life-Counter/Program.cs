@@ -1,11 +1,13 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MTG_Card_Checker;
 using MTG_Card_Checker.Repository;
 using MTG_Card_Checker.Repository.External.Scryfall;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register controllers, Swagger, and other services
+// Register controllers and other services
 
 builder.Services.AddCors(options =>
 {
@@ -18,9 +20,14 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddControllers();
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+    options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true;
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 
 // Register DbContext with DI container
@@ -41,14 +48,17 @@ builder.Services.AddScoped<DeckRepository>();
 
 builder.Services.AddScoped<CardDeckRepository>();
 
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
+// Configure the HTTP request pipeline
+
 app.UseCors("AllowSpecificOrigins");
 
 app.UseHttpsRedirection();

@@ -22,7 +22,8 @@ public class DeckController(DeckService deckService, CardService cardService, Sc
     public async Task<IActionResult> UploadDeck([Required] int deckId, IFormFile file)
     {
         // Read cards from the uploaded file
-        var cards = await cardService.ReadCardsFromTextFile(file);
+        //var cards = await cardService.ReadCardsFromTextFile(file);
+        var cards = new List<Card>();
         if (!cards.Any())
             return BadRequest("No valid cards found in the file.");
 
