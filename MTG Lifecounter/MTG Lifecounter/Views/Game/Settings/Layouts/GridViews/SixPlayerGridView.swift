@@ -18,14 +18,14 @@ struct SixPlayerGridView: View {
                 HStack(spacing: spacing) {
                     ForEach(0..<3) { _ in
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color(UIColor.systemGray4))
+                            .fill(Color(UIColor.systemGray6))
                             .frame(width: columnWidth, height: rowHeight)
                     }
                 }
                 HStack(spacing: spacing) {
                     ForEach(0..<3) { _ in
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color(UIColor.systemGray4))
+                            .fill(Color(UIColor.systemGray6))
                             .frame(width: columnWidth, height: rowHeight)
                     }
                 }

@@ -8,59 +8,55 @@
 import SwiftUI
 
 struct SettingsView: View {
-    let items: [AnyView] = Array(
-            repeating: AnyView(
-                RoundedRectangle(cornerRadius: 12)
-                    .frame(width: 300, height: 200)
-                    .foregroundStyle(.red)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue, lineWidth: 4)
-                    )
-                    
-            ), count: 6
-        )
+//    @State private var manager = DeviceOrientationManager.shared
+    @State private var selected: PlayerLayouts = .two
     
     var body: some View {
-        VStack() {
+        VStack(alignment: .leading, spacing: 0) {
             Text("Settings")
-                .font(.system(size: 32))
+                .font(.system(size: 30, weight: .bold))
+                .padding(.bottom, 32)
             
             Text("Players")
-                .padding(.top, 32)
-            
-            LazyVGrid(
-                columns: [
-                    GridItem(.fixed(300), spacing: 16),
-                    GridItem(.fixed(300), spacing: 16),
-                    GridItem(.fixed(300), spacing: 16)
-                ],
-                spacing: 16 // Vertical spacing
-            ) {
-                ForEach(0..<items.count, id: \.self) { index in
-                    items[index]
+                .font(.system(size: 24, weight: .semibold))
+                .padding(.bottom, 16)
+                
+            VStack {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                    PlayerLayout(isSelected: selected == .two, onClick: {
+                        selected = .two
+                    }, players: .two)
+                    PlayerLayout(isSelected: selected == .threeLeft, onClick: {
+                        selected = .threeLeft
+                    }, players: .threeLeft)
+                    PlayerLayout(isSelected: selected == .threeRight, onClick: {
+                        selected = .threeRight
+                    }, players: .threeRight)
+                    PlayerLayout(isSelected: selected == .four, onClick: {
+                        selected = .four
+                    }, players: .four)
+                    PlayerLayout(isSelected: selected == .five, onClick: {
+                        selected = .five
+                    }, players: .five)
+                    PlayerLayout(isSelected: selected == .six, onClick: {
+                        selected = .six
+                    }, players: .six)
                 }
+                
+                LifePointsView()
             }
-            .padding(16)
         }
-        .font(.system(size: 24))
-        .foregroundStyle(.white)
         .frame(
-            width: UIScreen.main.bounds.width,
+            width: UIScreen.main.bounds.width - 256,
             height: UIScreen.main.bounds.height,
             alignment: .top
         )
-        .background(Color(hex: "#18181b"))
-        .cornerRadius(16)
-        .edgesIgnoringSafeArea(.all)
-        .padding(.top, 32)
+        .padding(.horizontal, 128)
+        .padding(.top, 64)
     }
 }
 
 #Preview {
-    HStack() {
-        SettingsView()
-    }
-    .scrollTargetLayout()
+    SettingsView()
 }
 

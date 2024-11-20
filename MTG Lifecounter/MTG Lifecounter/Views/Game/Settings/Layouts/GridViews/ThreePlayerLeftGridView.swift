@@ -16,16 +16,16 @@ struct ThreePlayerLeftGridView: View {
             
             HStack(spacing: spacing) {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(UIColor.systemGray4))
+                    .fill(Color(UIColor.systemGray6))
                     .frame(width: width, height: geometry.size.height)
                 
                 VStack(spacing: spacing) {
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(UIColor.systemGray4))
+                        .fill(Color(UIColor.systemGray6))
                         .frame(width: width, height: height)
                     
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(UIColor.systemGray4))
+                        .fill(Color(UIColor.systemGray6))
                         .frame(width: width, height: height)
                 }
             }
