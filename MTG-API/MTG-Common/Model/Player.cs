@@ -6,6 +6,7 @@ public class Player
     public required string Name { get; init; } = "";
     public string Nationality { get; init; } = "";
     
+    public List<string> LanguagesSpoken { get; init; } = new();
     public ICollection<Deck> Decks { get; init; } = new List<Deck>();
 }
 

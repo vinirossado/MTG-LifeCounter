@@ -12,4 +12,8 @@
         <PackageReference Include="Scalar.AspNetCore" Version="1.2.39" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MTG-Life-Counter\MTG-Life-Counter.csproj" />
+    </ItemGroup>
+
 </Project>
