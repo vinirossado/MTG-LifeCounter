@@ -73,7 +73,7 @@ struct ContentView: View {
                         GameView()
                     }
                     if view == "RegisterView"{
-                        RegisterView()
+                        PlayerRegistrationView()
                     }
                 }
             }

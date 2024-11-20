@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct RegisterView: View {
+struct PlayerRegistrationView: View {
     @State private var playerName = ""
     @State private var deckName = ""
     @State private var strategy = ""
@@ -9,91 +9,120 @@ struct RegisterView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var isFileImporterPresented = false
-    @State private var isLoading = false // For LoadingOverlay
+    @State private var isLoading = false
     
     @State private var manager = DeviceOrientationManager.shared
     
     var body: some View {
-        ScrollView {
-            VStack {
-                Spacer()
-                
-                // Title
-                Text("Register New Player")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.top, manager.value(portrait: 40, landscape: 60))
-                
-                VStack(alignment: .center, spacing: 20) {
-                    // Form with shadow and rounded corners
+        ZStack {
+            // Background
+            LinearGradient(
+                gradient: Gradient(colors: [.darkNavyBackground, .oceanBlueBackground]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 30) {
+                    Spacer()
+                    
+                    // Title
+                    Text("Register New Player")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.lightGrayText)
+                        .padding(.top, manager.value(portrait: 40, landscape: 60))
+                    
+                    // Form
                     formView
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.steelGrayBackground.opacity(0.8))
+                        )
                         .padding(.horizontal, 20)
+                        .shadow(color: Color.black.opacity(0.2), radius: 15, x: 0, y: 5)
                     
                     // Buttons
                     VStack(spacing: 15) {
-                        Button(action: {
+                        actionButton(
+                            title: "Import from File",
+                            icon: "doc.badge.plus",
+                            color: Color.green
+                        ) {
                             isFileImporterPresented = true
-                        }) {
-                            Text("Import from File")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.green)
-                                .cornerRadius(10)
                         }
                         
-                        Button(action: getUser) {
-                            Text("Get User")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.blue)
-                                .cornerRadius(10)
+                        actionButton(
+                            title: "Get User",
+                            icon: "person.crop.circle.fill.badge.plus",
+                            color: Color.blue
+                        ) {
+                            getUser()
                         }
                         
-                        Button(action: submitForm) {
-                            Text("Register")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(Color.blue)
-                                .cornerRadius(10)
+                        actionButton(
+                            title: "Register",
+                            icon: "checkmark.circle.fill",
+                            color: Color.blue
+                        ) {
+                            submitForm()
                         }
                     }
                     .padding(.horizontal, 20)
+                    
+                    Spacer()
                 }
-                
-                Spacer()
+                .padding(.vertical, 40)
             }
-            .frame(minHeight: manager.height)
+            .fileImporter(isPresented: $isFileImporterPresented, allowedContentTypes: [.plainText]) { result in
+                handleFileImport(result: result)
+            }
+            .alert("Registration", isPresented: $showingAlert) {
+                Button("OK") {}
+            } message: {
+                Text(alertMessage)
+                    .foregroundColor(.mutedSilverText)
+            }
         }
-        .fileImporter(isPresented: $isFileImporterPresented, allowedContentTypes: [.plainText]) { result in
-            handleFileImport(result: result)
-        }
-        .alert("Registration", isPresented: $showingAlert) {
-            Button("OK") {}
-        } message: {
-            Text(alertMessage)
-        }
-        .loadingOverlay(isShowing: $isLoading, message: "Processing...") // LoadingOverlay
+        .loadingOverlay(isShowing: $isLoading, message: "Processing...") // Custom Loading
     }
     
     // Form View
     var formView: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 20) {
             FormField(title: "Player Name *", text: $playerName, placeholder: "Enter player name")
             FormField(title: "Deck Name *", text: $deckName, placeholder: "Enter deck name")
             FormField(title: "Strategy *", text: $strategy, placeholder: "Enter your deck strategy")
-
             CountryPickerField(title: "Nationality", selectedCountry: $selectedCountry)
         }
         .padding(20)
+    }
+    
+    // Action Button
+    @ViewBuilder
+    func actionButton(title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [color.opacity(0.8), color]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 3)
+        }
     }
     
     // File Import Handler
@@ -101,7 +130,6 @@ struct RegisterView: View {
         switch result {
         case .success(let fileURL):
             do {
-                // Explicitly specify the encoding
                 let contents = try String(contentsOf: fileURL, encoding: .utf8)
                 let lines = contents.components(separatedBy: "\n")
                 if lines.count >= 2 {
@@ -122,10 +150,10 @@ struct RegisterView: View {
     }
     
     func getUser() {
-        isLoading = true // Show loading
+        isLoading = true
         NetworkManager.shared.getPlayers { result in
             DispatchQueue.main.async {
-                isLoading = false // Hide loading
+                isLoading = false
                 if case .success(let players) = result {
                     print(players)
                 } else if case .failure(let error) = result {
@@ -146,10 +174,10 @@ struct RegisterView: View {
         let country = selectedCountry?.name
         let registrationData = PlayerData(name: playerName, deckName: deckName, nationality: country)
         
-        isLoading = true // Show loading
+        isLoading = true
         NetworkManager.shared.registerPlayer(data: registrationData) { result in
             DispatchQueue.main.async {
-                isLoading = false // Hide loading
+                isLoading = false
                 switch result {
                 case .success(let message):
                     alertMessage = message
@@ -172,14 +200,17 @@ struct FormField: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
+                .foregroundColor(.lightGrayText)
             
             TextField(placeholder, text: $text)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.vertical, 10)
-                .padding(.horizontal, 15)
-                .background(Color.white)
+                .padding(12)
+                .background(Color.white.opacity(0.9))
                 .cornerRadius(8)
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3)
+                .foregroundColor(.black)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.mutedSilverText, lineWidth: 1)
+                )
         }
     }
 }
@@ -188,11 +219,11 @@ struct FormField: View {
 struct RegisterView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            RegisterView()
+            PlayerRegistrationView()
                 .previewDevice("iPad Pro (11-inch)")
                 .previewInterfaceOrientation(.portrait)
             
-            RegisterView()
+            PlayerRegistrationView()
                 .previewDevice("iPhone 14 Pro")
         }
     }
