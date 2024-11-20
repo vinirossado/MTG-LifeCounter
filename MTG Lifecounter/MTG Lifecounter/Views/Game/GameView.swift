@@ -151,11 +151,20 @@ struct GameView: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            GameLayoutBuilder.buildLayout(for: players.indices.map { $players[$0] })
+        ScrollView(.horizontal) {
+            HStack() {
+                GeometryReader { geometry in
+                    GameLayoutBuilder.buildLayout(for: players.indices.map { $players[$0] })
+                }
+                .navigationBarHidden(true)
+                .ignoresSafeArea()
+                .containerRelativeFrame(.horizontal, count: 1, spacing: 16)
+   
+                SettingsView()
+            }
+            .scrollTargetLayout()
         }
-        .navigationBarHidden(true)
-        .ignoresSafeArea() 
+        .scrollTargetBehavior(.paging)
     }
 }
 
