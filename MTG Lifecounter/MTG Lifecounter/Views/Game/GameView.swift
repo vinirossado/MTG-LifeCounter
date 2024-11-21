@@ -148,10 +148,10 @@ struct SixPlayersLayout: View {
 struct GameView: View {
     @EnvironmentObject var gameSettings: GameSettings
     @State var players: [Player] = []
-        
+
     private func setupPlayers() {
         let playerQuantity: Int
-        
+
         switch gameSettings.layout {
         case .two:
             playerQuantity = 2
@@ -187,6 +187,10 @@ struct GameView: View {
         }
         .scrollTargetBehavior(.paging)
         .onAppear {
+            setupPlayers()
+        }
+        .onChange(of: gameSettings.startingLife) { oldValue, newValue in
+            print("Starting Life changed from \(oldValue) to \(newValue)")
             setupPlayers()
         }
     }

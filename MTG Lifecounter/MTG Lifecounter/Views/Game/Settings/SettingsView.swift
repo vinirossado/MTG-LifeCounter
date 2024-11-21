@@ -9,9 +9,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var gameSettings: GameSettings
-//    @State private var selected: PlayerLayouts = .two
-    
+
     var body: some View {
+
         VStack(alignment: .leading, spacing: 0) {
             Text("Settings")
                 .font(.system(size: 30, weight: .bold))
@@ -42,7 +42,7 @@ struct SettingsView: View {
                         gameSettings.layout = .six
                     }, players: .six)
                 }
-                
+             
                 LifePointsView()
             }
         }
@@ -55,9 +55,9 @@ struct SettingsView: View {
         .padding(.top, 64)
     }
 }
-
-#Preview {
-    SettingsView()
-        .environmentObject(GameSettings())
-}
+//
+//#Preview {
+//    SettingsView(userName: Binding<string>)
+//        .environmentObject(GameSettings())
+//}
 
