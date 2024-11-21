@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct LifePointsView: View {
-    @State private var selectedLifePoints: Int? = nil
+    @EnvironmentObject var gameSettings: GameSettings
     let lifePointsOptions = [20, 25, 40, 0]
 
     var body: some View {
@@ -21,25 +21,25 @@ struct LifePointsView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
                 ForEach(lifePointsOptions, id: \.self) { points in
                     Button(action: {
-                        selectedLifePoints = points
+                        gameSettings.startingLife = points
                     }) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemGray6)) // Background color
+                                .fill(Color(.systemGray6))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(
-                                            selectedLifePoints == points ? Color.white : Color.clear,
+                                            gameSettings.startingLife == points ? Color.white : Color.clear,
                                             lineWidth: 2
                                         )
                                 )
-                                .animation(.easeInOut(duration: 0.15), value: selectedLifePoints)
+                                .animation(.easeInOut(duration: 0.15), value: gameSettings.startingLife)
 
                             Text("\(points)")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
                         }
-                        .frame(height: 100) // Adjust height to maintain aspect ratio
+                        .frame(height: 100)
                     }
                 }
             }
@@ -50,4 +50,5 @@ struct LifePointsView: View {
 
 #Preview {
     LifePointsView()
+        .environmentObject(GameSettings())
 }

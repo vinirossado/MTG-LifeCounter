@@ -146,11 +146,32 @@ struct SixPlayersLayout: View {
 
 // MARK: - Main View
 struct GameView: View {
-    @State private var players: [Player] = (1...6).map { idx in
-        Player(HP: 40, name: "Player \(idx)")
+    @EnvironmentObject var gameSettings: GameSettings
+    @State var players: [Player] = []
+        
+    private func setupPlayers() {
+        let playerQuantity: Int
+        
+        switch gameSettings.layout {
+        case .two:
+            playerQuantity = 2
+        case .threeLeft, .threeRight:
+            playerQuantity = 3
+        case .four:
+            playerQuantity = 4
+        case .five:
+            playerQuantity = 5
+        case .six:
+            playerQuantity = 6
+        }
+        
+        players = (1...playerQuantity).map { idx in
+            Player(HP: gameSettings.startingLife, name: "Player \(idx)")
+        }
     }
-    
+
     var body: some View {
+        
         ScrollView(.horizontal) {
             HStack() {
                 GeometryReader { geometry in
@@ -165,9 +186,13 @@ struct GameView: View {
             .scrollTargetLayout()
         }
         .scrollTargetBehavior(.paging)
+        .onAppear {
+            setupPlayers()
+        }
     }
 }
 
 #Preview {
     GameView()
+        .environmentObject(GameSettings())
 }

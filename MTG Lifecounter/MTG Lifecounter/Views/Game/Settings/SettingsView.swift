@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct SettingsView: View {
-//    @State private var manager = DeviceOrientationManager.shared
-    @State private var selected: PlayerLayouts = .two
+    @EnvironmentObject var gameSettings: GameSettings
+//    @State private var selected: PlayerLayouts = .two
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -23,23 +23,23 @@ struct SettingsView: View {
                 
             VStack {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-                    PlayerLayout(isSelected: selected == .two, onClick: {
-                        selected = .two
+                    PlayerLayout(isSelected: gameSettings.layout == .two, onClick: {
+                        gameSettings.layout = .two
                     }, players: .two)
-                    PlayerLayout(isSelected: selected == .threeLeft, onClick: {
-                        selected = .threeLeft
+                    PlayerLayout(isSelected: gameSettings.layout == .threeLeft, onClick: {
+                        gameSettings.layout = .threeLeft
                     }, players: .threeLeft)
-                    PlayerLayout(isSelected: selected == .threeRight, onClick: {
-                        selected = .threeRight
+                    PlayerLayout(isSelected: gameSettings.layout == .threeRight, onClick: {
+                        gameSettings.layout = .threeRight
                     }, players: .threeRight)
-                    PlayerLayout(isSelected: selected == .four, onClick: {
-                        selected = .four
+                    PlayerLayout(isSelected: gameSettings.layout == .four, onClick: {
+                        gameSettings.layout = .four
                     }, players: .four)
-                    PlayerLayout(isSelected: selected == .five, onClick: {
-                        selected = .five
+                    PlayerLayout(isSelected: gameSettings.layout == .five, onClick: {
+                        gameSettings.layout = .five
                     }, players: .five)
-                    PlayerLayout(isSelected: selected == .six, onClick: {
-                        selected = .six
+                    PlayerLayout(isSelected: gameSettings.layout == .six, onClick: {
+                        gameSettings.layout = .six
                     }, players: .six)
                 }
                 
@@ -58,5 +58,6 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .environmentObject(GameSettings())
 }
 
