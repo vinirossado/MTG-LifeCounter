@@ -55,9 +55,9 @@ struct SettingsView: View {
         .padding(.top, 64)
     }
 }
-//
-//#Preview {
-//    SettingsView(userName: Binding<string>)
-//        .environmentObject(GameSettings())
-//}
+
+#Preview {
+    SettingsView()
+        .environmentObject(GameSettings())
+}
 
