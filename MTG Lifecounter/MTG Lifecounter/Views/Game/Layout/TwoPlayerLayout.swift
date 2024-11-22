@@ -11,7 +11,7 @@ struct TwoPlayerLayout: View {
     @EnvironmentObject var playerState: PlayerState
     
     var body: some View {
-        if playerState.players.count >= 4 {
+        if playerState.players.count >= 2 {
             HStack(spacing: 10) {
                 if let player1 = playerState.bindingForPlayer(at: 0) {
                     PlayerView(player: player1, orientation: .right)
