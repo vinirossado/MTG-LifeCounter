@@ -188,7 +188,7 @@ struct HorizontalPlayerView: View {
                         .font(.system(size: 24))
                     Spacer()
                 }
-                .padding(.leading, 16)
+                .padding(.leading, 32)
                 
                 HStack {
                     Spacer()
@@ -196,7 +196,7 @@ struct HorizontalPlayerView: View {
                         .foregroundColor(DEFAULT_STYLES.foreground)
                         .font(.system(size: 24))
                 }
-                .padding(.trailing, 16)
+                .padding(.trailing, 32)
                 
                 if cumulativeChange != 0 {
                     Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
@@ -234,71 +234,73 @@ struct VerticalPlayerView: View {
     var orientation: OrientationLayout
     
     var body: some View {
-        VStack(spacing: 0) {
-            PressableRectangle(
-                isPressed: $isLeftPressed,
-                player: $player,
-                side: .right,
-                updatePoints: updatePoints,
-                startHoldTimer: startHoldTimer,
-                stopHoldTimer: stopHoldTimer
-            )
-            
-            PressableRectangle(
-                isPressed: $isRightPressed,
-                player: $player,
-                side: .left,
-                updatePoints: updatePoints,
-                startHoldTimer: startHoldTimer,
-                stopHoldTimer: stopHoldTimer
-            )
-        }
-        
-        .cornerRadius(16)
-        .foregroundColor(.white)
-        .overlay(
-            ZStack {
-                Text("\(player.HP)")
-                    .font(.system(size: 48))
-                    .rotationEffect(Angle(degrees: 270))
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                PressableRectangle(
+                    isPressed: $isLeftPressed,
+                    player: $player,
+                    side: .right,
+                    updatePoints: updatePoints,
+                    startHoldTimer: startHoldTimer,
+                    stopHoldTimer: stopHoldTimer
+                )
                 
-                VStack {
-                    Spacer()
-                    Image(systemName: "minus")
-                        .foregroundColor(DEFAULT_STYLES.foreground)
-                        .font(.system(size: 24))
-                        .rotationEffect(Angle(degrees: 90))
-                }
-                .padding(.bottom, 24)
-                
-                VStack {
-                    Image(systemName: "plus")
-                        .foregroundColor(DEFAULT_STYLES.foreground)
-                        .font(.system(size: 24))
-                    Spacer()
-                }
-                .padding(.top, 24)
-                
-                if cumulativeChange != 0 {
-                    Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
-                        .font(.system(size: 24))
-                        .foregroundColor(DEFAULT_STYLES.foreground)
-                        .offset(x: cumulativeChange > 0 ? 60 : -60)
-                        .opacity(showChange ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.3), value: showChange)
-                        .rotationEffect(Angle(degrees: 270))
-                }
-                
-                HStack {
-                    Text(player.name)
-                        .font(.system(size: 24))
-                        .foregroundColor(DEFAULT_STYLES.foreground)
-                        .rotationEffect(Angle(degrees: 270))
-                    Spacer()
-                }
+                PressableRectangle(
+                    isPressed: $isRightPressed,
+                    player: $player,
+                    side: .left,
+                    updatePoints: updatePoints,
+                    startHoldTimer: startHoldTimer,
+                    stopHoldTimer: stopHoldTimer
+                )
             }
-        )
-        .rotationEffect((Angle(degrees: orientation == .left ? 0 : 180)))
+            
+            .cornerRadius(16)
+            .foregroundColor(.white)
+            .overlay(
+                ZStack {
+                    Text("\(player.HP)")
+                        .font(.system(size: 48))
+                        .rotationEffect(Angle(degrees: 270))
+                    
+                    VStack {
+                        Image(systemName: "minus")
+                            .foregroundColor(DEFAULT_STYLES.foreground)
+                            .font(.system(size: 24))
+                            .rotationEffect(Angle(degrees: 90))
+                            .padding(.bottom, 64)
+                    }
+                    .frame(height: geometry.size.height, alignment: .bottom)
+                    
+                    VStack {
+                        Image(systemName: "plus")
+                            .foregroundColor(DEFAULT_STYLES.foreground)
+                            .font(.system(size: 24))
+                            .padding(.top, 64)
+                    }
+                    .frame(height: geometry.size.height, alignment: .top)
+                    
+                    if cumulativeChange != 0 {
+                        Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+                            .font(.system(size: 24))
+                            .foregroundColor(DEFAULT_STYLES.foreground)
+                            .offset(x: cumulativeChange > 0 ? 60 : -60)
+                            .opacity(showChange ? 1 : 0)
+                            .animation(.easeInOut(duration: 0.3), value: showChange)
+                            .rotationEffect(Angle(degrees: 270))
+                    }
+                    
+                    HStack {
+                        Text(player.name)
+                            .font(.system(size: 24))
+                            .foregroundColor(DEFAULT_STYLES.foreground)
+                            .rotationEffect(Angle(degrees: 270))
+                        Spacer()
+                    }
+                }
+            )
+            .rotationEffect((Angle(degrees: orientation == .left ? 0 : 180)))
+        }
     }
 }
 

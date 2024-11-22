@@ -53,7 +53,7 @@ struct GameView: View {
                     GameLayoutBuilder.buildLayout(layout:gameSettings.layout)
                 }
                 .navigationBarHidden(true)
-                .ignoresSafeArea()
+//                .ignoresSafeArea()
                 .containerRelativeFrame(.horizontal, count: 1, spacing: 16)
                 
                 SettingsView()
@@ -81,4 +81,5 @@ struct GameView: View {
 #Preview {
     GameView()
         .environmentObject(GameSettings())
+        .environmentObject(PlayerState())
 }
