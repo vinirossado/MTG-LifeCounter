@@ -14,6 +14,17 @@ enum PlayerLayouts {
     case four
     case five
     case six
+    
+    var playerCount: Int {
+        switch self {
+        case .two: return 2
+        case .threeLeft: return 3
+        case .threeRight: return 3
+        case .four: return 4
+        case .five: return 5
+        case .six: return 6
+        }
+    }
 }
 
 struct PlayerLayout: View {

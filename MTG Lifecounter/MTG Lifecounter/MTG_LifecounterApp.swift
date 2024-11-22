@@ -11,6 +11,7 @@ import SwiftData
 @main
 struct MTG_LifecounterApp: App {
     @StateObject private var gameSettings = GameSettings()
+    @StateObject private var playerState = PlayerState()
     
     var body: some Scene {
         WindowGroup {
@@ -18,6 +19,7 @@ struct MTG_LifecounterApp: App {
                 .preferredColorScheme(.dark)
                 .statusBarHidden(true)
                 .environmentObject(gameSettings)
+                .environmentObject(playerState)
         }
     }
 }

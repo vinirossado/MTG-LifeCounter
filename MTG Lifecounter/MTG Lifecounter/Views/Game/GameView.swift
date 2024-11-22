@@ -1,12 +1,5 @@
 import SwiftUI
 
-// MARK: - Models
-struct Player: Identifiable {
-    let id = UUID()
-    var HP: Int
-    var name: String
-}
-
 // MARK: - Layout Configuration
 enum GameLayout {
     case twoPlayers
@@ -29,136 +22,20 @@ enum GameLayout {
 
 // MARK: - Layout Builder
 struct GameLayoutBuilder {
-    static func buildLayout(layout: PlayerLayouts, players: [Player]) -> some View {
-        
-        //        guard let layout = GameLayout.from(playerCount: players.count) else {
-        //            return AnyView(EmptyView())
-        //        }
-        
-        let playerBindings = players.map { player in
-            Binding(
-                get: { player },
-                set: { _ in }
-            )
-        }
-        
+    static func buildLayout(layout: PlayerLayouts) -> some View {
         switch layout {
         case .two:
-            return AnyView(TwoPlayersLayout(players: playerBindings))
+            return AnyView(TwoPlayerLayout())
         case .threeLeft:
-            return AnyView(ThreePlayersLayout(players: playerBindings))
+            return AnyView(ThreePlayerLayoutLeft())
         case .threeRight:
-            return AnyView(ThreePlayersLayout(players: playerBindings))
+            return AnyView(ThreePlayerLayoutRight())
         case .four:
-            return AnyView(FourPlayersLayout(players: playerBindings))
+            return AnyView(FourPlayerLayout())
         case .five:
-            return AnyView(FivePlayersLayout(players: playerBindings))
+            return AnyView(FivePlayerLayout())
         case .six:
-            return AnyView(SixPlayersLayout(players: playerBindings))
-        }
-    }
-}
-
-// MARK: - Layout Views
-struct TwoPlayersLayout: View {
-    let players: [Binding<Player>]
-    
-    var body: some View {
-        HStack(spacing: 10) {
-            PlayerView(player: players[0], orientation: .right)
-            PlayerView(player: players[1], orientation: .left)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-struct ThreePlayersLayout: View {
-    let players: [Binding<Player>]
-    
-    var body: some View {
-        HStack(spacing: 10) {
-            VStack(spacing: 10) {
-                PlayerView(player: players[0], orientation: .inverted)
-                PlayerView(player: players[2], orientation: .normal)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            PlayerView(player: players[1], orientation: .left)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-}
-
-struct FourPlayersLayout: View {
-    let players: [Binding<Player>]
-    
-    var body: some View {
-        VStack(spacing: 10) {
-            if players.count >= 4 {
-                HStack(spacing: 10) {
-                    PlayerView(player: players[0], orientation: .inverted)
-                    PlayerView(player: players[1], orientation: .inverted)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                HStack(spacing: 10) {
-                    PlayerView(player: players[2], orientation: .normal)
-                    PlayerView(player: players[3], orientation: .normal)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                Text("Not enough players for this layout")
-            }
-        }
-    }
-}
-
-struct FivePlayersLayout: View {
-    let players: [Binding<Player>]
-    
-    var body: some View {
-        if players.count == 5 {
-            HStack(spacing: 10) {
-                VStack(spacing: 10) {
-                    PlayerView(player: players[0], orientation: .inverted)
-                    PlayerView(player: players[2], orientation: .normal)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                VStack(spacing: 10) {
-                    PlayerView(player: players[1], orientation: .inverted)
-                    PlayerView(player: players[3], orientation: .normal)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                PlayerView(player: players[4], orientation: .left)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }else {
-            Text("Not enough players for this layout")
-
-        }
-    }
-}
-
-struct SixPlayersLayout: View {
-    let players: [Binding<Player>]
-    
-    var body: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                PlayerView(player: players[0], orientation: .inverted)
-                PlayerView(player: players[1], orientation: .inverted)
-                PlayerView(player: players[2], orientation: .inverted)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            HStack(spacing: 10) {
-                PlayerView(player: players[3], orientation: .normal)
-                PlayerView(player: players[4], orientation: .normal)
-                PlayerView(player: players[5], orientation: .normal)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            return AnyView(SixPlayerLayout())
         }
     }
 }
@@ -166,35 +43,14 @@ struct SixPlayersLayout: View {
 // MARK: - Main View
 struct GameView: View {
     @EnvironmentObject var gameSettings: GameSettings
-    @State var players: [Player] = []
-    
-    private func setupPlayers() {
-        let playerQuantity: Int
-        
-        switch gameSettings.layout {
-        case .two:
-            playerQuantity = 2
-        case .threeLeft, .threeRight:
-            playerQuantity = 3
-        case .four:
-            playerQuantity = 4
-        case .five:
-            playerQuantity = 5
-        case .six:
-            playerQuantity = 6
-        }
-        
-        players = (1...playerQuantity).map { idx in
-            Player(HP: gameSettings.startingLife, name: "Player \(idx)")
-        }
-    }
+    @EnvironmentObject var playerState: PlayerState
     
     var body: some View {
         
         ScrollView(.horizontal) {
             HStack() {
                 GeometryReader { geometry in
-                    GameLayoutBuilder.buildLayout(layout:gameSettings.layout, players: players)
+                    GameLayoutBuilder.buildLayout(layout:gameSettings.layout)
                 }
                 .navigationBarHidden(true)
                 .ignoresSafeArea()
@@ -206,17 +62,17 @@ struct GameView: View {
         }
         .scrollTargetBehavior(.paging)
         .onAppear {
-            setupPlayers()
+            playerState.initialize(gameSettings: gameSettings)
         }
         .onChange(of: gameSettings.startingLife) { oldValue, newValue in
             print("Starting Life changed from \(oldValue) to \(newValue)")
             
-            setupPlayers()
+            playerState.initialize(gameSettings: gameSettings)
         }
         .onChange(of: gameSettings.layout) { oldValue, newValue in
             print("Starting Layout changed from \(oldValue) to \(newValue)")
             
-            //            setupPlayers()
+            playerState.initialize(gameSettings: gameSettings)
         }
         
     }
