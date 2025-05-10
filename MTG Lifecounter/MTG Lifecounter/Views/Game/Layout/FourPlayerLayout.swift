@@ -2,7 +2,7 @@
 //  FourPlayersLayout.swift
 //  MTG Lifecounter
 //
-//  Created by Snowye on 22/11/24.
+//  Created by Rossado on 22/11/24.
 //
 
 import SwiftUI
@@ -32,9 +32,6 @@ struct FourPlayerLayout: View {
                     if let player4 = playerState.bindingForPlayer(at: 3) {
                         PlayerView(player: player4, orientation: .normal)
                     }
-//                    
-//                    PlayerView(player: players[2], orientation: .normal)
-//                    PlayerView(player: players[3], orientation: .normal)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {

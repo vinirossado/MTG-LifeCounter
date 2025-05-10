@@ -151,12 +151,16 @@ struct PlayerRegistrationView: View {
     
     func getUser() {
         isLoading = true
-        NetworkManager.shared.getPlayers { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                if case .success(let players) = result {
+        Task {
+            do {
+                let players = try await NetworkManager.shared.getPlayers()
+                DispatchQueue.main.async {
+                    isLoading = false
                     print(players)
-                } else if case .failure(let error) = result {
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    isLoading = false
                     alertMessage = "Failed to fetch users: \(error.localizedDescription)"
                     showingAlert = true
                 }
@@ -175,16 +179,20 @@ struct PlayerRegistrationView: View {
         let registrationData = PlayerData(name: playerName, deckName: deckName, nationality: country)
         
         isLoading = true
-        NetworkManager.shared.registerPlayer(data: registrationData) { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success(let message):
+        Task {
+            do {
+                let message = try await NetworkManager.shared.registerPlayer(data: registrationData)
+                DispatchQueue.main.async {
+                    isLoading = false
                     alertMessage = message
-                case .failure(let error):
-                    alertMessage = "Failed to register: \(error.localizedDescription)"
+                    showingAlert = true
                 }
-                showingAlert = true
+            } catch {
+                DispatchQueue.main.async {
+                    isLoading = false
+                    alertMessage = "Failed to register: \(error.localizedDescription)"
+                    showingAlert = true
+                }
             }
         }
     }

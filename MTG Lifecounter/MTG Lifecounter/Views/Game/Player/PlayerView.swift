@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 enum Side {
     case left, right
@@ -34,7 +37,6 @@ enum OrientationLayout {
     }
 }
 
-
 let DEFAULT_STYLES = Style(
     background: .oceanBlueBackground,
     foreground: .lightGrayText,
@@ -52,6 +54,7 @@ struct PlayerView: View {
     @State private var holdTimer: Timer?
     @State private var isHoldTimerActive: Bool = false
     @State private var changeWorkItem: DispatchWorkItem?
+
     
     var body: some View {
         orientation == .normal || orientation == .inverted
@@ -89,7 +92,6 @@ struct PlayerView: View {
         )
     }
     
-    
     private func updatePoints(for side: Side, amount: Int) {
         switch side {
         case .left:
@@ -124,19 +126,19 @@ struct PlayerView: View {
     private func showPointChange() {
         changeWorkItem?.cancel()
         
+        // No animation here to avoid performance impact
         showChange = true
         
         let newWorkItem = DispatchWorkItem {
-            withAnimation {
-                showChange = false
-                cumulativeChange = 0
-            }
+            // Set directly, animation causes slowdowns
+            showChange = false
+            cumulativeChange = 0
         }
         
         changeWorkItem = newWorkItem
         
-        // Schedule the work item to be executed after 4s
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: newWorkItem)
+        // Reduced to 2 seconds for better responsiveness
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
     }
 }
 
@@ -153,6 +155,8 @@ struct HorizontalPlayerView: View {
     let startHoldTimer: (Side, Int) -> Void
     let stopHoldTimer: () -> Void
     var orientation: OrientationLayout
+    @State private var showEditSheet = false
+
     
     var body: some View {
         HStack(spacing: 0) {
@@ -208,11 +212,17 @@ struct HorizontalPlayerView: View {
                 }
                 
                 VStack {
-                    Text(player.name)
+                    Text(player.name )
                         .font(.system(size: 24))
                         .foregroundColor(DEFAULT_STYLES.foreground)
                     Spacer()
                 }
+                 .onTapGesture {
+                     showEditSheet = true
+                 }
+                 .sheet(isPresented: $showEditSheet) {
+                     EditPlayerView(player: $player)
+                 }
                 .padding(.top, 12)
             }
         ).rotationEffect((orientation.toAngle()))
@@ -228,6 +238,9 @@ struct VerticalPlayerView: View {
     @Binding var holdTimer: Timer?
     @Binding var isHoldTimerActive: Bool
     @Binding var changeWorkItem: DispatchWorkItem?
+    @State private var showOverlay = false
+    @State private var showEditSheet = false
+
     let updatePoints: (Side, Int) -> Void
     let startHoldTimer: (Side, Int) -> Void
     let stopHoldTimer: () -> Void
@@ -254,7 +267,6 @@ struct VerticalPlayerView: View {
                     stopHoldTimer: stopHoldTimer
                 )
             }
-            
             .cornerRadius(16)
             .foregroundColor(.white)
             .overlay(
@@ -286,7 +298,6 @@ struct VerticalPlayerView: View {
                             .foregroundColor(DEFAULT_STYLES.foreground)
                             .offset(x: cumulativeChange > 0 ? 60 : -60)
                             .opacity(showChange ? 1 : 0)
-                            .animation(.easeInOut(duration: 0.3), value: showChange)
                             .rotationEffect(Angle(degrees: 270))
                     }
                     
@@ -297,16 +308,48 @@ struct VerticalPlayerView: View {
                             .rotationEffect(Angle(degrees: 270))
                         Spacer()
                     }
+                    
                 }
             )
-            .rotationEffect((Angle(degrees: orientation == .left ? 0 : 180)))
+            if showOverlay {
+                PlayerToolsOverlay(onDismiss: {
+                    showOverlay.toggle()
+                })
+                .animation(.easeInOut, value: showOverlay)
+            }
+            
+            VStack {
+                Text(player.name)
+                    .font(.system(size: 24))
+                    .foregroundColor(DEFAULT_STYLES.foreground)
+                    .onTapGesture {
+                        // Add sheet for editing player name similar to HorizontalPlayerView
+                        showEditSheet.toggle()
+                    }
+                
+                Button(action: {
+                    showOverlay.toggle()
+                }) {
+                    Image(systemName: "hand.tap.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(DEFAULT_STYLES.foreground)
+                        .padding()
+                        .background(Color(hex: "4a6d88"))
+                        .cornerRadius(10)
+                }
+            }
+            .sheet(isPresented: $showEditSheet) {
+                EditPlayerView(player: $player)
+            }
         }
+        // The second overlay is redundant and causing the geometry scope issue
+        // We already have all the UI elements in the first overlay
     }
 }
 
 
 struct PressableRectangle: View {
-    @Binding var isPressed: Bool
+    @Binding var isPressed: Bool  
     @Binding var player: Player
     var side: Side
     var updatePoints: (Side, Int) -> Void
@@ -344,5 +387,66 @@ struct NameView: View {
             Text("\(name)")
         }
     }
+}
+
+// Simplified overlay view for better performance
+struct PlayerToolsOverlay: View {
+    var onDismiss: () -> Void
     
+    var body: some View {
+        ZStack {
+            // Simple semi-transparent background
+            Rectangle()
+                .fill(Color.black.opacity(0.5))
+                .ignoresSafeArea()
+                .onTapGesture {
+                    onDismiss()
+                }
+            
+            // Content
+            HStack(spacing: 16) {
+                VStack(spacing: 16) {
+                    OverlayButton(iconName: "card.fill", action: {
+                        print("Card 1")
+                    })
+                    
+                    OverlayButton(iconName: "die.face.6.fill", action: {
+                        print("Dice 1")
+                    })
+                }
+                
+                VStack(spacing: 16) {
+                    OverlayButton(iconName: "card.fill", action: {
+                        print("Card 2")
+                    })
+                    
+                    OverlayButton(iconName: "die.face.6.fill", action: {
+                        print("Dice 2")
+                    })
+                }
+            }
+            .padding(16)
+            .background(Color(hex: "2A3D4F"))
+            .cornerRadius(12)
+        }
+        .transition(.opacity)
+    }
+}
+
+// Simplified button component for better performance
+struct OverlayButton: View {
+    let iconName: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: iconName)
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+                .frame(width: 50, height: 50)
+                .background(Color(hex: "4a6d88"))
+                .cornerRadius(8)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
 }

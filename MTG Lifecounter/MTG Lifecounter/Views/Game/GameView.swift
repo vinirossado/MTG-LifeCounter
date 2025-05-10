@@ -44,19 +44,19 @@ struct GameLayoutBuilder {
 struct GameView: View {
     @EnvironmentObject var gameSettings: GameSettings
     @EnvironmentObject var playerState: PlayerState
+    @State private var showingResetAlert = false;
     
     var body: some View {
-        
         ScrollView(.horizontal) {
             HStack() {
                 GeometryReader { geometry in
                     GameLayoutBuilder.buildLayout(layout:gameSettings.layout)
                 }
                 .navigationBarHidden(true)
-//                .ignoresSafeArea()
                 .containerRelativeFrame(.horizontal, count: 1, spacing: 16)
                 
                 SettingsView()
+                    
             }
             .scrollTargetLayout()
         }
@@ -66,13 +66,20 @@ struct GameView: View {
         }
         .onChange(of: gameSettings.startingLife) { oldValue, newValue in
             print("Starting Life changed from \(oldValue) to \(newValue)")
-            
+            showingResetAlert = true
+
             playerState.initialize(gameSettings: gameSettings)
         }
         .onChange(of: gameSettings.layout) { oldValue, newValue in
             print("Starting Layout changed from \(oldValue) to \(newValue)")
+            showingResetAlert = true
             
             playerState.initialize(gameSettings: gameSettings)
+        }.alert("Resetar o jogo", isPresented: $showingResetAlert){
+            Button("Yes"){}
+            Button("No", role: .cancel){}
+        } message: {
+            Text("Do you wanna to reset the game?")
         }
         
     }
