@@ -124,20 +124,16 @@ struct PlayerView: View {
     }
     
     private func showPointChange() {
-        changeWorkItem?.cancel()
-        
-        // No animation here to avoid performance impact
+        changeWorkItem?.cancel()        
         showChange = true
         
         let newWorkItem = DispatchWorkItem {
-            // Set directly, animation causes slowdowns
             showChange = false
             cumulativeChange = 0
         }
         
         changeWorkItem = newWorkItem
         
-        // Reduced to 2 seconds for better responsiveness
         DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
     }
 }
@@ -238,7 +234,7 @@ struct VerticalPlayerView: View {
     @Binding var holdTimer: Timer?
     @Binding var isHoldTimerActive: Bool
     @Binding var changeWorkItem: DispatchWorkItem?
-    @State private var showOverlay = false
+    @State private var showOverlay = true
     @State private var showEditSheet = false
 
     let updatePoints: (Side, Int) -> Void
@@ -403,20 +399,20 @@ struct PlayerToolsOverlay: View {
                     onDismiss()
                 }
             
-            // Content
             HStack(spacing: 16) {
                 VStack(spacing: 16) {
-                    OverlayButton(iconName: "card.fill", action: {
+                    OverlayButton(iconName: "die.face.4.fill", action: {
                         print("Card 1")
                     })
                     
-                    OverlayButton(iconName: "die.face.6.fill", action: {
+                    OverlayButton(iconName: "die.face.5.fill", action: {
                         print("Dice 1")
                     })
+                  
                 }
                 
                 VStack(spacing: 16) {
-                    OverlayButton(iconName: "card.fill", action: {
+                    OverlayButton(iconName: "die.face.4.fill", action: {
                         print("Card 2")
                     })
                     
@@ -424,6 +420,8 @@ struct PlayerToolsOverlay: View {
                         print("Dice 2")
                     })
                 }
+                
+               
             }
             .padding(16)
             .background(Color(hex: "2A3D4F"))
@@ -441,12 +439,20 @@ struct OverlayButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: iconName)
-                .font(.system(size: 20))
+                .font(.system(size: 40))
                 .foregroundColor(.white)
-                .frame(width: 50, height: 50)
+                .frame(width: 40, height: 40)
                 .background(Color(hex: "4a6d88"))
                 .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
     }
+}
+
+//#Preview{
+//    PlayerView(player: .constant(Player(HP: 40, name: "Vinicius" )), orientation: .normal)
+//}
+
+#Preview{
+    PlayerToolsOverlay(onDismiss: {})
 }

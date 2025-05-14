@@ -44,6 +44,10 @@ struct SettingsView: View {
                 }
              
                 LifePointsView()
+
+                // Add more settings here
+
+
             }
         }
         .frame(
