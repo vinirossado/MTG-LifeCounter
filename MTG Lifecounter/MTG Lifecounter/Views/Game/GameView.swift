@@ -78,7 +78,6 @@ struct GameView: View {
                 VStack {
                     HStack {
                         Spacer()
-                        
                         settingsButton
                     }
                     
@@ -137,9 +136,9 @@ struct GameView: View {
                 .font(.system(size: adaptiveIconSize))
                 .foregroundColor(.white)
                 .padding(adaptiveButtonPadding)
-                .background(Color.black.opacity(0.7))
+                .background(Color.black.opacity(0.1))
                 .clipShape(Circle())
-                .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
         .accessibilityLabel(selectedTab == 1 ? "Close Settings" : "Open Settings")
     }
@@ -320,28 +319,28 @@ struct GameView: View {
 #Preview {
     Group {
         // iPhone Portrait
-        GameView()
-            .environmentObject(GameSettings())
-            .environmentObject(PlayerState())
-            .previewDevice("iPhone 14")
-            .previewDisplayName("iPhone Portrait")
-
-        // iPhone Landscape
-        GameView()
-            .environmentObject(GameSettings())
-            .environmentObject(PlayerState())
-            .previewDevice("iPhone 14")
-            .previewInterfaceOrientation(.landscapeLeft)
-            .previewDisplayName("iPhone Landscape")
-        
-        // iPad Portrait
-        GameView()
-            .environmentObject(GameSettings())
-            .environmentObject(PlayerState())
-            .previewDevice("iPad Pro (11-inch)")
-            .environment(\.horizontalSizeClass, .regular)
-            .environment(\.verticalSizeClass, .regular)
-            .previewDisplayName("iPad Portrait")
+//        GameView()
+//            .environmentObject(GameSettings())
+//            .environmentObject(PlayerState())
+//            .previewDevice("iPhone 14")
+//            .previewDisplayName("iPhone Portrait")
+//
+//        // iPhone Landscape
+//        GameView()
+//            .environmentObject(GameSettings())
+//            .environmentObject(PlayerState())
+//            .previewDevice("iPhone 14")
+//            .previewInterfaceOrientation(.landscapeLeft)
+//            .previewDisplayName("iPhone Landscape")
+//        
+//        // iPad Portrait
+//        GameView()
+//            .environmentObject(GameSettings())
+//            .environmentObject(PlayerState())
+//            .previewDevice("iPad Pro (11-inch)")
+//            .environment(\.horizontalSizeClass, .regular)
+//            .environment(\.verticalSizeClass, .regular)
+//            .previewDisplayName("iPad Portrait")
 
         // iPad Landscape
         GameView()

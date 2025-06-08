@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum DeviceOrientation {
     case portrait
@@ -81,4 +82,74 @@ extension View {
     func trackDeviceOrientation() -> some View {
         modifier(DeviceOrientationModifier())
     }
+}
+
+// Two-finger gesture recognizer
+class TwoFingerSwipeGestureRecognizer: UIGestureRecognizer {
+    var direction: UISwipeGestureRecognizer.Direction
+    var onSwipe: () -> Void
+    
+    init(direction: UISwipeGestureRecognizer.Direction, onSwipe: @escaping () -> Void) {
+        self.direction = direction
+        self.onSwipe = onSwipe
+        super.init(target: nil, action: nil)
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        if let allTouches = event.allTouches, allTouches.count == 2 {
+            self.state = .began
+        } else {
+            self.state = .failed
+        }
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+        if let allTouches = event.allTouches, allTouches.count == 2, self.state == .began {
+            let touchesArray = Array(allTouches)
+            
+            if touchesArray.count == 2 {
+                let firstTouch = touchesArray[0]
+                let secondTouch = touchesArray[1]
+                
+                let firstMovement = firstTouch.location(in: self.view).y - firstTouch.previousLocation(in: self.view).y
+                let secondMovement = secondTouch.location(in: self.view).y - secondTouch.previousLocation(in: self.view).y
+                
+                if direction == .up && firstMovement < -5 && secondMovement < -5 {
+                    self.state = .recognized
+                    onSwipe()
+                } else if direction == .down && firstMovement > 5 && secondMovement > 5 {
+                    self.state = .recognized
+                    onSwipe()
+                }
+            }
+        }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        if self.state == .began {
+            self.state = .failed
+        }
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        self.state = .failed
+    }
+}
+
+// SwiftUI wrapper for the two-finger gesture
+struct TwoFingerSwipeGesture: UIViewRepresentable {
+    var direction: UISwipeGestureRecognizer.Direction
+    var onSwipe: () -> Void
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        
+        let gesture = TwoFingerSwipeGestureRecognizer(direction: direction, onSwipe: onSwipe)
+        view.addGestureRecognizer(gesture)
+        
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {}
 }
