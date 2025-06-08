@@ -82,31 +82,3 @@ extension View {
         modifier(DeviceOrientationModifier())
     }
 }
-
-// Exemplo de uso com a sintaxe moderna
-//struct ExampleView: View {
-//    @State private var manager = DeviceOrientationManager.shared
-//    
-//    var body: some View {
-//        VStack {
-//            if manager.isLandscape {
-//                HStack {
-//                    contentView
-//                }
-//            } else {
-//                VStack {
-//                    contentView
-//                }
-//            }
-//        }
-//        .padding(manager.adaptivePadding)
-//        .trackDeviceOrientation()
-//    }
-//    
-//    @ViewBuilder
-//    private var contentView: some View {
-//        // Seu conteúdo aqui
-//        Text("Example Content")
-//            .frame(maxWidth: manager.value(portrait: 600, landscape: 800))
-//    }
-//}

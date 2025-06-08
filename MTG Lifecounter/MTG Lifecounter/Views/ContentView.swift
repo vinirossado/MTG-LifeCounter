@@ -35,32 +35,7 @@ struct ContentView: View {
                                     .background(Color(hex: "4a6d88"))
                                     .cornerRadius(10)
                             }
-                            
-                            Button(action: {
-                                path.append("RegisterView")
-                            }) {
-                                Text("New Player")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(Color(hex: "d5d9e0"))
-                                    .padding()
-                                    .frame(width: geometry.size.width * 0.50)
-                                    .background(Color(hex: "4a6d88"))
-                                    .cornerRadius(10)
-                            }
-                            
-                            Button(action: {
-                                print("Configurações")
-                            }) {
-                                Text("Configurations")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(Color(hex: "d5d9e0"))
-                                    .padding()
-                                    .frame(width: geometry.size.width * 0.50)
-                                    .background(Color(hex: "4a6d88"))
-                                    .cornerRadius(10)
-                            }
+                        
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -73,11 +48,12 @@ struct ContentView: View {
                     if view == "GameView" {
                         GameView()
                     }
-                    if view == "RegisterView"{
-                        PlayerRegistrationView()
-                    }
                 }
             }
         }
     }
+    
+}
+#Preview {
+    ContentView()
 }

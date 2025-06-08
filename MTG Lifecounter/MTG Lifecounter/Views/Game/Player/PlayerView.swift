@@ -6,9 +6,7 @@
 //
 
 import SwiftUI
-#if canImport(UIKit)
 import UIKit
-#endif
 
 enum Side {
     case left, right
@@ -319,7 +317,6 @@ struct VerticalPlayerView: View {
                     .font(.system(size: 24))
                     .foregroundColor(DEFAULT_STYLES.foreground)
                     .onTapGesture {
-                        // Add sheet for editing player name similar to HorizontalPlayerView
                         showEditSheet.toggle()
                     }
                 
@@ -338,8 +335,6 @@ struct VerticalPlayerView: View {
                 EditPlayerView(player: $player)
             }
         }
-        // The second overlay is redundant and causing the geometry scope issue
-        // We already have all the UI elements in the first overlay
     }
 }
 
