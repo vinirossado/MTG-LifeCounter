@@ -238,13 +238,11 @@ struct HorizontalPlayerView: View {
                 }
             )
             .rotationEffect((orientation.toAngle()))
-            .overlay(
-                TwoFingerSwipeGesture(direction: .up) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        showOverlay = true
-                    }
+            .twoFingerSwipe(direction: .up) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    showOverlay = true
                 }
-            )
+            }
             
             // Player tools overlay
             if showOverlay {
@@ -255,9 +253,7 @@ struct HorizontalPlayerView: View {
                 })
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-            
-            // We're now using the custom two-finger gesture recognizer instead of showing preview overlay
-        }
+                    }
         .sheet(isPresented: $showEditSheet) {
             EditPlayerView(player: $player)
         }
@@ -371,7 +367,7 @@ struct VerticalPlayerView: View {
                 )
                 // Two-finger swipe gesture
                 .overlay(
-                    TwoFingerSwipeGesture(direction: .up) {
+                    twoFingerSwipe(direction: .up) {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                             showOverlay = true
                         }

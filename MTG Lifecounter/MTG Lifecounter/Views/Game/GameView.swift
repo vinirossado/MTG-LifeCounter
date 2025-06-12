@@ -189,6 +189,7 @@ struct GameView: View {
         .zIndex(2)
     }
     
+    //Settings Panel
     private var settingsPanelContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: adaptiveSpacing) {
