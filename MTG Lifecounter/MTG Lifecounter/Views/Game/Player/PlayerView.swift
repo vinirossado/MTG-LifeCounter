@@ -42,397 +42,59 @@ let DEFAULT_STYLES = Style(
     hoverOpacity: 0.75
 )
 
-struct PlayerView: View {
-    @Binding var player: Player
-    var orientation: OrientationLayout
-    @State private var isLeftPressed: Bool = false
-    @State private var isRightPressed: Bool = false
-    @State private var cumulativeChange: Int = 0
-    @State private var showChange: Bool = false
-    @State private var holdTimer: Timer?
-    @State private var isHoldTimerActive: Bool = false
-    @State private var changeWorkItem: DispatchWorkItem?
+// MARK: - Support Components
 
+// Model for tool items
+struct ToolItem: Identifiable {
+    let id: Int
+    let iconName: String
+    let label: String
+    let description: String
+}
+
+// Enhanced overlay button with label
+struct OverlayButton: View {
+    let iconName: String
+    let label: String
+    let action: () -> Void
     
     var body: some View {
-        orientation == .normal || orientation == .inverted
-        ? AnyView(
-            HorizontalPlayerView(
-                player: $player,
-                isLeftPressed: $isLeftPressed,
-                isRightPressed: $isRightPressed,
-                cumulativeChange: $cumulativeChange,
-                showChange: $showChange,
-                holdTimer: $holdTimer,
-                isHoldTimerActive: $isHoldTimerActive,
-                changeWorkItem: $changeWorkItem,
-                updatePoints: updatePoints,
-                startHoldTimer: startHoldTimer,
-                stopHoldTimer: stopHoldTimer,
-                orientation: orientation
-            )
-        )
-        : AnyView(
-            VerticalPlayerView(
-                player: $player,
-                isLeftPressed: $isLeftPressed,
-                isRightPressed: $isRightPressed,
-                cumulativeChange: $cumulativeChange,
-                showChange: $showChange,
-                holdTimer: $holdTimer,
-                isHoldTimerActive: $isHoldTimerActive,
-                changeWorkItem: $changeWorkItem,
-                updatePoints: updatePoints,
-                startHoldTimer: startHoldTimer,
-                stopHoldTimer: stopHoldTimer,
-                orientation: orientation
-            )
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: iconName)
+                    .font(.system(size: 28))
+                    .foregroundColor(.white)
+                    .frame(width: 60, height: 60)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(hex: "4a6d88"), Color(hex: "375165")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                
+                Text(label)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(
+            ScaleButtonStyle()
         )
     }
-    
-    private func updatePoints(for side: Side, amount: Int) {
-        switch side {
-        case .left:
-            player.HP -= amount
-            cumulativeChange -= amount
-        case .right:
-            player.HP += amount
-            cumulativeChange += amount
-        }
-        
-        showPointChange()
-    }
-    
-    private func startHoldTimer(for side: Side, amount: Int) {
-        guard !isHoldTimerActive else {
-            return
-        }
-        
-        isHoldTimerActive = true
-        
-        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
-            updatePoints(for: side, amount: amount)
-        }
-    }
-    
-    private func stopHoldTimer() {
-        holdTimer?.invalidate()
-        holdTimer = nil
-        isHoldTimerActive = false
-    }
-    
-    private func showPointChange() {
-        changeWorkItem?.cancel()        
-        showChange = true
-        
-        let newWorkItem = DispatchWorkItem {
-            showChange = false
-            cumulativeChange = 0
-        }
-        
-        changeWorkItem = newWorkItem
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
-    }
 }
 
-struct HorizontalPlayerView: View {
-    @Binding var player: Player
-    @Binding var isLeftPressed: Bool
-    @Binding var isRightPressed: Bool
-    @Binding var cumulativeChange: Int
-    @Binding var showChange: Bool
-    @Binding var holdTimer: Timer?
-    @Binding var isHoldTimerActive: Bool
-    @Binding var changeWorkItem: DispatchWorkItem?
-    let updatePoints: (Side, Int) -> Void
-    let startHoldTimer: (Side, Int) -> Void
-    let stopHoldTimer: () -> Void
-    var orientation: OrientationLayout
-    @State private var showEditSheet = false
-    @State private var showOverlay = false
-    @State private var dragDistance: CGFloat = 0
-    @State private var overlayOpacity: Double = 0
-    
-    // Minimum distance to trigger the overlay
-    private let minDragDistance: CGFloat = 80
-    
-    var body: some View {
-        ZStack {
-            HStack(spacing: 0) {
-                PressableRectangle(
-                    isPressed: $isLeftPressed,
-                    player: $player,
-                    side: .left,
-                    updatePoints: updatePoints,
-                    startHoldTimer: startHoldTimer,
-                    stopHoldTimer: stopHoldTimer
-                )
-                
-                PressableRectangle(
-                    isPressed: $isRightPressed,
-                    player: $player,
-                    side: .right,
-                    updatePoints: updatePoints,
-                    startHoldTimer: startHoldTimer,
-                    stopHoldTimer: stopHoldTimer
-                )
-            }
-            .cornerRadius(16)
-            .foregroundColor(.white)
-            .overlay(
-                ZStack {
-                    Text("\(player.HP)")
-                        .font(.system(size: 48))
-                    
-                    HStack {
-                        Image(systemName: "minus")
-                            .foregroundColor(DEFAULT_STYLES.foreground)
-                            .font(.system(size: 24))
-                        Spacer()
-                    }
-                    .padding(.leading, 32)
-                    
-                    HStack {
-                        Spacer()
-                        Image(systemName: "plus")
-                            .foregroundColor(DEFAULT_STYLES.foreground)
-                            .font(.system(size: 24))
-                    }
-                    .padding(.trailing, 32)
-                    
-                    if cumulativeChange != 0 {
-                        Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
-                            .font(.system(size: 24))
-                            .foregroundColor(DEFAULT_STYLES.foreground)
-                            .offset(x: cumulativeChange > 0 ? 60 : -60)
-                            .opacity(showChange ? 1 : 0)
-                            .animation(.easeInOut(duration: 0.3), value: showChange)
-                    }
-                    
-                    VStack {
-                        Text(player.name)
-                            .font(.system(size: 24))
-                            .foregroundColor(DEFAULT_STYLES.foreground)
-                            .onTapGesture {
-                                showEditSheet = true
-                            }
-                        Spacer()
-                    }
-                    .padding(.top, 12)
-                    
-                    // Two-finger gesture recognizer indicator (visual hint)
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            Image(systemName: "hand.draw.fill")
-                                .font(.system(size: 20))
-                                .opacity(0.5)
-                                .foregroundColor(DEFAULT_STYLES.foreground)
-                                .padding(8)
-                        }
-                        .padding(.trailing, 12)
-                        .padding(.bottom, 12)
-                    }
-                }
-            )
-            .rotationEffect((orientation.toAngle()))
-            .twoFingerSwipe(direction: .up) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    showOverlay = true
-                }
-            }
-            
-            // Player tools overlay
-            if showOverlay {
-                PlayerToolsOverlay(onDismiss: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        showOverlay = false
-                    }
-                })
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-                    }
-        .sheet(isPresented: $showEditSheet) {
-            EditPlayerView(player: $player)
-        }
-    }
-}
-
-struct VerticalPlayerView: View {
-    @Binding var player: Player
-    @Binding var isLeftPressed: Bool
-    @Binding var isRightPressed: Bool
-    @Binding var cumulativeChange: Int
-    @Binding var showChange: Bool
-    @Binding var holdTimer: Timer?
-    @Binding var isHoldTimerActive: Bool
-    @Binding var changeWorkItem: DispatchWorkItem?
-    @State private var showOverlay = false
-    @State private var showEditSheet = false
-    @State private var dragDistance: CGFloat = 0
-    @State private var overlayOpacity: Double = 0
-
-    let updatePoints: (Side, Int) -> Void
-    let startHoldTimer: (Side, Int) -> Void
-    let stopHoldTimer: () -> Void
-    var orientation: OrientationLayout
-    
-    // Minimum distance to trigger the overlay
-    private let minDragDistance: CGFloat = 80
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                VStack(spacing: 0) {
-                    PressableRectangle(
-                        isPressed: $isLeftPressed,
-                        player: $player,
-                        side: .right,
-                        updatePoints: updatePoints,
-                        startHoldTimer: startHoldTimer,
-                        stopHoldTimer: stopHoldTimer
-                    )
-                    
-                    PressableRectangle(
-                        isPressed: $isRightPressed,
-                        player: $player,
-                        side: .left,
-                        updatePoints: updatePoints,
-                        startHoldTimer: startHoldTimer,
-                        stopHoldTimer: stopHoldTimer
-                    )
-                }
-                .cornerRadius(16)
-                .foregroundColor(.white)
-                .overlay(
-                    ZStack {
-                        Text("\(player.HP)")
-                            .font(.system(size: 48))
-                            .rotationEffect(Angle(degrees: 270))
-                        
-                        VStack {
-                            Image(systemName: "minus")
-                                .foregroundColor(DEFAULT_STYLES.foreground)
-                                .font(.system(size: 24))
-                                .rotationEffect(Angle(degrees: 90))
-                                .padding(.bottom, 64)
-                        }
-                        .frame(height: geometry.size.height, alignment: .bottom)
-                        
-                        VStack {
-                            Image(systemName: "plus")
-                                .foregroundColor(DEFAULT_STYLES.foreground)
-                                .font(.system(size: 24))
-                                .padding(.top, 64)
-                        }
-                        .frame(height: geometry.size.height, alignment: .top)
-                        
-                        if cumulativeChange != 0 {
-                            Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
-                                .font(.system(size: 24))
-                                .foregroundColor(DEFAULT_STYLES.foreground)
-                                .offset(x: cumulativeChange > 0 ? 60 : -60)
-                                .opacity(showChange ? 1 : 0)
-                                .rotationEffect(Angle(degrees: 270))
-                        }
-                        
-                        HStack {
-                            Text(player.name)
-                                .font(.system(size: 24))
-                                .foregroundColor(DEFAULT_STYLES.foreground)
-                                .rotationEffect(Angle(degrees: 270))
-                                .onTapGesture {
-                                    showEditSheet.toggle()
-                                }
-                            Spacer()
-                        }
-                        
-                        // Two-finger gesture recognizer indicator (visual hint)
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                Image(systemName: "hand.draw.fill")
-                                    .font(.system(size: 20))
-                                    .opacity(0.5)
-                                    .foregroundColor(DEFAULT_STYLES.foreground)
-                                    .padding(8)
-                            }
-                            .padding(.trailing, 12)
-                            .padding(.bottom, 12)
-                        }
-                    }
-                )
-                // Two-finger swipe gesture
-                .overlay(
-                    twoFingerSwipe(direction: .up) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            showOverlay = true
-                        }
-                    }
-                )
-                
-                // Player tools overlay
-                if showOverlay {
-                    PlayerToolsOverlay(onDismiss: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            showOverlay = false
-                        }
-                    })
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-                
-                // We're now using the custom two-finger gesture recognizer instead of showing preview overlay
-            }
-            .sheet(isPresented: $showEditSheet) {
-                EditPlayerView(player: $player)
-            }
-        }
-    }
-}
-
-
-
-struct PressableRectangle: View {
-    @Binding var isPressed: Bool  
-    @Binding var player: Player
-    var side: Side
-    var updatePoints: (Side, Int) -> Void
-    var startHoldTimer: (Side, Int) -> Void
-    var stopHoldTimer: () -> Void
-    
-    var body: some View {
-        Rectangle()
-            .fill(DEFAULT_STYLES.background)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .opacity(isPressed ? DEFAULT_STYLES.hoverOpacity : DEFAULT_STYLES.opacity)
-            .onTapGesture {
-                updatePoints(side, 1)
-            }
-            .onLongPressGesture(minimumDuration: 0.2, maximumDistance: 0.4, pressing: { pressing in
-                withAnimation {
-                    isPressed = pressing
-                }
-                
-                if pressing {
-                    startHoldTimer(side, 10)
-                } else {
-                    stopHoldTimer()
-                }
-                
-            }, perform: {})
-    }
-}
-
-struct NameView: View {
-    let name: String;
-    
-    var body: some View {
-        VStack {
-            Text("\(name)")
-        }
+// Custom button style with scale effect
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
@@ -487,7 +149,6 @@ struct PlayerToolsOverlay: View {
                             action: {
                                 selectedTool = item
                                 isPresentingTool = true
-                                
                                 // Handle different tool actions
                                 switch item.id {
                                 case 0: // D20
@@ -673,85 +334,956 @@ struct PlayerToolsOverlay: View {
     }
 }
 
-// Model for tool items
-struct ToolItem: Identifiable {
-    let id: Int
-    let iconName: String
-    let label: String
-    let description: String
-}
+// Forward declarations of functions used in the views
+typealias UpdatePointsFunc = (Side, Int) -> Void
+typealias TimerHandlerFunc = (Side, Int) -> Void
+typealias StopTimerFunc = () -> Void
 
-// Enhanced overlay button with label
-struct OverlayButton: View {
-    let iconName: String
-    let label: String
-    let action: () -> Void
+// MARK: - Horizontal Player View
+struct HorizontalPlayerView: View {
+    @Binding var player: Player
+    @Binding var isLeftPressed: Bool
+    @Binding var isRightPressed: Bool
+    @Binding var cumulativeChange: Int
+    @Binding var showChange: Bool
+    @Binding var holdTimer: Timer?
+    @Binding var isHoldTimerActive: Bool
+    @Binding var changeWorkItem: DispatchWorkItem?
+    let updatePoints: UpdatePointsFunc
+    let startHoldTimer: TimerHandlerFunc
+    let stopHoldTimer: StopTimerFunc
+    var orientation: OrientationLayout
+    @State private var showEditSheet = false
+    @State private var showOverlay = false
+    @State private var dragDistance: CGFloat = 0
+    @State private var overlayOpacity: Double = 0
+    
+    // Minimum distance to trigger the overlay
+    private let minDragDistance: CGFloat = 80
     
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: iconName)
-                    .font(.system(size: 28))
-                    .foregroundColor(.white)
-                    .frame(width: 60, height: 60)
-                    .background(
-                        LinearGradient(
-                            colors: [Color(hex: "4a6d88"), Color(hex: "375165")],
-                            startPoint: .top,
-                            endPoint: .bottom
+        GeometryReader { geometry in
+            ZStack {
+                // Dividir explicitamente o espaço em dois para garantir áreas de toque separadas
+                HStack(spacing: 0) {
+                    // Lado esquerdo - área para diminuir
+                    Rectangle()
+                        .fill(DEFAULT_STYLES.background)
+                        .opacity(isLeftPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.white.opacity(isLeftPressed ? 0.3 : 0), lineWidth: 2)
                         )
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        .scaleEffect(isLeftPressed ? 0.98 : 1.0)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isLeftPressed)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            print(">>> LEFT AREA TAPPED - Decrease\n")
+                            // Gerar feedback háptico
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            
+                            // Adicionar animação visual ao tocar
+                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                isLeftPressed = true
+                            }
+                            
+                            // Resetar após breve delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                    isLeftPressed = false
+                                }
+                            }
+                            
+                            updatePoints(.left, 1)
+                        }
+                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+                            withAnimation {
+                                isLeftPressed = pressing
+                            }
+                            
+                            if pressing {
+                                print(">>> LEFT LONG PRESS STARTED\n")
+                                let generator = UIImpactFeedbackGenerator(style: .medium)
+                                generator.impactOccurred()
+                                startHoldTimer(.left, 5)
+                            } else {
+                                print(">>> LEFT LONG PRESS ENDED\n")
+                                stopHoldTimer()
+                            }
+                        } perform: {}
+                    
+                    // Lado direito - área para aumentar
+                    Rectangle()
+                        .fill(DEFAULT_STYLES.background)
+                        .opacity(isRightPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.white.opacity(isRightPressed ? 0.3 : 0), lineWidth: 2)
+                        )
+                        .scaleEffect(isRightPressed ? 0.98 : 1.0)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isRightPressed)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            print(">>> RIGHT AREA TAPPED - Increase\n")
+                            // Gerar feedback háptico
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            
+                            // Adicionar animação visual ao tocar
+                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                isRightPressed = true
+                            }
+                            
+                            // Resetar após breve delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                    isRightPressed = false
+                                }
+                            }
+                            
+                            updatePoints(.right, 1)
+                        }
+                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+                            withAnimation {
+                                isRightPressed = pressing
+                            }
+                            
+                            if pressing {
+                                print(">>> RIGHT LONG PRESS STARTED\n")
+                                let generator = UIImpactFeedbackGenerator(style: .medium)
+                                generator.impactOccurred()
+                                startHoldTimer(.right, 5)
+                            } else {
+                                print(">>> RIGHT LONG PRESS ENDED\n")
+                                stopHoldTimer()
+                            }
+                        } perform: {}
+                }
+                .cornerRadius(16)
+                .foregroundColor(.white)
+                .overlay(
+                    ZStack {
+                        Text("\(player.HP)")
+                            .font(.system(size: 48))
+                        
+                        HStack {
+                            Image(systemName: "minus")
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .font(.system(size: 24))
+                            Spacer()
+                        }
+                        .padding(.leading, 32)
+                        
+                        HStack {
+                            Spacer()
+                            Image(systemName: "plus")
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .font(.system(size: 24))
+                        }
+                        .padding(.trailing, 32)
+                        
+                        if cumulativeChange != 0 {
+                            Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+                                .font(.system(size: 24))
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .offset(x: cumulativeChange > 0 ? 60 : -60)
+                                .opacity(showChange ? 1 : 0)
+                                .animation(.easeInOut(duration: 0.3), value: showChange)
+                        }
+                        
+                        VStack {
+                            Text(player.name)
+                                .font(.system(size: 24))
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .onTapGesture {
+                                    showEditSheet = true
+                                }
+                            Spacer()
+                        }
+                        .padding(.top, 12)
+                        
+                        // Two-finger gesture recognizer indicator (visual hint)
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Image(systemName: "hand.draw.fill")
+                                    .font(.system(size: 20))
+                                    .opacity(0.5)
+                                    .foregroundColor(DEFAULT_STYLES.foreground)
+                                    .padding(8)
+                            }
+                            .padding(.trailing, 12)
+                            .padding(.bottom, 12)
+                        }
+                    }
+                )
+                .rotationEffect((orientation.toAngle()))
+                .twoFingerSwipe(direction: .up) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showOverlay = true
+                    }
+                }
                 
-                Text(label)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                // Player tools overlay
+                if showOverlay {
+                    PlayerToolsOverlay(onDismiss: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            showOverlay = false
+                        }
+                    })
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .sheet(isPresented: $showEditSheet) {
+                EditPlayerView(player: $player)
             }
         }
-        .buttonStyle(
-            ScaleButtonStyle()
+    }
+}
+
+// MARK: - Vertical Player View
+struct VerticalPlayerView: View {
+    @Binding var player: Player
+    @Binding var isLeftPressed: Bool
+    @Binding var isRightPressed: Bool
+    @Binding var cumulativeChange: Int
+    @Binding var showChange: Bool
+    @Binding var holdTimer: Timer?
+    @Binding var isHoldTimerActive: Bool
+    @Binding var changeWorkItem: DispatchWorkItem?
+    @State private var showOverlay = false
+    @State private var showEditSheet = false
+    @State private var dragDistance: CGFloat = 0
+    @State private var overlayOpacity: Double = 0
+
+    let updatePoints: UpdatePointsFunc
+    let startHoldTimer: TimerHandlerFunc
+    let stopHoldTimer: StopTimerFunc
+    var orientation: OrientationLayout
+    
+    // Minimum distance to trigger the overlay
+    private let minDragDistance: CGFloat = 80
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                VStack(spacing: 0) {
+                    // Área superior - para aumentar (lembre-se que na vertical a lógica é invertida)
+                    Rectangle()
+                        .fill(DEFAULT_STYLES.background)
+                        .opacity(isLeftPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.white.opacity(isLeftPressed ? 0.3 : 0), lineWidth: 2)
+                        )
+                        .scaleEffect(isLeftPressed ? 0.98 : 1.0)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isLeftPressed)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            print(">>> TOP AREA TAPPED - Increase\n")
+                            // Gerar feedback háptico
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            
+                            // Adicionar animação visual ao tocar
+                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                isLeftPressed = true
+                            }
+                            
+                            // Resetar após breve delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                    isLeftPressed = false
+                                }
+                            }
+                            
+                            updatePoints(.right, 1)  // Inverte para manter consistência com orientação
+                        }
+                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+                            withAnimation {
+                                isLeftPressed = pressing
+                            }
+                            
+                            if pressing {
+                                print(">>> TOP LONG PRESS STARTED\n")
+                                let generator = UIImpactFeedbackGenerator(style: .medium)
+                                generator.impactOccurred()
+                                startHoldTimer(.right, 5)
+                            } else {
+                                print(">>> TOP LONG PRESS ENDED\n")
+                                stopHoldTimer()
+                            }
+                        } perform: {}
+                    
+                    // Área inferior - para diminuir
+                    Rectangle()
+                        .fill(DEFAULT_STYLES.background)
+                        .opacity(isRightPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+                        .overlay(
+                            Rectangle()
+                                .stroke(Color.white.opacity(isRightPressed ? 0.3 : 0), lineWidth: 2)
+                        )
+                        .scaleEffect(isRightPressed ? 0.98 : 1.0)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isRightPressed)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            print(">>> BOTTOM AREA TAPPED - Decrease\n")
+                            // Gerar feedback háptico
+                            let generator = UIImpactFeedbackGenerator(style: .light)
+                            generator.impactOccurred()
+                            
+                            // Adicionar animação visual ao tocar
+                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                isRightPressed = true
+                            }
+                            
+                            // Resetar após breve delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                                    isRightPressed = false
+                                }
+                            }
+                            
+                            updatePoints(.left, 1)  // Inverte para manter consistência com orientação
+                        }
+                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+                            withAnimation {
+                                isRightPressed = pressing
+                            }
+                            
+                            if pressing {
+                                print(">>> BOTTOM LONG PRESS STARTED\n")
+                                let generator = UIImpactFeedbackGenerator(style: .medium)
+                                generator.impactOccurred()
+                                startHoldTimer(.left, 5)
+                            } else {
+                                print(">>> BOTTOM LONG PRESS ENDED\n")
+                                stopHoldTimer()
+                            }
+                        } perform: {}
+                }
+                .cornerRadius(16)
+                .foregroundColor(.white)
+                .overlay(
+                    ZStack {
+                        Text("\(player.HP)")
+                            .font(.system(size: 48))
+                            .rotationEffect(Angle(degrees: 270))
+                        
+                        VStack {
+                            Image(systemName: "minus")
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .font(.system(size: 24))
+                                .rotationEffect(Angle(degrees: 90))
+                                .padding(.bottom, 64)
+                        }
+                        .frame(height: geometry.size.height, alignment: .bottom)
+                        
+                        VStack {
+                            Image(systemName: "plus")
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .font(.system(size: 24))
+                                .padding(.top, 64)
+                        }
+                        .frame(height: geometry.size.height, alignment: .top)
+                        
+                        if cumulativeChange != 0 {
+                            Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+                                .font(.system(size: 24))
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .offset(x: cumulativeChange > 0 ? 60 : -60)
+                                .opacity(showChange ? 1 : 0)
+                                .rotationEffect(Angle(degrees: 270))
+                        }
+                        
+                        HStack {
+                            Text(player.name)
+                                .font(.system(size: 24))
+                                .foregroundColor(DEFAULT_STYLES.foreground)
+                                .rotationEffect(Angle(degrees: 270))
+                                .onTapGesture {
+                                    showEditSheet.toggle()
+                                }
+                            Spacer()
+                        }
+                        
+                        // Two-finger gesture recognizer indicator (visual hint)
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                Image(systemName: "hand.draw.fill")
+                                    .font(.system(size: 20))
+                                    .opacity(0.5)
+                                    .foregroundColor(DEFAULT_STYLES.foreground)
+                                    .padding(8)
+                            }
+                            .padding(.trailing, 12)
+                            .padding(.bottom, 12)
+                        }
+                    }
+                )
+                .twoFingerSwipe(direction: .up) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showOverlay = true
+                    }
+                }
+                
+                // Player tools overlay
+                if showOverlay {
+                    PlayerToolsOverlay(onDismiss: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            showOverlay = false
+                        }
+                    })
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .sheet(isPresented: $showEditSheet) {
+                EditPlayerView(player: $player)
+            }
+        }
+    }
+}
+
+// MARK: - Main Player View
+struct PlayerView: View {
+    @Binding var player: Player
+    var orientation: OrientationLayout
+    @State private var isLeftPressed: Bool = false
+    @State private var isRightPressed: Bool = false
+    @State private var cumulativeChange: Int = 0
+    @State private var showChange: Bool = false
+    @State private var holdTimer: Timer?
+    @State private var isHoldTimerActive: Bool = false
+    @State private var changeWorkItem: DispatchWorkItem?
+
+    
+    var body: some View {
+        orientation == .normal || orientation == .inverted
+        ? AnyView(
+            HorizontalPlayerView(
+                player: $player,
+                isLeftPressed: $isLeftPressed,
+                isRightPressed: $isRightPressed,
+                cumulativeChange: $cumulativeChange,
+                showChange: $showChange,
+                holdTimer: $holdTimer,
+                isHoldTimerActive: $isHoldTimerActive,
+                changeWorkItem: $changeWorkItem,
+                updatePoints: updatePoints,
+                startHoldTimer: startHoldTimer,
+                stopHoldTimer: stopHoldTimer,
+                orientation: orientation
+            )
+        )
+        : AnyView(
+            VerticalPlayerView(
+                player: $player,
+                isLeftPressed: $isLeftPressed,
+                isRightPressed: $isRightPressed,
+                cumulativeChange: $cumulativeChange,
+                showChange: $showChange,
+                holdTimer: $holdTimer,
+                isHoldTimerActive: $isHoldTimerActive,
+                changeWorkItem: $changeWorkItem,
+                updatePoints: updatePoints,
+                startHoldTimer: startHoldTimer,
+                stopHoldTimer: stopHoldTimer,
+                orientation: orientation
+            )
         )
     }
-}
-
-// Custom button style with scale effect
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
-            .opacity(configuration.isPressed ? 0.9 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-    }
-}
-
-// MARK: - Drag Direction Helper
-
-enum DragDirection {
-    case up, down, left, right, none
-}
-
-extension DragGesture.Value {
-    var dragDirection: DragDirection {
-        let horizontalAmount = abs(translation.width)
-        let verticalAmount = abs(translation.height)
-        
-        if horizontalAmount > verticalAmount {
-            return translation.width < 0 ? .left : .right
-        } else if verticalAmount > horizontalAmount {
-            return translation.height < 0 ? .up : .down
+    
+    private func updatePoints(for side: Side, amount: Int) {
+        switch side {
+        case .left:
+            player.HP -= amount
+            cumulativeChange -= amount
+        case .right:
+            player.HP += amount
+            cumulativeChange += amount
         }
         
-        return .none
+        showPointChange()
+    }
+    
+    private func startHoldTimer(for side: Side, amount: Int) {
+        guard !isHoldTimerActive else {
+            return
+        }
+        
+        isHoldTimerActive = true
+        
+        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
+            updatePoints(for: side, amount: amount)
+        }
+    }
+    
+    private func stopHoldTimer() {
+        holdTimer?.invalidate()
+        holdTimer = nil
+        isHoldTimerActive = false
+    }
+    
+    private func showPointChange() {
+        changeWorkItem?.cancel()        
+        showChange = true
+        
+        let newWorkItem = DispatchWorkItem {
+            showChange = false
+            cumulativeChange = 0
+        }
+        
+        changeWorkItem = newWorkItem
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
     }
 }
 
-//#Preview{
-//    PlayerView(player: .constant(Player(HP: 40, name: "Vinicius" )), orientation: .normal)
+//struct HorizontalPlayerView: View {
+//    @Binding var player: Player
+//    @Binding var isLeftPressed: Bool
+//    @Binding var isRightPressed: Bool
+//    @Binding var cumulativeChange: Int
+//    @Binding var showChange: Bool
+//    @Binding var holdTimer: Timer?
+//    @Binding var isHoldTimerActive: Bool
+//    @Binding var changeWorkItem: DispatchWorkItem?
+//    let updatePoints: (Side, Int) -> Void
+//    let startHoldTimer: (Side, Int) -> Void
+//    let stopHoldTimer: () -> Void
+//    var orientation: OrientationLayout
+//    @State private var showEditSheet = false
+//    @State private var showOverlay = false
+//    @State private var dragDistance: CGFloat = 0
+//    @State private var overlayOpacity: Double = 0
+//    
+//    // Minimum distance to trigger the overlay
+//    private let minDragDistance: CGFloat = 80
+//    
+//    var body: some View {
+//        GeometryReader { geometry in
+//            ZStack {
+//                // Dividir explicitamente o espaço em dois para garantir áreas de toque separadas
+//                HStack(spacing: 0) {
+//                    // Lado esquerdo - área para diminuir
+//                    Rectangle()
+//                        .fill(DEFAULT_STYLES.background)
+//                        .opacity(isLeftPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+//                        .overlay(
+//                            Rectangle()
+//                                .stroke(Color.white.opacity(isLeftPressed ? 0.3 : 0), lineWidth: 2)
+//                        )
+//                        .scaleEffect(isLeftPressed ? 0.98 : 1.0)
+//                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isLeftPressed)
+//                        .contentShape(Rectangle())
+//                        .onTapGesture {
+//                            print(">>> LEFT AREA TAPPED - Decrease\n")
+//                            // Gerar feedback háptico
+//                            let generator = UIImpactFeedbackGenerator(style: .light)
+//                            generator.impactOccurred()
+//                            
+//                            // Adicionar animação visual ao tocar
+//                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                isLeftPressed = true
+//                            }
+//                            
+//                            // Resetar após breve delay
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+//                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                    isLeftPressed = false
+//                                }
+//                            }
+//                            
+//                            updatePoints(.left, 1)
+//                        }
+//                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+//                            withAnimation {
+//                                isLeftPressed = pressing
+//                            }
+//                            
+//                            if pressing {
+//                                print(">>> LEFT LONG PRESS STARTED\n")
+//                                let generator = UIImpactFeedbackGenerator(style: .medium)
+//                                generator.impactOccurred()
+//                                startHoldTimer(.left, 5)
+//                            } else {
+//                                print(">>> LEFT LONG PRESS ENDED\n")
+//                                stopHoldTimer()
+//                            }
+//                        } perform: {}
+//                    
+//                    // Lado direito - área para aumentar
+//                    Rectangle()
+//                        .fill(DEFAULT_STYLES.background)
+//                        .opacity(isRightPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+//                        .overlay(
+//                            Rectangle()
+//                                .stroke(Color.white.opacity(isRightPressed ? 0.3 : 0), lineWidth: 2)
+//                        )
+//                        .scaleEffect(isRightPressed ? 0.98 : 1.0)
+//                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isRightPressed)
+//                        .contentShape(Rectangle())
+//                        .onTapGesture {
+//                            print(">>> RIGHT AREA TAPPED - Increase\n")
+//                            // Gerar feedback háptico
+//                            let generator = UIImpactFeedbackGenerator(style: .light)
+//                            generator.impactOccurred()
+//                            
+//                            // Adicionar animação visual ao tocar
+//                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                isRightPressed = true
+//                            }
+//                            
+//                            // Resetar após breve delay
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+//                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                    isRightPressed = false
+//                                }
+//                            }
+//                            
+//                            updatePoints(.right, 1)
+//                        }
+//                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+//                            withAnimation {
+//                                isRightPressed = pressing
+//                            }
+//                            
+//                            if pressing {
+//                                print(">>> RIGHT LONG PRESS STARTED\n")
+//                                let generator = UIImpactFeedbackGenerator(style: .medium)
+//                                generator.impactOccurred()
+//                                startHoldTimer(.right, 5)
+//                            } else {
+//                                print(">>> RIGHT LONG PRESS ENDED\n")
+//                                stopHoldTimer()
+//                            }
+//                        } perform: {}
+//                }
+//                .cornerRadius(16)
+//                .foregroundColor(.white)
+//                .overlay(
+//                    ZStack {
+//                        Text("\(player.HP)")
+//                            .font(.system(size: 48))
+//                        
+//                        HStack {
+//                            Image(systemName: "minus")
+//                                .foregroundColor(DEFAULT_STYLES.foreground)
+//                                .font(.system(size: 24))
+//                            Spacer()
+//                        }
+//                        .padding(.leading, 32)
+//                        
+//                        HStack {
+//                            Spacer()
+//                            Image(systemName: "plus")
+//                                .foregroundColor(DEFAULT_STYLES.foreground)
+//                                .font(.system(size: 24))
+//                        }
+//                        .padding(.trailing, 32)
+//                        
+//                        if cumulativeChange != 0 {
+//                            Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+//                                .font(.system(size: 24))
+//                                .foregroundColor(DEFAULT_STYLES.foreground)
+//                                .offset(x: cumulativeChange > 0 ? 60 : -60)
+//                                .opacity(showChange ? 1 : 0)
+//                                .animation(.easeInOut(duration: 0.3), value: showChange)
+//                        }
+//                        
+//                        VStack {
+//                            Text(player.name)
+//                                .font(.system(size: 24))
+//                                .foregroundColor(DEFAULT_STYLES.foreground)
+//                                .onTapGesture {
+//                                    showEditSheet = true
+//                                }
+//                            Spacer()
+//                        }
+//                        .padding(.top, 12)
+//                        
+//                        // Two-finger gesture recognizer indicator (visual hint)
+//                        VStack {
+//                            Spacer()
+//                            HStack {
+//                                Spacer()
+//                                Image(systemName: "hand.draw.fill")
+//                                    .font(.system(size: 20))
+//                                    .opacity(0.5)
+//                                    .foregroundColor(DEFAULT_STYLES.foreground)
+//                                    .padding(8)
+//                            }
+//                            .padding(.trailing, 12)
+//                            .padding(.bottom, 12)
+//                        }
+//                    }
+//                )
+//                .rotationEffect((orientation.toAngle()))
+//                .twoFingerSwipe(direction: .up) {
+//                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+//                        showOverlay = true
+//                    }
+//                }
+//                
+//                // Player tools overlay
+//                if showOverlay {
+//                    PlayerToolsOverlay(onDismiss: {
+//                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+//                            showOverlay = false
+//                        }
+//                    })
+//                    .transition(.move(edge: .bottom).combined(with: .opacity))
+//                }
+//            }
+//            .sheet(isPresented: $showEditSheet) {
+//                EditPlayerView(player: $player)
+//            }
+//        }
+//    }
+//    
+//    struct VerticalPlayerView: View {
+//        @Binding var player: Player
+//        @Binding var isLeftPressed: Bool
+//        @Binding var isRightPressed: Bool
+//        @Binding var cumulativeChange: Int
+//        @Binding var showChange: Bool
+//        @Binding var holdTimer: Timer?
+//        @Binding var isHoldTimerActive: Bool
+//        @Binding var changeWorkItem: DispatchWorkItem?
+//        @State private var showOverlay = false
+//        @State private var showEditSheet = false
+//        @State private var dragDistance: CGFloat = 0
+//        @State private var overlayOpacity: Double = 0
+//        
+//        let updatePoints: (Side, Int) -> Void
+//        let startHoldTimer: (Side, Int) -> Void
+//        let stopHoldTimer: () -> Void
+//        var orientation: OrientationLayout
+//        
+//        // Minimum distance to trigger the overlay
+//        private let minDragDistance: CGFloat = 80
+//        
+//        var body: some View {
+//            GeometryReader { geometry in
+//                ZStack {
+//                    VStack(spacing: 0) {                    // Área superior - para aumentar (lembre-se que na vertical a lógica é invertida)
+//                    Rectangle()
+//                        .fill(DEFAULT_STYLES.background)
+//                        .opacity(isLeftPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+//                        .overlay(
+//                            Rectangle()
+//                                .stroke(Color.white.opacity(isLeftPressed ? 0.3 : 0), lineWidth: 2)
+//                        )
+//                        .scaleEffect(isLeftPressed ? 0.98 : 1.0)
+//                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isLeftPressed)
+//                        .contentShape(Rectangle())
+//                        .onTapGesture {
+//                            print(">>> TOP AREA TAPPED - Increase\n")
+//                            // Gerar feedback háptico
+//                            let generator = UIImpactFeedbackGenerator(style: .light)
+//                            generator.impactOccurred()
+//                            
+//                            // Adicionar animação visual ao tocar
+//                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                isLeftPressed = true
+//                            }
+//                            
+//                            // Resetar após breve delay
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+//                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                    isLeftPressed = false
+//                                }
+//                            }
+//                            
+//                            updatePoints(.right, 1)  // Inverte para manter consistência com orientação
+//                        }
+//                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+//                            withAnimation {
+//                                isLeftPressed = pressing
+//                            }
+//                            
+//                            if pressing {
+//                                print(">>> TOP LONG PRESS STARTED\n")
+//                                let generator = UIImpactFeedbackGenerator(style: .medium)
+//                                generator.impactOccurred()
+//                                startHoldTimer(.right, 5)
+//                            } else {
+//                                print(">>> TOP LONG PRESS ENDED\n")
+//                                stopHoldTimer()
+//                            }
+//                        } perform: {}
+//                             // Área inferior - para diminuir
+//                    Rectangle()
+//                        .fill(DEFAULT_STYLES.background)
+//                        .opacity(isRightPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
+//                        .overlay(
+//                            Rectangle()
+//                                .stroke(Color.white.opacity(isRightPressed ? 0.3 : 0), lineWidth: 2)
+//                        )
+//                        .scaleEffect(isRightPressed ? 0.98 : 1.0)
+//                        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isRightPressed)
+//                        .contentShape(Rectangle())
+//                        .onTapGesture {
+//                            print(">>> BOTTOM AREA TAPPED - Decrease\n")
+//                            // Gerar feedback háptico
+//                            let generator = UIImpactFeedbackGenerator(style: .light)
+//                            generator.impactOccurred()
+//                            
+//                            // Adicionar animação visual ao tocar
+//                            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                isRightPressed = true
+//                            }
+//                            
+//                            // Resetar após breve delay
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+//                                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+//                                    isRightPressed = false
+//                                }
+//                            }
+//                            
+//                            updatePoints(.left, 1)  // Inverte para manter consistência com orientação
+//                        }
+//                        .onLongPressGesture(minimumDuration: 0.3) { pressing in
+//                            withAnimation {
+//                                isRightPressed = pressing
+//                            }
+//                            
+//                            if pressing {
+//                                print(">>> BOTTOM LONG PRESS STARTED\n")
+//                                let generator = UIImpactFeedbackGenerator(style: .medium)
+//                                generator.impactOccurred()
+//                                startHoldTimer(.left, 5)
+//                            } else {
+//                                print(">>> BOTTOM LONG PRESS ENDED\n")
+//                                stopHoldTimer()
+//                            }
+//                        } perform: {}
+//                    }
+//                    .cornerRadius(16)
+//                    .foregroundColor(.white)
+//                    .overlay(
+//                        ZStack {
+//                            Text("\(player.HP)")
+//                                .font(.system(size: 48))
+//                                .rotationEffect(Angle(degrees: 270))
+//                            
+//                            VStack {
+//                                Image(systemName: "minus")
+//                                    .foregroundColor(DEFAULT_STYLES.foreground)
+//                                    .font(.system(size: 24))
+//                                    .rotationEffect(Angle(degrees: 90))
+//                                    .padding(.bottom, 64)
+//                            }
+//                            .frame(height: geometry.size.height, alignment: .bottom)
+//                            
+//                            VStack {
+//                                Image(systemName: "plus")
+//                                    .foregroundColor(DEFAULT_STYLES.foreground)
+//                                    .font(.system(size: 24))
+//                                    .padding(.top, 64)
+//                            }
+//                            .frame(height: geometry.size.height, alignment: .top)
+//                            
+//                            if cumulativeChange != 0 {
+//                                Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+//                                    .font(.system(size: 24))
+//                                    .foregroundColor(DEFAULT_STYLES.foreground)
+//                                    .offset(x: cumulativeChange > 0 ? 60 : -60)
+//                                    .opacity(showChange ? 1 : 0)
+//                                    .rotationEffect(Angle(degrees: 270))
+//                            }
+//                            
+//                            HStack {
+//                                Text(player.name)
+//                                    .font(.system(size: 24))
+//                                    .foregroundColor(DEFAULT_STYLES.foreground)
+//                                    .rotationEffect(Angle(degrees: 270))
+//                                    .onTapGesture {
+//                                        showEditSheet.toggle()
+//                                    }
+//                                Spacer()
+//                            }
+//                            
+//                            // Two-finger gesture recognizer indicator (visual hint)
+//                            VStack {
+//                                Spacer()
+//                                HStack {
+//                                    Spacer()
+//                                    Image(systemName: "hand.draw.fill")
+//                                        .font(.system(size: 20))
+//                                        .opacity(0.5)
+//                                        .foregroundColor(DEFAULT_STYLES.foreground)
+//                                        .padding(8)
+//                                }
+//                                .padding(.trailing, 12)
+//                                .padding(.bottom, 12)
+//                            }
+//                        }
+//                    )
+//                    // Two-finger swipe gesture
+//                    .twoFingerSwipe(direction: .up) {
+//                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+//                            showOverlay = true
+//                        }
+//                    }
+//                    
+//                    // Player tools overlay
+//                    if showOverlay {
+//                        PlayerToolsOverlay(onDismiss: {
+//                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+//                                showOverlay = false
+//                            }
+//                        })
+//                        .transition(.move(edge: .bottom).combined(with: .opacity))
+//                    }
+//                }
+//                .sheet(isPresented: $showEditSheet) {
+//                    EditPlayerView(player: $player)
+//                }
+//            }
+//        }
+//    }
+//        
+//    struct NameView: View {
+//        let name: String;
+//        
+//        var body: some View {
+//            VStack {
+//                Text("\(name)")
+//            }
+//        }
+//    }
+//    
+//    // MARK: - Drag Direction Helper
+//    
+//    enum DragDirection {
+//        case up, down, left, right, none
+//    }
+//    
+//    extension DragGesture.Value {
+//        var dragDirection: DragDirection {
+//            let horizontalAmount = abs(translation.width)
+//            let verticalAmount = abs(translation.height)
+//            
+//            if horizontalAmount > verticalAmount {
+//                return translation.width < 0 ? .left : .right
+//            } else if verticalAmount > horizontalAmount {
+//                return translation.height < 0 ? .up : .down
+//            }
+//            
+//            return .none
+//        }
+//    }
+//    
+//    #Preview{
+//        PlayerView(player: .constant(Player(HP: 40, name: "Vinicius" )), orientation: .normal)
+//    }
+//    
+//    //#Preview{
+//    //    PlayerToolsOverlay(onDismiss: {})
+//    //}
 //}
-
-#Preview{
-    PlayerToolsOverlay(onDismiss: {})
-}

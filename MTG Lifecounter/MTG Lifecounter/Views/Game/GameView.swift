@@ -20,6 +20,11 @@ enum GameLayout {
   }
 }
 
+// MARK: - Simple Orientation Manager Replacement (Fixed Landscape)
+private struct OrientationValues {
+    static let isLandscape: Bool = true
+}
+
 // MARK: - Layout Builder
 struct GameLayoutBuilder {
   static func buildLayout(layout: PlayerLayouts) -> some View {
@@ -47,24 +52,21 @@ struct GameView: View {
     @State private var previousLayout: PlayerLayouts?
     @State private var showingResetAlert = false
     @State private var selectedTab = 0
-    @State private var orientationManager = DeviceOrientationManager.shared
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
     private var isIPad: Bool {
-        horizontalSizeClass == .regular && verticalSizeClass == .regular
+        return UIDevice.current.userInterfaceIdiom == .pad
     }
     
+    // Always in landscape mode
     private var isLandscape: Bool {
-        orientationManager.isLandscape
+        return OrientationValues.isLandscape
     }
     
     private var settingsButtonPosition: Edge {
-        if orientationManager.isPad {
-            return .trailing
-        } else {
-            return orientationManager.isLandscape ? .bottom : .trailing
-        }
+        // Settings button always on trailing edge
+        return .trailing
     }
     
     var body: some View {
@@ -95,10 +97,6 @@ struct GameView: View {
             .navigationBarHidden(true)
             .onAppear {
                 playerState.initialize(gameSettings: gameSettings)
-                orientationManager.updateOrientation(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { oldSize, newSize in
-                orientationManager.updateOrientation(size: newSize)
             }
             .onChange(of: gameSettings.startingLife) { oldValue, newValue in
                 handleSettingsChange(previousLayout: gameSettings.layout)
@@ -113,14 +111,14 @@ struct GameView: View {
                 }
                 Button("No", role: .cancel) {
                     if let prevLayout = previousLayout {
-                        gameSettings.layout = prevLayout // Revert to the previous layout
+                        gameSettings.layout = prevLayout
                     }
                 }
             } message: {
                 Text("Do you want to reset the game?")
             }
         }
-        .ignoresSafeArea(.keyboard) // Better keyboard handling
+        .ignoresSafeArea(.keyboard)
     }
     
     // MARK: - Components
@@ -159,8 +157,8 @@ struct GameView: View {
                 // Settings content
                 VStack(spacing: 0) {
                     // Settings content with adaptive layout
-                    if orientationManager.isPad || !orientationManager.isLandscape {
-                        // iPad or iPhone portrait - show from side
+                    if isIPad {
+                        // iPad - show from side
                         settingsPanelContent
                             .frame(width: settingsPanelWidth, height: geometry.size.height)
                             .background(
@@ -260,7 +258,7 @@ struct GameView: View {
     private var settingsPanelWidth: CGFloat {
         let screenWidth = UIScreen.main.bounds.width
         // iPad: 1/3 of screen, iPhone: 80% of screen
-        return orientationManager.isPad ? screenWidth / 3 : screenWidth * 0.8
+        return isIPad ? screenWidth / 3 : screenWidth * 0.8
     }
     
     private var settingsPanelHeight: CGFloat {
@@ -270,46 +268,40 @@ struct GameView: View {
     
     // Grid properties
     private var adaptiveGridColumns: Int {
-        // 3 columns on iPad/larger screens, 2 on small screens in landscape
-        if orientationManager.isPad {
-            return 3
-        } else if orientationManager.isLandscape {
-            return 3
-        } else {
-            return 2
-        }
+        // Since we're always in landscape, use 3 columns for iPad and landscape iPhone
+        return isIPad ? 3 : 3
     }
     
     private var adaptiveGridSpacing: CGFloat {
-        orientationManager.isPad ? 16 : 8
+        isIPad ? 16 : 8
     }
     
     // Text sizes
     private var adaptiveTitleSize: CGFloat {
-        orientationManager.isPad ? 36 : (orientationManager.isLandscape ? 24 : 30)
+        isIPad ? 36 : 24 // Always landscape
     }
     
     private var adaptiveSubtitleSize: CGFloat {
-        orientationManager.isPad ? 28 : (orientationManager.isLandscape ? 20 : 24)
+        isIPad ? 28 : 20 // Always landscape
     }
     
     // Spacing
     private var adaptiveSpacing: CGFloat {
-        orientationManager.isPad ? 24 : 16
+        isIPad ? 24 : 16
     }
     
     // Button/Icon sizes
     private var adaptiveIconSize: CGFloat {
-        orientationManager.isPad ? 30 : 24
+        isIPad ? 30 : 24
     }
     
     private var adaptiveButtonPadding: CGFloat {
-        orientationManager.isPad ? 16 : 12
+        isIPad ? 16 : 12
     }
     
     // Padding
     private var adaptivePadding: EdgeInsets {
-        if orientationManager.isPad {
+        if isIPad {
             return EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20)
         } else {
             return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
