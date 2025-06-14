@@ -20,8 +20,7 @@ public var settingsPanelHeight: CGFloat {
 
 struct SettingsPanelView: View {
   @Binding var selectedTab: Int
-  @Environment(\.dismissSettingsPanel) private var dismissPanel
-    
+
   var body: some View {
     GeometryReader { geometry in
       ZStack {
@@ -29,7 +28,9 @@ struct SettingsPanelView: View {
         Color.black.opacity(0.5)
           .ignoresSafeArea()
           .onTapGesture {
-              dismissPanel()
+            withAnimation {
+              selectedTab = 0
+            }
           }
 
         // Settings content
