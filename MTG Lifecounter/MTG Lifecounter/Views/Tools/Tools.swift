@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
 
 // Model for tool items
 struct ToolItem: Identifiable {
@@ -23,13 +22,12 @@ struct PlayerToolsOverlay: View {
         ToolItem(id: 0, iconName: "dice", label: "Roll D20", description: "Random 1-20"),
         ToolItem(id: 1, iconName: "die.face.6", label: "Roll D6", description: "Random 1-6"),
         ToolItem(id: 2, iconName: "die.face.4.fill", label: "Roll D4", description: "Random 1-4"),
-        ToolItem(id: 3, iconName: "counter", label: "Counter", description: "Add token")
+        ToolItem(id: 3, iconName: "dice", label: "Roll D8", description: "Random 1-8")
     ]
     @State private var selectedTool: ToolItem?
     @State private var isPresentingTool = false
     @State private var diceResult: Int?
     @State private var isRollingDice = false
-    @State private var counter: Int = 0
     @State private var animateAppear = false
     
     var body: some View {
@@ -67,16 +65,15 @@ struct PlayerToolsOverlay: View {
                             action: {
                                 selectedTool = item
                                 isPresentingTool = true
-                                // Handle different tool actions
                                 switch item.id {
-                                case 0: // D20
+                                case 0:
                                     rollDice(sides: 20)
-                                case 1: // D6
+                                case 1:
                                     rollDice(sides: 6)
-                                case 2: // D4
+                                case 2:
                                     rollDice(sides: 4)
-                                case 3: // Counter
-                                    counter += 1
+                                case 3:
+                                    rollDice(sides: 8)
                                 default:
                                     break
                                 }
@@ -95,7 +92,7 @@ struct PlayerToolsOverlay: View {
                 .padding(.vertical, 16)
                 
                 // Results display
-                if diceResult != nil || counter > 0 {
+                if diceResult != nil {
                     VStack(spacing: 8) {
                         if let result = diceResult {
                             HStack(spacing: 16) {
@@ -122,91 +119,91 @@ struct PlayerToolsOverlay: View {
                             }
                         }
                         
-                        if counter > 0 {
-                            HStack(spacing: 16) {
-                                Text("Counter:")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.8))
-                                
-                                HStack {
-                                    Button(action: {
-                                        if counter > 0 {
-                                            counter -= 1
-                                        }
-                                    }) {
-                                        Image(systemName: "minus.circle")
-                                            .font(.system(size: 22))
-                                            .foregroundColor(.white)
-                                    }
-                                    
-                                    Text("\(counter)")
-                                        .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(.white)
-                                        .frame(minWidth: 40)
-                                        .padding(.horizontal, 4)
-                                    
-                                    Button(action: {
-                                        counter += 1
-                                    }) {
-                                        Image(systemName: "plus.circle")
-                                            .font(.system(size: 22))
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                                .padding(8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(hex: "4a6d88"))
-                                )
-                            }
-                        }
+//                        if counter > 0 {
+//                            HStack(spacing: 16) {
+//                                Text("Counter:")
+//                                    .font(.system(size: 18, weight: .medium))
+//                                    .foregroundColor(.white.opacity(0.8))
+//                                
+//                                HStack {
+//                                    Button(action: {
+//                                        if counter > 0 {
+//                                            counter -= 1
+//                                        }
+//                                    }) {
+//                                        Image(systemName: "minus.circle")
+//                                            .font(.system(size: 22))
+//                                            .foregroundColor(.white)
+//                                    }
+//                                    
+//                                    Text("\(counter)")
+//                                        .font(.system(size: 24, weight: .bold))
+//                                        .foregroundColor(.white)
+//                                        .frame(minWidth: 40)
+//                                        .padding(.horizontal, 4)
+//                                    
+//                                    Button(action: {
+//                                        counter += 1
+//                                    }) {
+//                                        Image(systemName: "plus.circle")
+//                                            .font(.system(size: 22))
+//                                            .foregroundColor(.white)
+//                                    }
+//                                }
+//                                .padding(8)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: 12)
+//                                        .fill(Color(hex: "4a6d88"))
+//                                )
+//                            }
+//                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 16)
                     .transition(.opacity)
                     .animation(.easeInOut, value: diceResult)
-                    .animation(.easeInOut, value: counter)
+//                    .animation(.easeInOut, value: counter)
                 }
                 
                 // Action buttons
-                HStack(spacing: 10) {
-                    // Reset button
-                    if diceResult != nil || counter > 0 {
-                        Button(action: {
-                            diceResult = nil
-                            counter = 0
-                        }) {
-                            Text("Reset")
-                                .font(.system(size: 18, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color(hex: "555555"))
-                                .cornerRadius(10)
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: diceResult)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: counter)
-                    }
-                    
-                    // Close button
-                    Button(action: {
-                        dismissWithAnimation()
-                    }) {
-                        Text("Close")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(Color(hex: "4a6d88"))
-                            .cornerRadius(10)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
-                .opacity(animateAppear ? 1.0 : 0.0)
-                .offset(y: animateAppear ? 0 : 20)
-                .animation(.easeOut(duration: 0.3).delay(0.2), value: animateAppear)
+//                HStack(spacing: 10) {
+//                    // Reset button
+//                    if diceResult != nil || counter > 0 {
+//                        Button(action: {
+//                            diceResult = nil
+//                            counter = 0
+//                        }) {
+//                            Text("Reset")
+//                                .font(.system(size: 18, weight: .medium))
+//                                .foregroundColor(.white)
+//                                .frame(maxWidth: .infinity)
+//                                .padding(.vertical, 12)
+//                                .background(Color(hex: "555555"))
+//                                .cornerRadius(10)
+//                        }
+//                        .transition(.scale.combined(with: .opacity))
+//                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: diceResult)
+//                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: counter)
+//                    }
+//                    
+//                    // Close button
+//                    Button(action: {
+//                        dismissWithAnimation()
+//                    }) {
+//                        Text("Close")
+//                            .font(.system(size: 18, weight: .medium))
+//                            .foregroundColor(.white)
+//                            .frame(maxWidth: .infinity)
+//                            .padding(.vertical, 12)
+//                            .background(Color(hex: "4a6d88"))
+//                            .cornerRadius(10)
+//                    }
+//                }
+//                .padding(.horizontal, 20)
+//                .padding(.bottom, 20)
+//                .opacity(animateAppear ? 1.0 : 0.0)
+//                .offset(y: animateAppear ? 0 : 20)
+//                .animation(.easeOut(duration: 0.3).delay(0.2), value: animateAppear)
             }
             .background(
                 Color(hex: "2A3D4F")

@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var path = NavigationPath()
-    @EnvironmentObject var gameSettings: GameSettings
     
     var body: some View {
         NavigationStack(path: $path) {

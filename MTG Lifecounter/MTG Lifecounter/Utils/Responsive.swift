@@ -50,6 +50,5 @@ public var adaptivePadding: EdgeInsets {
   } else {
     return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
   }
-    return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
 }
 
