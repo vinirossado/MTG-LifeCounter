@@ -83,7 +83,7 @@ extension EnvironmentValues {
 
 // Settings Panel Content
 struct SettingsPanelContent: View {
-//  @EnvironmentObject var gameSettings: GameSettings
+  @EnvironmentObject var gameSettings: GameSettings
 
   var body: some View {
     ScrollView {
