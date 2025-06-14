@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-class GameSettings: ObservableObject {
-    @Published var startingLife: Int = 40;
-    @Published var layout: PlayerLayouts = .four;
+public class GameSettings: ObservableObject {
+    @Published public var startingLife: Int = 40;
+    @Published public var layout: PlayerLayouts = .four;
 }

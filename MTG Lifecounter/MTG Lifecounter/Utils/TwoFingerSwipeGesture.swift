@@ -1,6 +1,8 @@
 import SwiftUI
 import UIKit
 
+public let minDragDistance: CGFloat = 80
+
 // Internal detector for the two-finger swipe gesture
 private struct TwoFingerSwipeDetector: UIViewRepresentable {
     var direction: UISwipeGestureRecognizer.Direction

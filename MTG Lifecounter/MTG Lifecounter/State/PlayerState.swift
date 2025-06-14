@@ -7,22 +7,27 @@
 
 import SwiftUI
 
-struct Player: Identifiable {
-    let id = UUID()
-    var HP: Int
-    var name: String
+public struct Player: Identifiable {
+    public let id = UUID()
+    public var HP: Int
+    public var name: String
+    
+    public init(HP: Int, name: String) {
+        self.HP = HP
+        self.name = name
+    }
 }
 
-class PlayerState: ObservableObject {
-    @Published var players: [Player] = []
+public class PlayerState: ObservableObject {
+    @Published public var players: [Player] = []
     
-    func initialize(gameSettings: GameSettings) {
+    public func initialize(gameSettings: GameSettings) {
         players = (1...gameSettings.layout.playerCount).map{ idx in
             Player(HP: gameSettings.startingLife, name: "Player \(idx)")
         }
     }
     
-    func bindingForPlayer(at index: Int) -> Binding<Player>? {
+    public func bindingForPlayer(at index: Int) -> Binding<Player>? {
         guard players.indices.contains(index) else { return nil }
         return Binding(
             get: { self.players[index] },

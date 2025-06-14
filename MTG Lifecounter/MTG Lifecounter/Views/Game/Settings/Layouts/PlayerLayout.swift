@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum PlayerLayouts {
+public enum PlayerLayouts: Hashable, CaseIterable {
     case two
     case threeLeft
     case threeRight
@@ -15,7 +15,7 @@ enum PlayerLayouts {
     case five
     case six
     
-    var playerCount: Int {
+    public var playerCount: Int {
         switch self {
         case .two: return 2
         case .threeLeft: return 3
@@ -24,6 +24,10 @@ enum PlayerLayouts {
         case .five: return 5
         case .six: return 6
         }
+    }
+    
+    public static var allCases: [PlayerLayouts] {
+        return [.two, .threeLeft, .threeRight, .four, .five, .six]
     }
 }
 

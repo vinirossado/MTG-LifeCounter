@@ -20,11 +20,6 @@ enum GameLayout {
   }
 }
 
-// MARK: - Simple Orientation Manager Replacement (Fixed Landscape)
-private struct OrientationValues {
-    static let isLandscape: Bool = true
-}
-
 // MARK: - Layout Builder
 struct GameLayoutBuilder {
   static func buildLayout(layout: PlayerLayouts) -> some View {
@@ -54,14 +49,10 @@ struct GameView: View {
     @State private var selectedTab = 0
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
-    
-    private var isIPad: Bool {
-        return UIDevice.current.userInterfaceIdiom == .pad
-    }
-    
+
     // Always in landscape mode
     private var isLandscape: Bool {
-        return OrientationValues.isLandscape
+        return true
     }
     
     private var settingsButtonPosition: Edge {
@@ -82,14 +73,14 @@ struct GameView: View {
                         Spacer()
                         settingsButton
                     }
-                    
                     Spacer()
                 }
                 .padding(adaptivePadding)
                 
                 // Settings Sheet - Slides in from the side/bottom
                 if selectedTab == 1 {
-                    settingsPanel
+                    SettingsPanelView(selectedTab: $selectedTab)
+                        .environmentObject(gameSettings)
                         .transition(.move(edge: settingsButtonPosition))
                         .zIndex(1)
                 }
@@ -120,9 +111,7 @@ struct GameView: View {
         }
         .ignoresSafeArea(.keyboard)
     }
-    
-    // MARK: - Components
-    
+        
     // Settings Button
     private var settingsButton: some View {
         Button(action: {
@@ -140,209 +129,10 @@ struct GameView: View {
         }
         .accessibilityLabel(selectedTab == 1 ? "Close Settings" : "Open Settings")
     }
-    
-    // Settings Panel
-    private var settingsPanel: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Semi-transparent background
-                Color.black.opacity(0.5)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation {
-                            selectedTab = 0
-                        }
-                    }
-                
-                // Settings content
-                VStack(spacing: 0) {
-                    // Settings content with adaptive layout
-                    if isIPad {
-                        // iPad - show from side
-                        settingsPanelContent
-                            .frame(width: settingsPanelWidth, height: geometry.size.height)
-                            .background(
-                                Color.darkNavyBackground.opacity(0.95)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            )
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                            .transition(.move(edge: .trailing))
-                    } else {
-                        // iPhone landscape - show from bottom as a shorter panel
-                        settingsPanelContent
-                            .frame(width: geometry.size.width - 40, height: settingsPanelHeight)
-                            .background(
-                                Color.darkNavyBackground.opacity(0.95)
-                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            )
-                            .frame(maxHeight: .infinity, alignment: .bottom)
-                            .padding(.bottom, 20)
-                            .transition(.move(edge: .bottom))
-                    }
-                }
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-        }
-        .ignoresSafeArea()
-        .zIndex(2)
-    }
-    
-    //Settings Panel
-    private var settingsPanelContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: adaptiveSpacing) {
-                Text("Settings")
-                    .font(.system(size: adaptiveTitleSize, weight: .bold))
-                    .padding(.bottom, adaptiveSpacing * 1.5)
-                    .foregroundColor(.lightGrayText)
-                
-                Text("Players")
-                    .font(.system(size: adaptiveSubtitleSize, weight: .semibold))
-                    .padding(.bottom, adaptiveSpacing * 0.75)
-                    .foregroundColor(.lightGrayText)
-                
-                // Layout Grid
-                layoutsGrid
-                
-                // Life Points
-                LifePointsView()
-                    .padding(.top, adaptiveSpacing)
-            }
-            .padding(adaptivePadding)
-        }
-    }
-    
-    // Layouts Grid
-    private var layoutsGrid: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: adaptiveGridSpacing), 
-                           count: adaptiveGridColumns),
-            spacing: adaptiveGridSpacing
-        ) {
-            PlayerLayout(isSelected: gameSettings.layout == .two, onClick: {
-                gameSettings.layout = .two
-            }, players: .two)
-            
-            PlayerLayout(isSelected: gameSettings.layout == .threeLeft, onClick: {
-                gameSettings.layout = .threeLeft
-            }, players: .threeLeft)
-            
-            PlayerLayout(isSelected: gameSettings.layout == .threeRight, onClick: {
-                gameSettings.layout = .threeRight
-            }, players: .threeRight)
-            
-            PlayerLayout(isSelected: gameSettings.layout == .four, onClick: {
-                gameSettings.layout = .four
-            }, players: .four)
-            
-            PlayerLayout(isSelected: gameSettings.layout == .five, onClick: {
-                gameSettings.layout = .five
-            }, players: .five)
-            
-            PlayerLayout(isSelected: gameSettings.layout == .six, onClick: {
-                gameSettings.layout = .six
-            }, players: .six)
-        }
-    }
-    
-    // MARK: - Helper Functions
-    
+        
+
     private func handleSettingsChange(previousLayout: PlayerLayouts) {
         showingResetAlert = true
         self.previousLayout = previousLayout
-    }
-    
-    // MARK: - Adaptive Properties
-    
-    // Panel dimensions
-    private var settingsPanelWidth: CGFloat {
-        let screenWidth = UIScreen.main.bounds.width
-        // iPad: 1/3 of screen, iPhone: 80% of screen
-        return isIPad ? screenWidth / 3 : screenWidth * 0.8
-    }
-    
-    private var settingsPanelHeight: CGFloat {
-        // Used for iPhone in landscape
-        return UIScreen.main.bounds.height * 0.7
-    }
-    
-    // Grid properties
-    private var adaptiveGridColumns: Int {
-        // Since we're always in landscape, use 3 columns for iPad and landscape iPhone
-        return isIPad ? 3 : 3
-    }
-    
-    private var adaptiveGridSpacing: CGFloat {
-        isIPad ? 16 : 8
-    }
-    
-    // Text sizes
-    private var adaptiveTitleSize: CGFloat {
-        isIPad ? 36 : 24 // Always landscape
-    }
-    
-    private var adaptiveSubtitleSize: CGFloat {
-        isIPad ? 28 : 20 // Always landscape
-    }
-    
-    // Spacing
-    private var adaptiveSpacing: CGFloat {
-        isIPad ? 24 : 16
-    }
-    
-    // Button/Icon sizes
-    private var adaptiveIconSize: CGFloat {
-        isIPad ? 30 : 24
-    }
-    
-    private var adaptiveButtonPadding: CGFloat {
-        isIPad ? 16 : 12
-    }
-    
-    // Padding
-    private var adaptivePadding: EdgeInsets {
-        if isIPad {
-            return EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20)
-        } else {
-            return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-        }
-    }
-}
-
-#Preview {
-    Group {
-        // iPhone Portrait
-//        GameView()
-//            .environmentObject(GameSettings())
-//            .environmentObject(PlayerState())
-//            .previewDevice("iPhone 14")
-//            .previewDisplayName("iPhone Portrait")
-//
-//        // iPhone Landscape
-//        GameView()
-//            .environmentObject(GameSettings())
-//            .environmentObject(PlayerState())
-//            .previewDevice("iPhone 14")
-//            .previewInterfaceOrientation(.landscapeLeft)
-//            .previewDisplayName("iPhone Landscape")
-//        
-//        // iPad Portrait
-//        GameView()
-//            .environmentObject(GameSettings())
-//            .environmentObject(PlayerState())
-//            .previewDevice("iPad Pro (11-inch)")
-//            .environment(\.horizontalSizeClass, .regular)
-//            .environment(\.verticalSizeClass, .regular)
-//            .previewDisplayName("iPad Portrait")
-
-        // iPad Landscape
-        GameView()
-            .environmentObject(GameSettings())
-            .environmentObject(PlayerState())
-            .previewDevice("iPad Pro (11-inch)")
-            .environment(\.horizontalSizeClass, .regular)
-            .environment(\.verticalSizeClass, .regular)
-            .previewInterfaceOrientation(.landscapeLeft)
-            .previewDisplayName("iPad Landscape")
     }
 }
