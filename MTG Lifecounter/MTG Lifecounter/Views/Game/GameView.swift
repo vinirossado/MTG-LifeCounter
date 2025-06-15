@@ -63,9 +63,14 @@ struct GameView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
+                // Background color to ensure full screen coverage
+                Color.black
+                    .ignoresSafeArea(.all)
+                
                 // Main Game Layout
                 GameLayoutBuilder.buildLayout(layout: gameSettings.layout)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(.all)
                 
                 // Settings Button - Fixed position based on device orientation
                 VStack {
@@ -85,6 +90,7 @@ struct GameView: View {
                         .zIndex(1)
                 }
             }
+            .edgesIgnoringSafeArea(.all) // This ensures we ignore safe areas on all edges
             .navigationBarHidden(true)
             .onAppear {
                 playerState.initialize(gameSettings: gameSettings)
