@@ -8,6 +8,76 @@
 import SwiftUI
 import UIKit
 
+struct VerticalPressableRectangle: View {
+  @Binding var isPressed: Bool
+  @Binding var player: Player
+  var side: SideEnum
+  var updatePoints: (SideEnum, Int) -> Void
+  var startHoldTimer: (SideEnum, Int) -> Void
+  var stopHoldTimer: () -> Void
+
+  var body: some View {
+    Rectangle()
+      .fill(side == .left ? DEFAULT_STYLES.background : Color.red.opacity(0.8))
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .opacity(isPressed ? DEFAULT_STYLES.hoverOpacity : DEFAULT_STYLES.opacity)
+      .overlay(
+        Rectangle()
+          .stroke(Color.white.opacity(0.2), lineWidth: 1.5)
+      )
+      .overlay(
+        Rectangle()
+          .stroke(
+            LinearGradient(
+              colors: [
+                Color.white.opacity(isPressed ? 0.8 : 0),
+                Color.blue.opacity(isPressed ? 0.6 : 0)
+              ],
+              startPoint: .topLeading,
+              endPoint: .bottomTrailing
+            ),
+            lineWidth: isPressed ? 3 : 0
+          )
+          .scaleEffect(isPressed ? 0.96 : 1.0)
+          .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isPressed)
+      )
+      .scaleEffect(isPressed ? 0.98 : 1.0)
+      .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isPressed)
+      .onTapGesture {
+        updatePoints(side, 1)
+      }
+      .onLongPressGesture(
+        minimumDuration: 0.2, maximumDistance: 0.4,
+        pressing: { pressing in
+          withAnimation {
+            isPressed = pressing
+          }
+
+          if pressing {
+            startHoldTimer(side, 10)
+          } else {
+            stopHoldTimer()
+          }
+
+        }, perform: {})
+  }
+}
+
+// MARK: - Helper Functions for Vertical Layout
+func getVerticalPlayerNamePosition(for orientation: OrientationLayout) -> PlayerNamePosition {
+  switch orientation {
+  case .left:
+    // Player at right - name should be at left (inner side) with no rotation
+    return PlayerNamePosition(isTop: true, rotation: Angle(degrees: 0))
+  case .right:
+    // Player at left - name should be at right (inner side) with no rotation
+    return PlayerNamePosition(isTop: false, rotation: Angle(degrees: 0))
+  default:
+    // Fallback for other orientations
+    return PlayerNamePosition(isTop: true, rotation: Angle(degrees: 0))
+  }
+}
+
 // MARK: - Vertical Player View
 struct VerticalPlayerView: View {
   @Binding var player: Player
@@ -18,298 +88,174 @@ struct VerticalPlayerView: View {
   @Binding var holdTimer: Timer?
   @Binding var isHoldTimerActive: Bool
   @Binding var changeWorkItem: DispatchWorkItem?
-  @State private var showOverlay = false
-  @State private var showEditSheet = false
-  @State private var dragDistance: CGFloat = 0
-  @State private var overlayOpacity: Double = 0
-
   let updatePoints: UpdatePointsFunc
   let startHoldTimer: TimerHandlerFunc
   let stopHoldTimer: StopTimerFunc
   var orientation: OrientationLayout
+  @State private var showEditSheet = false
+  @State private var showOverlay = false
+  @State private var dragDistance: CGFloat = 0
+  @State private var overlayOpacity: Double = 0
 
   var body: some View {
     GeometryReader { geometry in
       ZStack {
-        VStack(spacing: 0) {
-          // Área superior - para aumentar (lembre-se que na vertical a lógica é invertida)
-          Rectangle()
-            .fill(DEFAULT_STYLES.background)
-            .opacity(isLeftPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
-            .overlay(
-              Rectangle()
-                .stroke(Color.white.opacity(isLeftPressed ? 0.3 : 0), lineWidth: 2)
-            )
-            .scaleEffect(isLeftPressed ? 0.98 : 1.0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isLeftPressed)
-            .contentShape(Rectangle())
-            .onTapGesture {
-              print(">>> TOP AREA TAPPED - Increase\n")
-              // Gerar feedback háptico
-              let generator = UIImpactFeedbackGenerator(style: .light)
-              generator.impactOccurred()
+        // Player interaction areas (vertical layout - side by side)
+        HStack(spacing: 1) {
+          VerticalPressableRectangle(
+            isPressed: $isLeftPressed,
+            player: $player,
+            side: .left,
+            updatePoints: updatePoints,
+            startHoldTimer: startHoldTimer,
+            stopHoldTimer: stopHoldTimer
+          )
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-              // Adicionar animação visual ao tocar
-              withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                isLeftPressed = true
+          VerticalPressableRectangle(
+            isPressed: $isRightPressed,
+            player: $player,
+            side: .right,
+            updatePoints: updatePoints,
+            startHoldTimer: startHoldTimer,
+            stopHoldTimer: stopHoldTimer
+          )
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .cornerRadius(16)
+        .overlay(
+          RoundedRectangle(cornerRadius: 16)
+            .stroke(Color.white.opacity(0.4), lineWidth: 3)
+        )
+        .foregroundColor(.white)
+        .overlay(
+          ZStack {
+            // Calculate name position once for the entire overlay
+            let namePosition = getVerticalPlayerNamePosition(for: orientation)
+            
+            // Main HP display - should be readable for each player
+            Text("\(player.HP)")
+              .font(.system(size: 48, weight: .bold))
+              .foregroundColor(.white)
+              .rotationEffect(namePosition.rotation)
+
+            // Minus icon (left side)
+            VStack {
+              Spacer()
+              HStack {
+                Image(systemName: "minus")
+                  .foregroundColor(DEFAULT_STYLES.foreground)
+                  .font(.system(size: 24, weight: .medium))
+                  .rotationEffect(namePosition.rotation)
+                  .padding(.leading, 32)
+                Spacer()
               }
-
-              // Resetar após breve delay
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                  isLeftPressed = false
-                }
-              }
-
-              updatePoints(.right, 1)  // Inverte para manter consistência com orientação
+              Spacer()
             }
-            .onLongPressGesture(minimumDuration: 0.3) { pressing in
-              withAnimation {
-                isLeftPressed = pressing
-              }
 
-              if pressing {
-                print(">>> TOP LONG PRESS STARTED\n")
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
-                startHoldTimer(.right, 5)
-              } else {
-                print(">>> TOP LONG PRESS ENDED\n")
-                stopHoldTimer()
+            // Plus icon (right side)
+            VStack {
+              Spacer()
+              HStack {
+                Spacer()
+                Image(systemName: "plus")
+                  .foregroundColor(DEFAULT_STYLES.foreground)
+                  .font(.system(size: 24, weight: .medium))
+                  .rotationEffect(namePosition.rotation)
+                  .padding(.trailing, 32)
               }
-            } perform: {
+              Spacer()
             }
 
-          // Área inferior - para diminuir
-          Rectangle()
-            .fill(DEFAULT_STYLES.background)
-            .opacity(isRightPressed ? DEFAULT_STYLES.hoverOpacity * 0.8 : DEFAULT_STYLES.opacity)
-            .overlay(
-              Rectangle()
-                .stroke(Color.white.opacity(isRightPressed ? 0.3 : 0), lineWidth: 2)
-            )
-            .scaleEffect(isRightPressed ? 0.98 : 1.0)
-            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isRightPressed)
-            .contentShape(Rectangle())
-            .onTapGesture {
-              print(">>> BOTTOM AREA TAPPED - Decrease\n")
-              // Gerar feedback háptico
-              let generator = UIImpactFeedbackGenerator(style: .light)
-              generator.impactOccurred()
-
-              // Adicionar animação visual ao tocar
-              withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                isRightPressed = true
-              }
-
-              // Resetar após breve delay
-              DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                  isRightPressed = false
-                }
-              }
-
-              updatePoints(.left, 1)  // Inverte para manter consistência com orientação
+            // Change indicator
+            if cumulativeChange != 0 {
+              Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+                .font(.system(size: 24, weight: .semibold))
+                .foregroundColor(cumulativeChange > 0 ? .green : .red)
+                .offset(x: cumulativeChange > 0 ? 60 : -60)
+                .opacity(showChange ? 1 : 0)
+                .rotationEffect(namePosition.rotation)
+                .animation(.easeInOut(duration: 0.3), value: showChange)
             }
-            .onLongPressGesture(minimumDuration: 0.3) { pressing in
-              withAnimation {
-                isRightPressed = pressing
-              }
 
-              if pressing {
-                print(">>> BOTTOM LONG PRESS STARTED\n")
-                let generator = UIImpactFeedbackGenerator(style: .medium)
-                generator.impactOccurred()
-                startHoldTimer(.left, 5)
-              } else {
-                print(">>> BOTTOM LONG PRESS ENDED\n")
-                stopHoldTimer()
-              }
-            } perform: {
-            }
-        }.cornerRadius(16)
-          .foregroundColor(.white)
-          .overlay(
-            GeometryReader { overlayGeometry in
-              ZStack {
-                // Player life total (centered)
-                Text("\(player.HP)")
-                  .font(.system(size: 48))
-                  .rotationEffect(Angle(degrees: 270))
-                  .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-             
-                  // Top half - Increase area
-                  Button(action: {
-                    print(">>> TOP AREA PRESSED - Increase\n")
-
-                    // Haptic feedback
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
-
-                    // Visual feedback animation
-                    withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                      isLeftPressed = true
-                    }
-
-                    // Reset animation
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                      withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                        isLeftPressed = false
-                      }
-                    }
-
-                    // Update the points with inverted logic for vertical layout
-                    updatePoints(.right, 1)
-                  }) {
-                    // Full width/height with plus sign on the right side
-                    ZStack(alignment: .topTrailing) {
-                      Rectangle()
-                        .fill(Color.clear)
-
-                      // Plus indicator positioned at top right
-                      Image(systemName: "plus")
-                        .foregroundColor(DEFAULT_STYLES.foreground)
-                        .font(.system(size: 24))
-                        .padding(12)
-                        .background(Circle().fill(Color.white.opacity(0.1)))
-                        .padding(.top, 32)
-                        .padding(.trailing, 32)
-                    }
-                  }
-                  .buttonStyle(PlainButtonStyle())
-                  .frame(width: overlayGeometry.size.width, height: overlayGeometry.size.height / 2)
-                  .contentShape(Rectangle())
-                  .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.3)
-                      .onChanged { value in
-                        withAnimation {
-                          isLeftPressed = true
-                        }
-                        print(">>> TOP LONG PRESS STARTED\n")
-                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                        generator.impactOccurred()
-                        startHoldTimer(.right, 5)  // Inverted logic for vertical
-                      }
-                      .onEnded { _ in
-                        withAnimation {
-                          isLeftPressed = false
-                        }
-                        print(">>> TOP LONG PRESS ENDED\n")
-                        stopHoldTimer()
-                      }
-                  )
-
-                  // Bottom half - Decrease area
-                  Button(action: {
-                    print(">>> BOTTOM AREA PRESSED - Decrease\n")
-
-                    // Haptic feedback
-                    let generator = UIImpactFeedbackGenerator(style: .light)
-                    generator.impactOccurred()
-
-                    // Visual feedback animation
-                    withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                      isRightPressed = true
-                    }
-
-                    // Reset animation
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                      withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                        isRightPressed = false
-                      }
-                    }
-
-                    // Update the points with inverted logic for vertical layout
-                    updatePoints(.left, 1)
-                  }) {
-                    // Full width/height with minus sign on the right side
-                    ZStack(alignment: .bottomTrailing) {
-                      Rectangle()
-                        .fill(Color.clear)
-
-                      // Minus indicator positioned at bottom right
-                      Image(systemName: "minus")
-                        .foregroundColor(DEFAULT_STYLES.foreground)
-                        .font(.system(size: 24))
-                        .rotationEffect(Angle(degrees: 90))
-                        .padding(12)
-                        .background(Circle().fill(Color.white.opacity(0.1)))
-                        .padding(.bottom, 32)
-                        .padding(.trailing, 32)
-                    }
-                  }
-                  .buttonStyle(PlainButtonStyle())
-                  .frame(width: overlayGeometry.size.width, height: overlayGeometry.size.height / 2)
-                  .contentShape(Rectangle())
-                  .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.3)
-                      .onChanged { value in
-                        withAnimation {
-                          isRightPressed = true
-                        }
-                        print(">>> BOTTOM LONG PRESS STARTED\n")
-                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                        generator.impactOccurred()
-                        startHoldTimer(.left, 5)  // Inverted logic for vertical
-                      }
-                      .onEnded { _ in
-                        withAnimation {
-                          isRightPressed = false
-                        }
-                        print(">>> BOTTOM LONG PRESS ENDED\n")
-                        stopHoldTimer()
-                      }
-                  )
-                
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                if cumulativeChange != 0 {
-                  Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
-                    .font(.system(size: 24))
-                    .foregroundColor(DEFAULT_STYLES.foreground)
-                    .offset(x: cumulativeChange > 0 ? 60 : -60)
-                    .opacity(showChange ? 1 : 0)
-                    .rotationEffect(Angle(degrees: 270))
-                }
-
+            // Player name - positioned on the "inner" side so each player can read it normally
+            if namePosition.isTop {
+              VStack {
                 HStack {
+                  Spacer()
                   Text(player.name)
-                    .font(.system(size: 24))
-                    .foregroundColor(DEFAULT_STYLES.foreground)
-                    .rotationEffect(Angle(degrees: 270))
+                    .font(.system(
+                      size: min(max(geometry.size.width * 0.05, 14), 20), 
+                      weight: .semibold, 
+                      design: .rounded
+                    ))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                      RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black.opacity(0.25))
+                        .overlay(
+                          RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                    .rotationEffect(namePosition.rotation)
+                    .scaleEffect(showEditSheet ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
                     .onTapGesture {
-                      showEditSheet.toggle()
+                      withAnimation {
+                        showEditSheet.toggle()
+                      }
                     }
+                    .padding(.top, 12)
                   Spacer()
                 }
-
-                // Two-finger gesture recognizer indicator (visual hint)
-//                VStack {
-//                  Spacer()
-//                  HStack {
-//                    Spacer()
-//                    Image(systemName: "hand.draw.fill")
-//                      .font(.system(size: 20))
-//                      .opacity(0.5)
-//                      .foregroundColor(DEFAULT_STYLES.foreground)
-//                      .padding(8)
-//                  }
-//                  .padding(.trailing, 12)
-//                  .padding(.bottom, 12)
-//                }
+                Spacer()
+              }
+            } else {
+              VStack {
+                Spacer()
+                HStack {
+                  Spacer()
+                  Text(player.name)
+                    .font(.system(
+                      size: min(max(geometry.size.width * 0.05, 14), 20), 
+                      weight: .semibold, 
+                      design: .rounded
+                    ))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                      RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black.opacity(0.25))
+                        .overlay(
+                          RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                    .rotationEffect(namePosition.rotation)
+                    .scaleEffect(showEditSheet ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
+                    .onTapGesture {
+                      withAnimation {
+                        showEditSheet.toggle()
+                      }
+                    }
+                    .padding(.bottom, 12)
+                  Spacer()
+                }
               }
             }
-          )
-          .rotationEffect((orientation.toAngle()))
-
-//          .twoFingerSwipe(
-//            direction: .up,
-//            perform: {
-//              withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-//                showOverlay = true
-//              }
-//            })
+          }
+        )
+        // Apply rotation based on orientation
+        .rotationEffect(orientation.toAngle())
+        .clipped()
 
         // Player tools overlay
         if showOverlay {
@@ -326,4 +272,24 @@ struct VerticalPlayerView: View {
       }
     }
   }
+}
+
+// MARK: - Preview
+#Preview("Vertical Player View") {
+    VerticalPlayerView(
+        player: .constant(Player(HP: 20, name: "Player 1")),
+        isLeftPressed: .constant(false),
+        isRightPressed: .constant(false),
+        cumulativeChange: .constant(0),
+        showChange: .constant(false),
+        holdTimer: .constant(nil),
+        isHoldTimerActive: .constant(false),
+        changeWorkItem: .constant(nil),
+        updatePoints: { _, _ in },
+        startHoldTimer: { _, _ in },
+        stopHoldTimer: { },
+        orientation: .left
+    )
+    .frame(width: 200, height: 300)
+    .background(Color.black)
 }
