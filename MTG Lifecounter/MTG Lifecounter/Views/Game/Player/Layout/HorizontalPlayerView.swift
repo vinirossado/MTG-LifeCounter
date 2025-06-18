@@ -113,11 +113,14 @@ struct HorizontalPlayerView: View {
         .foregroundColor(.white)
         .overlay(
           ZStack {
-            // Main HP display
+            // Calculate name position once for the entire overlay
+            let namePosition = getPlayerNamePosition(for: orientation)
+            
+            // Main HP display - should be readable for each player
             Text("\(player.HP)")
               .font(.system(size: 48, weight: .bold))
               .foregroundColor(.white)
-              .rotationEffect(Angle(degrees: 180))
+              .rotationEffect(namePosition.rotation)
 
             // Minus icon (left side)
             VStack {
@@ -126,7 +129,7 @@ struct HorizontalPlayerView: View {
                 Image(systemName: "minus")
                   .foregroundColor(DEFAULT_STYLES.foreground)
                   .font(.system(size: 24, weight: .medium))
-                  .rotationEffect(Angle(degrees: 180))
+                  .rotationEffect(namePosition.rotation)
                   .padding(.leading, 32)
                 Spacer()
               }
@@ -141,7 +144,7 @@ struct HorizontalPlayerView: View {
                 Image(systemName: "plus")
                   .foregroundColor(DEFAULT_STYLES.foreground)
                   .font(.system(size: 24, weight: .medium))
-                  .rotationEffect(Angle(degrees: 180))
+                  .rotationEffect(namePosition.rotation)
                   .padding(.trailing, 32)
               }
               Spacer()
@@ -154,43 +157,79 @@ struct HorizontalPlayerView: View {
                 .foregroundColor(cumulativeChange > 0 ? .green : .red)
                 .offset(x: cumulativeChange > 0 ? 60 : -60)
                 .opacity(showChange ? 1 : 0)
-                .rotationEffect(Angle(degrees: 180))
+                .rotationEffect(namePosition.rotation)
                 .animation(.easeInOut(duration: 0.3), value: showChange)
             }
 
-            // Player name - positioned at the bottom edge with enhanced styling
+            // Player name - positioned on the "inner" side so each player can read it normally
+            
             VStack {
-              Spacer()
-              HStack {
-                Spacer()
-                Text(player.name)
-                  .font(.system(
-                    size: min(max(geometry.size.width * 0.05, 14), 20), 
-                    weight: .semibold, 
-                    design: .rounded
-                  ))
-                  .foregroundColor(.white)
-                  .padding(.horizontal, 12)
-                  .padding(.vertical, 6)
-                  .background(
-                    RoundedRectangle(cornerRadius: 8)
-                      .fill(Color.black.opacity(0.25))
-                      .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                          .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                      )
-                  )
-                  .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
-                  .rotationEffect(Angle(degrees: 180)) // Same rotation as HP text for consistency
-                  .scaleEffect(showEditSheet ? 1.05 : 1.0)
-                  .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
-                  .onTapGesture {
-                    withAnimation {
-                      showEditSheet.toggle()
+              if namePosition.isTop {
+                HStack {
+                  Spacer()
+                  Text(player.name)
+                    .font(.system(
+                      size: min(max(geometry.size.width * 0.05, 14), 20), 
+                      weight: .semibold, 
+                      design: .rounded
+                    ))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                      RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black.opacity(0.25))
+                        .overlay(
+                          RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                    .rotationEffect(namePosition.rotation)
+                    .scaleEffect(showEditSheet ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
+                    .onTapGesture {
+                      withAnimation {
+                        showEditSheet.toggle()
+                      }
                     }
-                  }
-                  .padding(.bottom, 12)
+                    .padding(.top, 12)
+                  Spacer()
+                }
                 Spacer()
+              } else {
+                Spacer()
+                HStack {
+                  Spacer()
+                  Text(player.name)
+                    .font(.system(
+                      size: min(max(geometry.size.width * 0.05, 14), 20), 
+                      weight: .semibold, 
+                      design: .rounded
+                    ))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                      RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.black.opacity(0.25))
+                        .overlay(
+                          RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+                    .rotationEffect(namePosition.rotation)
+                    .scaleEffect(showEditSheet ? 1.05 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
+                    .onTapGesture {
+                      withAnimation {
+                        showEditSheet.toggle()
+                      }
+                    }
+                    .padding(.bottom, 12)
+                  Spacer()
+                }
               }
             }
           }
@@ -213,6 +252,29 @@ struct HorizontalPlayerView: View {
         EditPlayerView(player: $player)
       }
     }
+  }
+}
+
+// MARK: - Helper Functions
+struct PlayerNamePosition {
+  let isTop: Bool
+  let rotation: Angle
+}
+
+func getPlayerNamePosition(for orientation: OrientationLayout) -> PlayerNamePosition {
+  switch orientation {
+  case .normal:
+    // Player at bottom - name should be at top (inner side) with no rotation
+    return PlayerNamePosition(isTop: true, rotation: Angle(degrees: 0))
+  case .inverted:
+    // Player at top - name should be at top (inner side) with no rotation  
+    return PlayerNamePosition(isTop: true, rotation: Angle(degrees: 0))
+  case .left:
+    // Player at right - name should be at bottom (inner side) with no rotation
+    return PlayerNamePosition(isTop: false, rotation: Angle(degrees: 0))
+  case .right:
+    // Player at left - name should be at top (inner side) with no rotation
+    return PlayerNamePosition(isTop: true, rotation: Angle(degrees: 0))
   }
 }
 
