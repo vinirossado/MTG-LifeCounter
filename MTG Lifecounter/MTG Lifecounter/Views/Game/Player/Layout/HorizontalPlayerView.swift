@@ -15,24 +15,47 @@ struct PressableRectangle: View {
   var updatePoints: (SideEnum, Int) -> Void
   var startHoldTimer: (SideEnum, Int) -> Void
   var stopHoldTimer: () -> Void
+  @State private var subtlePulse: Double = 0.1
 
   var body: some View {
     Rectangle()
-      .fill(side == .left ? DEFAULT_STYLES.background : Color.red.opacity(0.8))
+      .fill(
+        LinearGradient(
+          colors: side == .left 
+            ? [DEFAULT_STYLES.background, Color.darkNavyBackground.opacity(0.9)]
+            : [DEFAULT_STYLES.background, Color.darkNavyBackground.opacity(0.6)],
+          startPoint: .topLeading,
+          endPoint: .bottomTrailing
+        )
+      )
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .opacity(isPressed ? DEFAULT_STYLES.hoverOpacity : DEFAULT_STYLES.opacity)
       .overlay(
-        Rectangle()
-          .stroke(Color.white.opacity(0.2), lineWidth: 1.5)
-      )
-      .overlay(
+        // Subtle card-frame inspired corners
         Rectangle()
           .stroke(
             LinearGradient(
               colors: [
-                Color.white.opacity(isPressed ? 0.8 : 0),
-                Color.blue.opacity(isPressed ? 0.6 : 0)
+                Color.white.opacity(0.15),
+                Color.blue.opacity(0.1),
+                Color.white.opacity(0.15)
               ],
+              startPoint: .topLeading,
+              endPoint: .bottomTrailing
+            ),
+            lineWidth: 1.5
+          )
+      )
+      .overlay(
+        // Mystical glow on press with mana-like colors
+        Rectangle()
+          .stroke(
+            LinearGradient(
+              colors: isPressed 
+                ? (side == .left 
+                    ? [Color.blue.opacity(0.8), Color.cyan.opacity(0.6)]
+                    : [Color.red.opacity(0.9), Color.yellow.opacity(0.7)])
+                : [Color.clear, Color.clear],
               startPoint: .topLeading,
               endPoint: .bottomTrailing
             ),
@@ -41,8 +64,109 @@ struct PressableRectangle: View {
           .scaleEffect(isPressed ? 0.96 : 1.0)
           .animation(.spring(response: 0.25, dampingFraction: 0.8), value: isPressed)
       )
+      .overlay(
+        // Subtle mana-inspired corner decorations
+        VStack {
+          HStack {
+            // Top-left corner decoration
+            Circle()
+              .fill(
+                LinearGradient(
+                  colors: side == .left 
+                    ? [Color.blue.opacity(0.3), Color.cyan.opacity(0.2)]
+                    : [Color.red.opacity(0.3), Color.orange.opacity(0.2)],
+                  startPoint: .topLeading,
+                  endPoint: .bottomTrailing
+                )
+              )
+              .frame(width: 8, height: 8)
+              .opacity(isPressed ? 0.8 : 0.3)
+              .shadow(
+                color: side == .left ? Color.blue.opacity(subtlePulse) : Color.red.opacity(subtlePulse),
+                radius: 4,
+                x: 0,
+                y: 0
+              )
+            
+            Spacer()
+            
+            // Top-right corner decoration
+            Circle()
+              .fill(
+                LinearGradient(
+                  colors: side == .left 
+                    ? [Color.cyan.opacity(0.2), Color.blue.opacity(0.3)]
+                    : [Color.orange.opacity(0.2), Color.red.opacity(0.3)],
+                  startPoint: .topLeading,
+                  endPoint: .bottomTrailing
+                )
+              )
+              .frame(width: 8, height: 8)
+              .opacity(isPressed ? 0.8 : 0.3)
+              .shadow(
+                color: side == .left ? Color.blue.opacity(subtlePulse) : Color.red.opacity(subtlePulse),
+                radius: 4,
+                x: 0,
+                y: 0
+              )
+          }
+          
+          Spacer()
+          
+          HStack {
+            // Bottom-left corner decoration
+            Circle()
+              .fill(
+                LinearGradient(
+                  colors: side == .left 
+                    ? [Color.blue.opacity(0.3), Color.cyan.opacity(0.2)]
+                    : [Color.red.opacity(0.3), Color.orange.opacity(0.2)],
+                  startPoint: .topLeading,
+                  endPoint: .bottomTrailing
+                )
+              )
+              .frame(width: 8, height: 8)
+              .opacity(isPressed ? 0.8 : 0.3)
+              .shadow(
+                color: side == .left ? Color.blue.opacity(subtlePulse) : Color.red.opacity(subtlePulse),
+                radius: 4,
+                x: 0,
+                y: 0
+              )
+            
+            Spacer()
+            
+            // Bottom-right corner decoration
+            Circle()
+              .fill(
+                LinearGradient(
+                  colors: side == .left 
+                    ? [Color.cyan.opacity(0.2), Color.blue.opacity(0.3)]
+                    : [Color.orange.opacity(0.2), Color.red.opacity(0.3)],
+                  startPoint: .topLeading,
+                  endPoint: .bottomTrailing
+                )
+              )
+              .frame(width: 8, height: 8)
+              .opacity(isPressed ? 0.8 : 0.3)
+              .shadow(
+                color: side == .left ? Color.blue.opacity(subtlePulse) : Color.red.opacity(subtlePulse),
+                radius: 4,
+                x: 0,
+                y: 0
+              )
+          }
+        }
+        .padding(12)
+      )
       .scaleEffect(isPressed ? 0.98 : 1.0)
       .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isPressed)
+      .onAppear {
+        // Very subtle continuous pulse for ambiance
+        withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
+          subtlePulse = 0.3
+        }
+      }
       .onTapGesture {
         updatePoints(side, 1)
       }

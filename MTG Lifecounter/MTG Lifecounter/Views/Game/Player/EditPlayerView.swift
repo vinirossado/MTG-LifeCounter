@@ -10,6 +10,9 @@ struct EditPlayerView: View {
     @State private var playerName: String = ""
     @State private var viewHeight: CGFloat = 0
     @State private var orientation = UIDeviceOrientation.unknown
+    @State private var isVisible = false
+    @State private var mysticalGlow: Double = 0.3
+    @State private var cardRotation: Double = 0
     
     // Dynamic sizing based on device
     private var isIPad: Bool {
@@ -76,49 +79,145 @@ struct EditPlayerView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                backgroundColor.edgesIgnoringSafeArea(.all)
+                // Mystical background overlay
+                Color.black.opacity(0.8)
+                    .ignoresSafeArea()
                 
-                // Content container with responsiveness
-                ScrollView {
-                    VStack(alignment: .center, spacing: isIPad ? 30 : 20) {
-                        // Title at the top
-                        Text("Customize Player")
-                            .font(.system(size: titleFontSize, weight: .bold, design: .rounded))
-                            .foregroundColor(textColor)
+                // Main spell scroll container
+                VStack(spacing: 0) {
+                    // Content container with mystical styling
+                    ScrollView {
+                        VStack(alignment: .center, spacing: isIPad ? 30 : 20) {
+                            // Mystical header
+                            VStack(spacing: 16) {
+                                // Decorative header with mana symbols
+                                HStack {
+                                    Circle()
+                                        .fill(LinearGradient(
+                                            colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ))
+                                        .frame(width: 10, height: 10)
+                                        .overlay(Circle().stroke(Color.white.opacity(0.4), lineWidth: 1))
+                                    
+                                    Rectangle()
+                                        .fill(LinearGradient(
+                                            colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.3)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ))
+                                        .frame(height: 1.5)
+                                    
+                                    Text("⚡")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.yellow.opacity(0.8))
+                                    
+                                    Rectangle()
+                                        .fill(LinearGradient(
+                                            colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        ))
+                                        .frame(height: 1.5)
+                                    
+                                    Circle()
+                                        .fill(LinearGradient(
+                                            colors: [Color.purple.opacity(0.6), Color.blue.opacity(0.8)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ))
+                                        .frame(width: 10, height: 10)
+                                        .overlay(Circle().stroke(Color.white.opacity(0.4), lineWidth: 1))
+                                }
+                                .padding(.horizontal, 20)
+                                
+                                // Title with mystical styling
+                                Text("Planeswalker Identity")
+                                    .font(.system(size: titleFontSize, weight: .bold, design: .serif))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [Color.white, Color.lightGrayText],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .shadow(color: Color.blue.opacity(0.3), radius: 2, x: 0, y: 1)
+                            }
                             .padding(.top, verticalPadding)
                             .padding(.bottom, isIPad ? 20 : 10)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                        
-                        // Adaptive layout for landscape mode
-                        if isLandscape {
-                            // Landscape layout
-                            HStack(alignment: .top, spacing: 20) {
-                                // Input field section
-                                playerInputSection()
-                                
-                                // Button section
-                                buttonSection()
+                            
+                            // Adaptive layout for landscape mode
+                            if isLandscape {
+                                // Landscape layout
+                                HStack(alignment: .top, spacing: 20) {
+                                    // Input field section
+                                    mtgPlayerInputSection()
+                                    
+                                    // Button section
+                                    mtgButtonSection()
+                                }
+                                .padding(.horizontal, horizontalPadding)
+                                .padding(.bottom, verticalPadding)
+                            } else {
+                                // Portrait layout
+                                VStack(spacing: isIPad ? 40 : 30) {
+                                    // Input field section
+                                    mtgPlayerInputSection()
+                                    
+                                    Spacer(minLength: isIPad ? 40 : 20)
+                                    
+                                    // Button section
+                                    mtgButtonSection()
+                                }
+                                .padding(.horizontal, horizontalPadding)
+                                .padding(.bottom, verticalPadding)
+                                .frame(minHeight: geometry.size.height * 0.7)
                             }
-                            .padding(.horizontal, horizontalPadding)
-                            .padding(.bottom, verticalPadding)
-                        } else {
-                            // Portrait layout
-                            VStack(spacing: isIPad ? 40 : 30) {
-                                // Input field section
-                                playerInputSection()
-                                
-                                Spacer(minLength: isIPad ? 40 : 20)
-                                
-                                // Button section
-                                buttonSection()
-                            }
-                            .padding(.horizontal, horizontalPadding)
-                            .padding(.bottom, verticalPadding)
-                            .frame(minHeight: geometry.size.height * 0.7)
                         }
+                        .frame(minHeight: geometry.size.height)
                     }
-                    .frame(minHeight: geometry.size.height)
+                    .background(
+                        // Spell scroll background
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.darkNavyBackground,
+                                        Color.oceanBlueBackground.opacity(0.95),
+                                        Color.darkNavyBackground
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.blue.opacity(0.6),
+                                                Color.purple.opacity(0.4),
+                                                Color.blue.opacity(0.6)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 2
+                                    )
+                            )
+                            .shadow(color: Color.blue.opacity(mysticalGlow), radius: 15, x: 0, y: 5)
+                            .shadow(color: Color.black.opacity(0.6), radius: 25, x: 0, y: 10)
+                    )
+                    .frame(maxWidth: isIPad ? 500 : geometry.size.width - 40)
+                    .scaleEffect(isVisible ? 1.0 : 0.9)
+                    .opacity(isVisible ? 1.0 : 0.0)
+                    .rotation3DEffect(
+                        .degrees(cardRotation),
+                        axis: (x: 1, y: 0, z: 0)
+                    )
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
                     viewHeight = geometry.size.height
                     // Initialize with current player name
@@ -126,6 +225,21 @@ struct EditPlayerView: View {
                     
                     // Set initial orientation
                     updateOrientation()
+                    
+                    // Entrance animations
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        isVisible = true
+                    }
+                    
+                    // Mystical glow animation
+                    withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                        mysticalGlow = 0.6
+                    }
+                    
+                    // Subtle card animation
+                    withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
+                        cardRotation = 1
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                     updateOrientation()
@@ -139,70 +253,150 @@ struct EditPlayerView: View {
         orientation = UIDevice.current.orientation
     }
     
-    // Player input section
-    private func playerInputSection() -> some View {
-        VStack(alignment: .leading, spacing: isIPad ? 12 : 8) {
-            Text("Player Name")
-                .font(.system(size: labelFontSize, weight: .semibold))
-                .foregroundColor(textColor.opacity(0.8))
+    // MTG-themed player input section
+    private func mtgPlayerInputSection() -> some View {
+        VStack(alignment: .leading, spacing: isIPad ? 16 : 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "person.crop.circle.fill")
+                    .foregroundColor(.blue.opacity(0.7))
+                    .font(.system(size: 18))
+                Text("Planeswalker Name")
+                    .font(.system(size: labelFontSize, weight: .semibold, design: .serif))
+                    .foregroundColor(.lightGrayText)
+            }
+            
+            Text("Choose your identity in the multiverse")
+                .font(.system(size: 14, design: .serif))
+                .foregroundColor(.mutedSilverText)
+                .italic()
                 .padding(.leading, 4)
             
             TextField("", text: Binding(
                 get: { self.playerName.isEmpty ? self.player.name : self.playerName },
                 set: { self.playerName = $0 }
             ))
-            .font(.system(size: inputFontSize, weight: .medium))
+            .font(.system(size: inputFontSize, weight: .medium, design: .serif))
             .padding(.vertical, isIPad ? 16 : 14)
             .padding(.horizontal, isIPad ? 20 : 16)
             .background(
                 RoundedRectangle(cornerRadius: isIPad ? 16 : 12)
-                    .fill(colorScheme == .dark ? Color.oceanBlueBackground : Color(UIColor.tertiarySystemBackground))
-                    .shadow(color: colorScheme == .dark ? Color.black.opacity(0.25) : Color.gray.opacity(0.15), radius: isIPad ? 5 : 3, x: 0, y: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.oceanBlueBackground.opacity(0.6),
+                                Color.darkNavyBackground.opacity(0.8)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: isIPad ? 16 : 12)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                    .shadow(color: Color.blue.opacity(0.2), radius: 6, x: 0, y: 3)
             )
-            .foregroundColor(textColor)
+            .foregroundColor(.lightGrayText)
             .autocapitalization(.words)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.oceanBlueBackground.opacity(0.3))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
         .frame(maxWidth: isLandscape && !isIPad ? nil : .infinity)
         .fixedSize(horizontal: false, vertical: true)
     }
     
-    // Button section
-    private func buttonSection() -> some View {
+    // MTG-themed button section
+    private func mtgButtonSection() -> some View {
         HStack(spacing: buttonSpacing) {
-            // Cancel Button
+            // Cancel Button (Counterspell style)
             Button(action: {
-                presentationMode.wrappedValue.dismiss()
-            }) {
-                Text("Cancel")
-                    .font(.system(size: isIPad ? 20 : 16, weight: .semibold))
-                    .frame(minWidth: buttonWidth)
-                    .padding(.vertical, buttonVerticalPadding)
-                    .background(
-                        Capsule()
-                            .fill(Color(hex: "E53935"))
-                            .shadow(color: Color.black.opacity(0.2), radius: isIPad ? 6 : 4, x: 0, y: 2)
-                    )
-                    .foregroundColor(.white)
-            }
-            
-            // Save Button
-            Button(action: {
-                if !playerName.isEmpty {
-                    player.name = playerName
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    presentationMode.wrappedValue.dismiss()
                 }
-                presentationMode.wrappedValue.dismiss()
             }) {
-                Text("Save")
-                    .font(.system(size: isIPad ? 20 : 16, weight: .semibold))
-                    .frame(minWidth: buttonWidth)
-                    .padding(.vertical, buttonVerticalPadding)
-                    .background(
-                        Capsule()
-                            .fill(Color(hex: "4CAF50"))
-                            .shadow(color: Color.black.opacity(0.2), radius: isIPad ? 6 : 4, x: 0, y: 2)
-                    )
-                    .foregroundColor(.white)
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.shield.fill")
+                        .font(.system(size: 16, weight: .medium))
+                    Text("Dismiss")
+                        .font(.system(size: isIPad ? 20 : 16, weight: .semibold, design: .serif))
+                }
+                .foregroundColor(.white)
+                .frame(minWidth: buttonWidth)
+                .padding(.vertical, buttonVerticalPadding)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.gray.opacity(0.7), Color.gray.opacity(0.5)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                        )
+                )
+                .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
+            .buttonStyle(MTGButtonStyle())
+            
+            // Save Button (Enchantment style)
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    if !playerName.isEmpty {
+                        player.name = playerName
+                    }
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 16, weight: .medium))
+                    Text("Bind Identity")
+                        .font(.system(size: isIPad ? 20 : 16, weight: .semibold, design: .serif))
+                }
+                .foregroundColor(.white)
+                .frame(minWidth: buttonWidth)
+                .padding(.vertical, buttonVerticalPadding)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.8), Color.green.opacity(0.6)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                .shadow(color: Color.green.opacity(0.4), radius: 6, x: 0, y: 3)
+            }
+            .buttonStyle(MTGButtonStyle())
         }
         .padding(.vertical, isIPad ? 20 : 10)
         .frame(maxWidth: isLandscape && !isIPad ? nil : .infinity, alignment: .center)

@@ -20,30 +20,60 @@ public var settingsPanelHeight: CGFloat {
 
 struct SettingsPanelView: View {
   @Binding var selectedTab: Int
+  @State private var isVisible = false
+  @State private var mysticalGlow: Double = 0.3
 
   var body: some View {
     GeometryReader { geometry in
       ZStack {
-        // Semi-transparent background
-        Color.black.opacity(0.5)
+        // Mystical background overlay
+        Color.black.opacity(0.8)
           .ignoresSafeArea()
           .onTapGesture {
-            withAnimation {
+            withAnimation(.easeInOut(duration: 0.4)) {
               selectedTab = 0
             }
           }
 
-        // Settings content
+        // Settings grimoire
         VStack(spacing: 0) {
-          // Settings content with adaptive layout
-          SettingsPanelContent()
+          // MTG-themed settings content
+          MTGSettingsPanelContent()
             .frame(
               width: isIPad ? settingsPanelWidth : geometry.size.width - 40,
               height: isIPad ? geometry.size.height : settingsPanelHeight
             )
             .background(
-              Color.darkNavyBackground.opacity(0.95)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+              // Spell book/grimoire appearance
+              RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                  LinearGradient(
+                    colors: [
+                      Color.darkNavyBackground,
+                      Color.oceanBlueBackground.opacity(0.95),
+                      Color.darkNavyBackground
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  )
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                      LinearGradient(
+                        colors: [
+                          Color.blue.opacity(0.6),
+                          Color.purple.opacity(0.4),
+                          Color.blue.opacity(0.6)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                      ),
+                      lineWidth: 2
+                    )
+                )
+                .shadow(color: Color.blue.opacity(mysticalGlow), radius: 15, x: 0, y: 5)
+                .shadow(color: Color.black.opacity(0.6), radius: 25, x: 0, y: 10)
             )
             .frame(
               maxWidth: .infinity,
@@ -52,9 +82,21 @@ struct SettingsPanelView: View {
             )
             .padding(.bottom, isIPad ? 0 : 20)
             .transition(.move(edge: isIPad ? .trailing : .bottom))
+            .scaleEffect(isVisible ? 1.0 : 0.9)
+            .opacity(isVisible ? 1.0 : 0.0)
         }
       }
       .frame(width: geometry.size.width, height: geometry.size.height)
+      .onAppear {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+          isVisible = true
+        }
+        
+        // Mystical glow animation
+        withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+          mysticalGlow = 0.6
+        }
+      }
     }
     .ignoresSafeArea()
     .zIndex(2)
@@ -102,37 +144,148 @@ extension EnvironmentValues {
   }
 }
 
-// Settings Panel Content
-struct SettingsPanelContent: View {
+// MTG-Themed Settings Panel Content
+struct MTGSettingsPanelContent: View {
   @EnvironmentObject var gameSettings: GameSettings
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: adaptiveSpacing) {
-        Text("Settings")
-          .font(.system(size: adaptiveTitleSize, weight: .bold))
-          .padding(.bottom, adaptiveSpacing * 1.5)
-          .foregroundColor(.lightGrayText)
+      VStack(alignment: .leading, spacing: adaptiveSpacing * 1.5) {
+        // Mystical header
+        VStack(spacing: 12) {
+          // Decorative header with mana symbols
+          HStack {
+            Circle()
+              .fill(LinearGradient(
+                colors: [Color.blue.opacity(0.8), Color.purple.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              ))
+              .frame(width: 10, height: 10)
+              .overlay(Circle().stroke(Color.white.opacity(0.4), lineWidth: 1))
+            
+            Rectangle()
+              .fill(LinearGradient(
+                colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.3)],
+                startPoint: .leading,
+                endPoint: .trailing
+              ))
+              .frame(height: 1.5)
+            
+            Text("⚡")
+              .font(.system(size: 16))
+              .foregroundColor(.yellow.opacity(0.8))
+            
+            Rectangle()
+              .fill(LinearGradient(
+                colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+                startPoint: .leading,
+                endPoint: .trailing
+              ))
+              .frame(height: 1.5)
+            
+            Circle()
+              .fill(LinearGradient(
+                colors: [Color.purple.opacity(0.6), Color.blue.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              ))
+              .frame(width: 10, height: 10)
+              .overlay(Circle().stroke(Color.white.opacity(0.4), lineWidth: 1))
+          }
+          
+          Text("Spell Configuration")
+            .font(.system(size: adaptiveTitleSize, weight: .bold, design: .serif))
+            .foregroundStyle(
+              LinearGradient(
+                colors: [Color.white, Color.lightGrayText],
+                startPoint: .top,
+                endPoint: .bottom
+              )
+            )
+            .shadow(color: Color.blue.opacity(0.3), radius: 2, x: 0, y: 1)
+        }
+        .padding(.bottom, adaptiveSpacing)
 
-        Text("Players")
-          .font(.system(size: adaptiveSubtitleSize, weight: .semibold))
-          .padding(.bottom, adaptiveSpacing * 0.75)
-          .foregroundColor(.lightGrayText)
+        // Battlefield Layout section
+        VStack(alignment: .leading, spacing: adaptiveSpacing) {
+          HStack(spacing: 8) {
+            Image(systemName: "person.3.fill")
+              .foregroundColor(.blue.opacity(0.7))
+              .font(.system(size: 18))
+            Text("Battlefield Layout")
+              .font(.system(size: adaptiveSubtitleSize, weight: .semibold, design: .serif))
+              .foregroundColor(.lightGrayText)
+          }
+          
+          Text("Choose the number of planeswalkers")
+            .font(.system(size: 14, design: .serif))
+            .foregroundColor(.mutedSilverText)
+            .italic()
 
-        // Layout Grid - using the reusable component
-        PlayerLayoutsGrid()
+          // Layout Grid with mystical styling
+          MTGPlayerLayoutsGrid()
+        }
+        .padding(16)
+        .background(
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.oceanBlueBackground.opacity(0.3))
+            .overlay(
+              RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                  LinearGradient(
+                    colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  ),
+                  lineWidth: 1
+                )
+            )
+        )
 
-        // Life Points
-        LifePointsView()
-          .padding(.top, adaptiveSpacing)
+        // Life Force section
+        VStack(alignment: .leading, spacing: adaptiveSpacing) {
+          HStack(spacing: 8) {
+            Image(systemName: "heart.fill")
+              .foregroundColor(.red.opacity(0.7))
+              .font(.system(size: 18))
+            Text("Life Force")
+              .font(.system(size: adaptiveSubtitleSize, weight: .semibold, design: .serif))
+              .foregroundColor(.lightGrayText)
+          }
+          
+          Text("Set starting life totals for all planeswalkers")
+            .font(.system(size: 14, design: .serif))
+            .foregroundColor(.mutedSilverText)
+            .italic()
+
+          // Life Points with mystical styling
+          MTGLifePointsView()
+        }
+        .padding(16)
+        .background(
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.oceanBlueBackground.opacity(0.3))
+            .overlay(
+              RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                  LinearGradient(
+                    colors: [Color.red.opacity(0.4), Color.purple.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  ),
+                  lineWidth: 1
+                )
+            )
+        )
       }
       .padding(adaptivePadding)
     }
   }
 }
 
-// Reusable player layouts grid to be shared between different views
-struct PlayerLayoutsGrid: View {
+// MTG-themed player layouts grid
+struct MTGPlayerLayoutsGrid: View {
   @EnvironmentObject var gameSettings: GameSettings
   @Environment(\.requestLayoutChange) private var requestLayoutChange
   
@@ -148,7 +301,7 @@ struct PlayerLayoutsGrid: View {
       spacing: adaptiveGridSpacing
     ) {
       ForEach(layouts, id: \.self) { layout in
-        PlayerLayout(
+        MTGPlayerLayout(
           isSelected: gameSettings.layout == layout,
           onClick: {
             if gameSettings.layout != layout {
@@ -157,6 +310,197 @@ struct PlayerLayoutsGrid: View {
           },
           players: layout
         )
+      }
+    }
+  }
+}
+
+// MTG-themed player layout component
+struct MTGPlayerLayout: View {
+    let isSelected: Bool
+    let onClick: () -> Void
+    let players: PlayerLayouts
+    @State private var mysticalGlow: Double = 0.2
+    
+    var body: some View {
+        let grid: AnyView = {
+            switch players {
+            case .two:
+                return AnyView(TwoPlayerGridView())
+            case .threeLeft:
+                return AnyView(ThreePlayerLeftGridView())
+            case .threeRight:
+                return AnyView(ThreePlayerRightGridView())
+            case .four:
+                return AnyView(FourPlayerGridView())
+            case .five:
+                return AnyView(FivePlayerGridView())
+            case .six:
+                return AnyView(SixPlayerGridView())
+            }
+        }()
+        
+        Button(action: onClick) {
+            VStack(spacing: 8) {
+                // Card-like frame for the layout preview
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                colors: isSelected 
+                                    ? [Color.blue.opacity(0.6), Color.purple.opacity(0.4)]
+                                    : [Color.oceanBlueBackground.opacity(0.8), Color.darkNavyBackground.opacity(0.9)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(
+                                    isSelected 
+                                        ? LinearGradient(
+                                            colors: [Color.blue.opacity(0.8), Color.yellow.opacity(0.6)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                          )
+                                        : LinearGradient(
+                                            colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.2)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                          ),
+                                    lineWidth: isSelected ? 2 : 1
+                                )
+                        )
+                        .shadow(
+                            color: isSelected 
+                                ? Color.blue.opacity(mysticalGlow) 
+                                : Color.black.opacity(0.2), 
+                            radius: isSelected ? 8 : 4, 
+                            x: 0, 
+                            y: 2
+                        )
+                    
+                    grid
+                        .scaleEffect(0.8)
+                }
+                .frame(height: 60)
+                .scaleEffect(isSelected ? 1.05 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+                
+                // Mystical player count indicator
+                HStack(spacing: 4) {
+                    Text("\(players.playerCount)")
+                        .font(.system(size: 14, weight: .bold, design: .serif))
+                        .foregroundColor(isSelected ? .yellow.opacity(0.9) : .lightGrayText)
+                    
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(isSelected ? .yellow.opacity(0.7) : .mutedSilverText)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(
+                            isSelected 
+                                ? Color.blue.opacity(0.3)
+                                : Color.oceanBlueBackground.opacity(0.4)
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(
+                                    isSelected 
+                                        ? Color.yellow.opacity(0.4)
+                                        : Color.blue.opacity(0.2),
+                                    lineWidth: 1
+                                )
+                        )
+                )
+            }
+        }
+        .buttonStyle(MTGButtonStyle())
+        .onAppear {
+            if isSelected {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    mysticalGlow = 0.6
+                }
+            }
+        }
+        .onChange(of: isSelected) { _, newValue in
+            if newValue {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    mysticalGlow = 0.6
+                }
+            } else {
+                mysticalGlow = 0.2
+            }
+        }
+    }
+}
+
+// MTG-themed life points view
+struct MTGLifePointsView: View {
+  @EnvironmentObject var gameSettings: GameSettings
+  @Environment(\.requestLifePointsChange) private var requestLifePointsChange
+  let lifePointsOptions = [20, 25, 40, 0]
+  @State private var customLifeValue: String = ""
+
+  var body: some View {
+    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
+      ForEach(lifePointsOptions, id: \.self) { points in
+        Button(action: {
+          if gameSettings.startingLife != points {
+            requestLifePointsChange(points)
+          }
+        }) {
+          ZStack {
+            RoundedRectangle(cornerRadius: 8)
+              .fill(
+                LinearGradient(
+                  colors: gameSettings.startingLife == points 
+                    ? [Color.red.opacity(0.6), Color.red.opacity(0.4)]
+                    : [Color.oceanBlueBackground.opacity(0.6), Color.darkNavyBackground.opacity(0.8)],
+                  startPoint: .top,
+                  endPoint: .bottom
+                )
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                  .stroke(
+                    gameSettings.startingLife == points 
+                      ? LinearGradient(
+                          colors: [Color.red.opacity(0.8), Color.yellow.opacity(0.6)],
+                          startPoint: .topLeading,
+                          endPoint: .bottomTrailing
+                        )
+                      : LinearGradient(
+                          colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+                          startPoint: .topLeading,
+                          endPoint: .bottomTrailing
+                        ),
+                    lineWidth: gameSettings.startingLife == points ? 2 : 1
+                  )
+              )
+              .shadow(
+                color: gameSettings.startingLife == points 
+                  ? Color.red.opacity(0.4) 
+                  : Color.blue.opacity(0.2), 
+                radius: gameSettings.startingLife == points ? 6 : 3, 
+                x: 0, 
+                y: 2
+              )
+              .animation(.easeInOut(duration: 0.2), value: gameSettings.startingLife)
+
+            Text("\(points)")
+              .font(.system(size: 28, weight: .bold, design: .serif))
+              .foregroundColor(.white)
+              .shadow(color: Color.black.opacity(0.5), radius: 2, x: 0, y: 1)
+          }
+          .frame(height: 80)
+          .scaleEffect(gameSettings.startingLife == points ? 1.05 : 1.0)
+          .animation(.spring(response: 0.3, dampingFraction: 0.7), value: gameSettings.startingLife)
+        }
+        .buttonStyle(MTGButtonStyle())
       }
     }
   }
