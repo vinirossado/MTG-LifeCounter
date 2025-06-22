@@ -278,6 +278,42 @@ struct MTGSettingsPanelContent: View {
                 )
             )
         )
+
+        // Screen Wake Settings section
+        VStack(alignment: .leading, spacing: adaptiveSpacing) {
+          HStack(spacing: 8) {
+            Image(systemName: "sun.max.fill")
+              .foregroundColor(.yellow.opacity(0.7))
+              .font(.system(size: 18))
+            Text("Screen Control")
+              .font(.system(size: adaptiveSubtitleSize, weight: .semibold, design: .serif))
+              .foregroundColor(.lightGrayText)
+          }
+          
+          Text("Keep screen awake during gameplay")
+            .font(.system(size: 14, design: .serif))
+            .foregroundColor(.mutedSilverText)
+            .italic()
+
+          // Screen Wake Toggle with mystical styling
+          MTGScreenWakeToggle()
+        }
+        .padding(16)
+        .background(
+          RoundedRectangle(cornerRadius: 12)
+            .fill(Color.oceanBlueBackground.opacity(0.3))
+            .overlay(
+              RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                  LinearGradient(
+                    colors: [Color.yellow.opacity(0.4), Color.purple.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  ),
+                  lineWidth: 1
+                )
+            )
+        )
       }
       .padding(adaptivePadding)
     }
@@ -501,6 +537,108 @@ struct MTGLifePointsView: View {
           .animation(.spring(response: 0.3, dampingFraction: 0.7), value: gameSettings.startingLife)
         }
         .buttonStyle(MTGButtonStyle())
+      }
+    }
+  }
+}
+
+// MTG-themed Screen Wake Toggle
+struct MTGScreenWakeToggle: View {
+  @EnvironmentObject var screenWakeManager: ScreenWakeManager
+  @State private var mysticalGlow: Double = 0.2
+  
+  var body: some View {
+    HStack {
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Keep Screen Awake")
+          .font(.system(size: 16, weight: .semibold, design: .serif))
+          .foregroundColor(.lightGrayText)
+        
+        Text(screenWakeManager.isScreenAwake ? "Screen will stay on" : "Normal sleep behavior")
+          .font(.system(size: 12, design: .serif))
+          .foregroundColor(.mutedSilverText)
+          .italic()
+      }
+      
+      Spacer()
+      
+      // MTG-themed toggle switch
+      Button(action: {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+          screenWakeManager.toggleScreenWake()
+        }
+        
+        // Haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+      }) {
+        ZStack {
+          // Background track
+          RoundedRectangle(cornerRadius: 20)
+            .fill(
+              screenWakeManager.isScreenAwake 
+                ? LinearGradient(
+                    colors: [Color.yellow.opacity(0.8), Color.orange.opacity(0.6)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                  )
+                : LinearGradient(
+                    colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                  )
+            )
+            .frame(width: 60, height: 32)
+            .overlay(
+              RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                  screenWakeManager.isScreenAwake 
+                    ? Color.yellow.opacity(0.8)
+                    : Color.gray.opacity(0.4), 
+                  lineWidth: 1
+                )
+            )
+            .shadow(
+              color: screenWakeManager.isScreenAwake 
+                ? Color.yellow.opacity(mysticalGlow)
+                : Color.black.opacity(0.2), 
+              radius: screenWakeManager.isScreenAwake ? 8 : 2, 
+              x: 0, 
+              y: 2
+            )
+          
+          // Toggle thumb with icon
+          HStack {
+            if screenWakeManager.isScreenAwake {
+              Spacer()
+            }
+            
+            ZStack {
+              Circle()
+                .fill(.white)
+                .frame(width: 26, height: 26)
+                .shadow(color: Color.black.opacity(0.3), radius: 3, x: 0, y: 1)
+              
+              Image(systemName: screenWakeManager.isScreenAwake ? "sun.max.fill" : "moon.fill")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(screenWakeManager.isScreenAwake ? .yellow : .gray)
+            }
+            
+            if !screenWakeManager.isScreenAwake {
+              Spacer()
+            }
+          }
+          .padding(.horizontal, 3)
+          .frame(width: 60, height: 32)
+        }
+      }
+      .buttonStyle(PlainButtonStyle())
+    }
+    .padding(.vertical, 8)
+    .onAppear {
+      // Mystical glow animation
+      withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+        mysticalGlow = 0.6
       }
     }
   }

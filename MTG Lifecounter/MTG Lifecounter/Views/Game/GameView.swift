@@ -46,6 +46,7 @@ struct GameLayoutBuilder {
 struct GameView: View {
     @EnvironmentObject var gameSettings: GameSettings
     @EnvironmentObject var playerState: PlayerState
+    @EnvironmentObject var screenWakeManager: ScreenWakeManager
     @State private var pendingLayout: PlayerLayouts?
     @State private var pendingLifePoints: Int?
     @State private var showingResetAlert = false
@@ -122,6 +123,13 @@ struct GameView: View {
                 if playerState.players.count != gameSettings.layout.playerCount {
                     playerState.initialize(gameSettings: gameSettings)
                 }
+                
+                // Enable screen wake to prevent device from sleeping during gameplay
+                screenWakeManager.enableScreenWake()
+            }
+            .onDisappear {
+                // Disable screen wake when leaving the game view
+                screenWakeManager.disableScreenWake()
             }
                 // MTG-themed confirmation dialog
                 if showingResetAlert {

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
   @State private var path = NavigationPath()
+  @EnvironmentObject var screenWakeManager: ScreenWakeManager
 
   var body: some View {
     NavigationStack(path: $path) {
@@ -12,6 +13,10 @@ struct ContentView: View {
         }
       }
       .ignoresSafeArea(.all, edges: .all)
+      .onAppear {
+        // Ensure screen wake is disabled on home screen to allow normal sleep behavior
+        screenWakeManager.disableScreenWake()
+      }
     }
   }
   

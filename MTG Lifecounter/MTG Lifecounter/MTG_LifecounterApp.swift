@@ -12,6 +12,7 @@ import SwiftData
 struct MTG_LifecounterApp: App {
     @StateObject private var gameSettings = GameSettings()
     @StateObject private var playerState = PlayerState()
+    @StateObject private var screenWakeManager = ScreenWakeManager()
     
     var body: some Scene {
         WindowGroup {
@@ -20,6 +21,7 @@ struct MTG_LifecounterApp: App {
                 .statusBarHidden(true)
                 .environmentObject(gameSettings)
                 .environmentObject(playerState)
+                .environmentObject(screenWakeManager)
         }
     }
 }
