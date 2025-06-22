@@ -73,9 +73,9 @@ struct HorizontalPlayerView: View {
   @Binding var holdTimer: Timer?
   @Binding var isHoldTimerActive: Bool
   @Binding var changeWorkItem: DispatchWorkItem?
-  let updatePoints: UpdatePointsFunc
-  let startHoldTimer: TimerHandlerFunc
-  let stopHoldTimer: StopTimerFunc
+  let updatePoints: (SideEnum, Int) -> Void
+  let startHoldTimer: (SideEnum, Int) -> Void
+  let stopHoldTimer: () -> Void
   var orientation: OrientationLayout
   @State private var showEditSheet = false
   @State private var showOverlay = false

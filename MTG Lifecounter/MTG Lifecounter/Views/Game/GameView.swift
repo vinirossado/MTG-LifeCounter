@@ -44,7 +44,8 @@ struct GameLayoutBuilder {
 struct GameView: View {
     @EnvironmentObject var gameSettings: GameSettings
     @EnvironmentObject var playerState: PlayerState
-    @State private var previousLayout: PlayerLayouts?
+    @State private var pendingLayout: PlayerLayouts?
+    @State private var pendingLifePoints: Int?
     @State private var showingResetAlert = false
     @State private var selectedTab = 0
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -86,6 +87,8 @@ struct GameView: View {
                 if selectedTab == 1 {
                     SettingsPanelView(selectedTab: $selectedTab)
                         .environmentObject(gameSettings)
+                        .environment(\.requestLayoutChange, requestLayoutChange)
+                        .environment(\.requestLifePointsChange, requestLifePointsChange)
                         .transition(.move(edge: settingsButtonPosition))
                         .zIndex(1)
                 }
@@ -96,21 +99,21 @@ struct GameView: View {
             .onAppear {
                 playerState.initialize(gameSettings: gameSettings)
             }
-            .onChange(of: gameSettings.startingLife) { oldValue, newValue in
-                handleSettingsChange(previousLayout: gameSettings.layout)
-            }
-            .onChange(of: gameSettings.layout) { oldValue, newValue in
-                handleSettingsChange(previousLayout: oldValue)
-            }
             .alert("Attention!", isPresented: $showingResetAlert) {
                 Button("Yes") {
+                    if let newLayout = pendingLayout {
+                        gameSettings.layout = newLayout
+                    }
+                    if let newLifePoints = pendingLifePoints {
+                        gameSettings.startingLife = newLifePoints
+                    }
                     playerState.initialize(gameSettings: gameSettings)
-                    showingResetAlert = false
+                    pendingLayout = nil
+                    pendingLifePoints = nil
                 }
                 Button("No", role: .cancel) {
-                    if let prevLayout = previousLayout {
-                        gameSettings.layout = prevLayout
-                    }
+                    pendingLayout = nil
+                    pendingLifePoints = nil
                 }
             } message: {
                 Text("Do you want to reset the game?")
@@ -138,10 +141,14 @@ struct GameView: View {
         }
         .accessibilityLabel(selectedTab == 1 ? "Close Settings" : "Open Settings")
     }
-        
-
-    private func handleSettingsChange(previousLayout: PlayerLayouts) {
+    
+    private func requestLayoutChange(to newLayout: PlayerLayouts) {
+        pendingLayout = newLayout
         showingResetAlert = true
-        self.previousLayout = previousLayout
+    }
+    
+    private func requestLifePointsChange(to newLifePoints: Int) {
+        pendingLifePoints = newLifePoints
+        showingResetAlert = true
     }
 }

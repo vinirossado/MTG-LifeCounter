@@ -81,6 +81,27 @@ extension EnvironmentValues {
   }
 }
 
+// Environment keys for settings change requests
+struct RequestLayoutChangeKey: EnvironmentKey {
+  static let defaultValue: (PlayerLayouts) -> Void = { _ in }
+}
+
+struct RequestLifePointsChangeKey: EnvironmentKey {
+  static let defaultValue: (Int) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+  var requestLayoutChange: (PlayerLayouts) -> Void {
+    get { self[RequestLayoutChangeKey.self] }
+    set { self[RequestLayoutChangeKey.self] = newValue }
+  }
+  
+  var requestLifePointsChange: (Int) -> Void {
+    get { self[RequestLifePointsChangeKey.self] }
+    set { self[RequestLifePointsChangeKey.self] = newValue }
+  }
+}
+
 // Settings Panel Content
 struct SettingsPanelContent: View {
   @EnvironmentObject var gameSettings: GameSettings
@@ -113,6 +134,7 @@ struct SettingsPanelContent: View {
 // Reusable player layouts grid to be shared between different views
 struct PlayerLayoutsGrid: View {
   @EnvironmentObject var gameSettings: GameSettings
+  @Environment(\.requestLayoutChange) private var requestLayoutChange
   
   private let layouts: [PlayerLayouts] = [
     .two, .threeLeft, .threeRight, .four, .five, .six
@@ -129,7 +151,9 @@ struct PlayerLayoutsGrid: View {
         PlayerLayout(
           isSelected: gameSettings.layout == layout,
           onClick: {
-            gameSettings.layout = layout
+            if gameSettings.layout != layout {
+              requestLayoutChange(layout)
+            }
           },
           players: layout
         )

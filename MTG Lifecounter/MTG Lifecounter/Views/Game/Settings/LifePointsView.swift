@@ -9,6 +9,7 @@ import SwiftUI
 
 struct LifePointsView: View {
   @EnvironmentObject var gameSettings: GameSettings
+  @Environment(\.requestLifePointsChange) private var requestLifePointsChange
   let lifePointsOptions = [20, 25, 40, 0]
   @State private var customLifeValue: String = ""
 
@@ -21,7 +22,9 @@ struct LifePointsView: View {
       LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
         ForEach(lifePointsOptions, id: \.self) { points in
           Button(action: {
-            gameSettings.startingLife = points
+            if gameSettings.startingLife != points {
+              requestLifePointsChange(points)
+            }
           }) {
             ZStack {
               RoundedRectangle(cornerRadius: 8)

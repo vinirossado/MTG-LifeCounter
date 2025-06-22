@@ -6,29 +6,23 @@
 //
 
 import SwiftUI
-import UIKit
-
-// Forward declarations of functions used in the views
-typealias UpdatePointsFunc = (SideEnum, Int) -> Void
-typealias TimerHandlerFunc = (SideEnum, Int) -> Void
-typealias StopTimerFunc = () -> Void
 
 // MARK: - Main Player View
-public struct PlayerView: View {
-  @Binding public var player: Player
-  public var orientation: OrientationLayout
+struct PlayerView: View {
+  @Binding var player: Player
+  let orientation: OrientationLayout
 
-  @State private var isLeftPressed: Bool = false
-  @State private var isRightPressed: Bool = false
-  @State private var cumulativeChange: Int = 0
-  @State private var showChange: Bool = false
+  @State private var isLeftPressed = false
+  @State private var isRightPressed = false
+  @State private var cumulativeChange = 0
+  @State private var showChange = false
   @State private var holdTimer: Timer?
-  @State private var isHoldTimerActive: Bool = false
+  @State private var isHoldTimerActive = false
   @State private var changeWorkItem: DispatchWorkItem?
 
-  public var body: some View {
-    orientation == .normal || orientation == .inverted
-      ? AnyView(
+  var body: some View {
+    Group {
+      if orientation == .normal || orientation == .inverted {
         HorizontalPlayerView(
           player: $player,
           isLeftPressed: $isLeftPressed,
@@ -43,8 +37,7 @@ public struct PlayerView: View {
           stopHoldTimer: stopHoldTimer,
           orientation: orientation
         )
-      )
-      : AnyView(
+      } else {
         VerticalPlayerView(
           player: $player,
           isLeftPressed: $isLeftPressed,
@@ -59,7 +52,8 @@ public struct PlayerView: View {
           stopHoldTimer: stopHoldTimer,
           orientation: orientation
         )
-      )
+      }
+    }
   }
 
   private func updatePoints(for side: SideEnum, amount: Int) {
@@ -76,12 +70,9 @@ public struct PlayerView: View {
   }
 
   private func startHoldTimer(for side: SideEnum, amount: Int) {
-    guard !isHoldTimerActive else {
-      return
-    }
-
+    guard !isHoldTimerActive else { return }
+    
     isHoldTimerActive = true
-
     holdTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { _ in
       updatePoints(for: side, amount: amount)
     }
@@ -96,14 +87,13 @@ public struct PlayerView: View {
   private func showPointChange() {
     changeWorkItem?.cancel()
     showChange = true
-
+    
     let newWorkItem = DispatchWorkItem {
       showChange = false
       cumulativeChange = 0
     }
-
+    
     changeWorkItem = newWorkItem
-
     DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: newWorkItem)
   }
 }
