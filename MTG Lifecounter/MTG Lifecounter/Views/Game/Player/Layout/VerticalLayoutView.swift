@@ -100,7 +100,7 @@ struct VerticalPlayerView: View {
   var body: some View {
     GeometryReader { geometry in
       ZStack {
-        // Player interaction areas (vertical layout - side by side)
+        // Player interaction areas (left and right sides for decrease/increase)
         HStack(spacing: 1) {
           VerticalPressableRectangle(
             isPressed: $isLeftPressed,
@@ -110,7 +110,6 @@ struct VerticalPlayerView: View {
             startHoldTimer: startHoldTimer,
             stopHoldTimer: stopHoldTimer
           )
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
 
           VerticalPressableRectangle(
             isPressed: $isRightPressed,
@@ -120,9 +119,7 @@ struct VerticalPlayerView: View {
             startHoldTimer: startHoldTimer,
             stopHoldTimer: stopHoldTimer
           )
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cornerRadius(16)
         .overlay(
           RoundedRectangle(cornerRadius: 16)
@@ -271,6 +268,7 @@ struct VerticalPlayerView: View {
         EditPlayerView(player: $player)
       }
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }
 

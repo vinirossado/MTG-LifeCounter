@@ -69,8 +69,8 @@ struct GameView: View {
                 
                 // Main Game Layout
                 GameLayoutBuilder.buildLayout(layout: gameSettings.layout)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea(.all)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
                 
                 // Settings Button - Fixed position based on device orientation
                 VStack {
@@ -90,7 +90,8 @@ struct GameView: View {
                         .zIndex(1)
                 }
             }
-            .edgesIgnoringSafeArea(.all) // This ensures we ignore safe areas on all edges
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .clipped()
             .navigationBarHidden(true)
             .onAppear {
                 playerState.initialize(gameSettings: gameSettings)
@@ -115,6 +116,8 @@ struct GameView: View {
                 Text("Do you want to reset the game?")
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.all)
         .ignoresSafeArea(.keyboard)
     }
         
