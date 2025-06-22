@@ -244,16 +244,14 @@ struct ContentView: View {
         .foregroundColor(Color.MTG.textSecondary)
         .tracking(isIPad ? 2 : 1)
         .opacity(0.8)
-      
-      ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: MTGSpacing.md) {
           ForEach(gameFormats, id: \.name) { format in
             GameFormatCard(format: format)
           }
         }
         .padding(.horizontal, MTGSpacing.lg)
-      }
-      .frame(height: isIPad ? 120 : 100) // Fixed height for alignment
+      
+      .frame(height: isIPad ? 120 : 100)
     }
   }
   

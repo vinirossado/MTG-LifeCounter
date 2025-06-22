@@ -41,7 +41,7 @@ struct FivePlayerLayout: View {
           VStack(spacing: 0) {
             if let player5 = playerState.bindingForPlayer(at: 4) {
               PlayerView(player: player5, orientation: .left)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
           }.frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height)
 
