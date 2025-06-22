@@ -99,25 +99,29 @@ struct GameView: View {
             .onAppear {
                 playerState.initialize(gameSettings: gameSettings)
             }
-            .alert("Attention!", isPresented: $showingResetAlert) {
-                Button("Yes") {
-                    if let newLayout = pendingLayout {
-                        gameSettings.layout = newLayout
-                    }
-                    if let newLifePoints = pendingLifePoints {
-                        gameSettings.startingLife = newLifePoints
-                    }
-                    playerState.initialize(gameSettings: gameSettings)
-                    pendingLayout = nil
-                    pendingLifePoints = nil
+                // MTG-themed confirmation dialog
+                if showingResetAlert {
+                    MTGConfirmationDialog.gameReset(
+                        onConfirm: {
+                            if let newLayout = pendingLayout {
+                                gameSettings.layout = newLayout
+                            }
+                            if let newLifePoints = pendingLifePoints {
+                                gameSettings.startingLife = newLifePoints
+                            }
+                            playerState.initialize(gameSettings: gameSettings)
+                            pendingLayout = nil
+                            pendingLifePoints = nil
+                            showingResetAlert = false
+                        },
+                        onCancel: {
+                            pendingLayout = nil
+                            pendingLifePoints = nil
+                            showingResetAlert = false
+                        }
+                    )
+                    .zIndex(10)
                 }
-                Button("No", role: .cancel) {
-                    pendingLayout = nil
-                    pendingLifePoints = nil
-                }
-            } message: {
-                Text("Do you want to reset the game?")
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.all)
