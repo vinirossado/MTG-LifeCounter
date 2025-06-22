@@ -9,40 +9,62 @@ import SwiftUI
 
 struct LoadingOverlay: View {
     
-    @Binding var isShowing: Bool // Controle de visibilidade
-    let message: String? // Mensagem opcional
+    @Binding var isShowing: Bool
+    let message: String?
+    @State private var pulseScale: CGFloat = 1.0
 
     var body: some View {
         ZStack {
             if isShowing {
-                // Fundo escurecido com efeito de Blur
-                Color.darkNavyBackground
-                    .opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
+                // Mystical background with blur effect
+                LinearGradient.MTG.mysticalBackground
+                    .opacity(0.8)
+                    .ignoresSafeArea()
                     .overlay(
                         VisualEffectBlur(blurStyle: .systemMaterialDark)
-                            .edgesIgnoringSafeArea(.all)
+                            .ignoresSafeArea()
                     )
                 
-                // Loading Animation e Mensagem
-                VStack(spacing: 20) {
-                    LoadingAnimation(colors: [.white, .blue, .green], size: 100, speed: 0.6, circleCount: 4)
+                // Loading card with MTG styling
+                VStack(spacing: MTGSpacing.lg) {
+                    // Magical loading animation
+                    LoadingAnimation(
+                        colors: [Color.MTG.blue, Color.MTG.red, Color.MTG.green, Color.MTG.white, Color.MTG.black],
+                        size: 120,
+                        speed: 0.8,
+                        circleCount: 5
+                    )
+                    
                     if let message = message {
-                        Text(message)
-                            .font(.headline)
-                            .foregroundColor(.white)
+                        VStack(spacing: MTGSpacing.sm) {
+                            Text("Casting Spell...")
+                                .font(MTGTypography.caption)
+                                .foregroundColor(Color.MTG.textSecondary)
+                            
+                            Text(message)
+                                .font(MTGTypography.headline)
+                                .foregroundColor(Color.MTG.textPrimary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
                 }
-                .transition(.opacity) // Suaviza a aparição/desaparecimento
+                .mtgResponsivePadding()
+                .mtgCardStyle()
+                .scaleEffect(pulseScale)
+                .animation(MTGAnimation.breathe, value: pulseScale)
+                .onAppear {
+                    pulseScale = 1.05
+                }
+                .transition(.scale.combined(with: .opacity))
             }
         }
-        .animation(.easeInOut, value: isShowing)
+        .animation(MTGAnimation.fadeIn, value: isShowing)
     }
 }
 
-// Adicionando o overlay como extensão reutilizável (.loadingOverlay() dentro de qualquer stack.)
+// MTG-themed loading overlay extension
 extension View {
-    func loadingOverlay(isShowing: Binding<Bool>, message: String? = nil) -> some View {
+    func mtgLoadingOverlay(isShowing: Binding<Bool>, message: String? = nil) -> some View {
         self.overlay(
             LoadingOverlay(isShowing: isShowing, message: message)
         )

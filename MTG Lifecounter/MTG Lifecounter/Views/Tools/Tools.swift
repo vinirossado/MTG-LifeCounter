@@ -7,61 +7,86 @@
 
 import SwiftUI
 
-// Model for tool items
-struct ToolItem: Identifiable {
+// Model for MTG-themed tool items
+struct MTGToolItem: Identifiable {
     let id: Int
     let iconName: String
     let label: String
     let description: String
+    let magicalEffect: String
 }
 
-// Enhanced player tools overlay
+// Enhanced MTG-themed player tools overlay
 struct PlayerToolsOverlay: View {
     var onDismiss: () -> Void
     @State private var toolItems = [
-        ToolItem(id: 0, iconName: "dice", label: "Roll D20", description: "Random 1-20"),
-        ToolItem(id: 1, iconName: "die.face.6", label: "Roll D6", description: "Random 1-6"),
-        ToolItem(id: 2, iconName: "die.face.4.fill", label: "Roll D4", description: "Random 1-4"),
-        ToolItem(id: 3, iconName: "dice", label: "Roll D8", description: "Random 1-8")
+        MTGToolItem(id: 0, iconName: MTGIcons.dice, label: "Roll D20", description: "Chaos Control", magicalEffect: "🎲"),
+        MTGToolItem(id: 1, iconName: "die.face.6", label: "Roll D6", description: "Minor Divination", magicalEffect: "✨"),
+        MTGToolItem(id: 2, iconName: "die.face.4.fill", label: "Roll D4", description: "Basic Fate", magicalEffect: "⚡"),
+        MTGToolItem(id: 3, iconName: "dice", label: "Roll D8", description: "Arcane Insight", magicalEffect: "🔮")
     ]
-    @State private var selectedTool: ToolItem?
+    @State private var selectedTool: MTGToolItem?
     @State private var isPresentingTool = false
     @State private var diceResult: Int?
     @State private var isRollingDice = false
     @State private var animateAppear = false
+    @State private var mysticalGlow = false
     
     var body: some View {
         ZStack {
-            // Semi-transparent background with blur
-            Color.black.opacity(0.6)
+            // Mystical background with blur
+            LinearGradient.MTG.mysticalBackground
+                .opacity(0.9)
                 .ignoresSafeArea()
+                .overlay(
+                    VisualEffectBlur(blurStyle: .systemMaterialDark)
+                        .ignoresSafeArea()
+                )
                 .onTapGesture {
                     dismissWithAnimation()
                 }
             
-            VStack(spacing: 0) {
-                // Pull indicator
-                RoundedRectangle(cornerRadius: 2.5)
+            VStack(spacing: MTGSpacing.lg) {
+                // Mystical pull indicator
+                RoundedRectangle(cornerRadius: MTGCornerRadius.xs)
+                    .fill(LinearGradient.MTG.magicalGlow)
                     .frame(width: 40, height: 5)
-                    .foregroundColor(.gray.opacity(0.6))
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
+                    .mtgGlow(color: Color.MTG.glowPrimary, radius: 6)
+                    .padding(.top, MTGSpacing.sm)
                 
-                // Tools title
-                Text("Tools")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(.vertical, 8)
+                // Magical tools header
+                VStack(spacing: MTGSpacing.sm) {
+                    HStack {
+                        Image(systemName: MTGIcons.sparkles)
+                            .font(.title2)
+                            .foregroundStyle(LinearGradient.MTG.magicalGlow)
+                        
+                        Text("Planeswalker Tools")
+                            .font(MTGTypography.title2)
+                            .foregroundColor(Color.MTG.textPrimary)
+                        
+                        Image(systemName: MTGIcons.sparkles)
+                            .font(.title2)
+                            .foregroundStyle(LinearGradient.MTG.magicalGlow)
+                    }
+                    
+                    Text("Harness the power of the multiverse")
+                        .font(MTGTypography.caption)
+                        .foregroundColor(Color.MTG.textSecondary)
+                        .opacity(mysticalGlow ? 0.8 : 1.0)
+                        .animation(MTGAnimation.pulse, value: mysticalGlow)
+                }
+                .mtgResponsivePadding()
+                .mtgCardStyle()
                 
-                // Tools grid
+                // Magical tools grid
                 LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                ], spacing: 20) {
+                    GridItem(.flexible(), spacing: MTGSpacing.md),
+                    GridItem(.flexible(), spacing: MTGSpacing.md),
+                ], spacing: MTGSpacing.lg) {
                     ForEach(toolItems) { item in
-                        OverlayButton(
-                            iconName: item.iconName,
-                            label: item.label,
+                        MTGToolButton(
+                            item: item,
                             action: {
                                 selectedTool = item
                                 isPresentingTool = true
@@ -82,128 +107,37 @@ struct PlayerToolsOverlay: View {
                         .scaleEffect(animateAppear ? 1.0 : 0.8)
                         .opacity(animateAppear ? 1.0 : 0.0)
                         .animation(
-                            .spring(response: 0.4, dampingFraction: 0.6)
-                            .delay(Double(item.id) * 0.05),
+                            MTGAnimation.bounceSpring.delay(Double(item.id) * 0.05),
                             value: animateAppear
                         )
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .mtgResponsivePadding()
                 
-                // Results display
+                // Mystical results display
                 if diceResult != nil {
-                    VStack(spacing: 8) {
+                    VStack(spacing: MTGSpacing.md) {
                         if let result = diceResult {
-                            HStack(spacing: 16) {
-                                Text("Result:")
-                                    .font(.system(size: 18, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.8))
-                                
-                                Text("\(result)")
-                                    .font(.system(size: 28, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(8)
-                                    .frame(width: 60, height: 60)
-                                    .background(
-                                        Circle()
-                                            .fill(Color(hex: "4a6d88"))
-                                            .shadow(color: Color.black.opacity(0.3), radius: 5, x: 0, y: 2)
-                                    )
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                                    )
-                                    .scaleEffect(isRollingDice ? 1.1 : 1.0)
-                                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isRollingDice)
-                            }
+                            MTGDiceResultView(
+                                result: result,
+                                selectedTool: selectedTool,
+                                isRolling: isRollingDice
+                            )
                         }
-                        
-//                        if counter > 0 {
-//                            HStack(spacing: 16) {
-//                                Text("Counter:")
-//                                    .font(.system(size: 18, weight: .medium))
-//                                    .foregroundColor(.white.opacity(0.8))
-//                                
-//                                HStack {
-//                                    Button(action: {
-//                                        if counter > 0 {
-//                                            counter -= 1
-//                                        }
-//                                    }) {
-//                                        Image(systemName: "minus.circle")
-//                                            .font(.system(size: 22))
-//                                            .foregroundColor(.white)
-//                                    }
-//                                    
-//                                    Text("\(counter)")
-//                                        .font(.system(size: 24, weight: .bold))
-//                                        .foregroundColor(.white)
-//                                        .frame(minWidth: 40)
-//                                        .padding(.horizontal, 4)
-//                                    
-//                                    Button(action: {
-//                                        counter += 1
-//                                    }) {
-//                                        Image(systemName: "plus.circle")
-//                                            .font(.system(size: 22))
-//                                            .foregroundColor(.white)
-//                                    }
-//                                }
-//                                .padding(8)
-//                                .background(
-//                                    RoundedRectangle(cornerRadius: 12)
-//                                        .fill(Color(hex: "4a6d88"))
-//                                )
-//                            }
-//                        }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
-                    .transition(.opacity)
-                    .animation(.easeInOut, value: diceResult)
-//                    .animation(.easeInOut, value: counter)
+                    .mtgResponsivePadding()
+                    .mtgCardStyle()
+                    .transition(.scale.combined(with: .opacity))
                 }
                 
-                // Action buttons
-//                HStack(spacing: 10) {
-//                    // Reset button
-//                    if diceResult != nil || counter > 0 {
-//                        Button(action: {
-//                            diceResult = nil
-//                            counter = 0
-//                        }) {
-//                            Text("Reset")
-//                                .font(.system(size: 18, weight: .medium))
-//                                .foregroundColor(.white)
-//                                .frame(maxWidth: .infinity)
-//                                .padding(.vertical, 12)
-//                                .background(Color(hex: "555555"))
-//                                .cornerRadius(10)
-//                        }
-//                        .transition(.scale.combined(with: .opacity))
-//                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: diceResult)
-//                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: counter)
-//                    }
-//                    
-//                    // Close button
-//                    Button(action: {
-//                        dismissWithAnimation()
-//                    }) {
-//                        Text("Close")
-//                            .font(.system(size: 18, weight: .medium))
-//                            .foregroundColor(.white)
-//                            .frame(maxWidth: .infinity)
-//                            .padding(.vertical, 12)
-//                            .background(Color(hex: "4a6d88"))
-//                            .cornerRadius(10)
-//                    }
-//                }
-//                .padding(.horizontal, 20)
-//                .padding(.bottom, 20)
-//                .opacity(animateAppear ? 1.0 : 0.0)
-//                .offset(y: animateAppear ? 0 : 20)
-//                .animation(.easeOut(duration: 0.3).delay(0.2), value: animateAppear)
+                Spacer()
+            }
+            .foregroundColor(.white.opacity(0.8))
+            .onAppear {
+                withAnimation(MTGAnimation.standardSpring.delay(0.1)) {
+                    animateAppear = true
+                    mysticalGlow = true
+                }
             }
             .background(
                 Color(hex: "2A3D4F")
@@ -244,6 +178,117 @@ struct PlayerToolsOverlay: View {
             if rollCount >= 10 { // Roll animation for 1 second
                 timer.invalidate()
                 isRollingDice = false
+            }
+        }
+    }
+    
+    // MARK: - MTG Tool Button
+    private struct MTGToolButton: View {
+        let item: MTGToolItem
+        let action: () -> Void
+        @State private var isHovered = false
+        
+        var body: some View {
+            Button(action: action) {
+                VStack(spacing: MTGSpacing.sm) {
+                    // Magical icon container
+                    ZStack {
+                        RoundedRectangle(cornerRadius: MTGCornerRadius.md)
+                            .fill(LinearGradient.MTG.primaryButton)
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: MTGCornerRadius.md)
+                                    .stroke(LinearGradient.MTG.magicalGlow, lineWidth: MTGSpacing.borderWidth)
+                                    .opacity(0.6)
+                            )
+                            .mtgGlow(color: Color.MTG.glowPrimary, radius: isHovered ? 16 : 8)
+                        
+                        VStack(spacing: 2) {
+                            Text(item.magicalEffect)
+                                .font(.title)
+                            
+                            Image(systemName: item.iconName)
+                                .font(.system(size: 20, weight: .medium))
+                                .foregroundStyle(LinearGradient.MTG.magicalGlow)
+                        }
+                    }
+                    
+                    // Spell information
+                    VStack(spacing: 2) {
+                        Text(item.label)
+                            .font(MTGTypography.callout)
+                            .foregroundColor(Color.MTG.textPrimary)
+                            .fontWeight(.semibold)
+                        
+                        Text(item.description)
+                            .font(MTGTypography.caption2)
+                            .foregroundColor(Color.MTG.textSecondary)
+                    }
+                }
+            }
+            .buttonStyle(MTGScaleButtonStyle())
+            .onHover { hovering in
+                withAnimation(MTGAnimation.quick) {
+                    isHovered = hovering
+                }
+            }
+        }
+    }
+    
+    // MARK: - MTG Dice Result View
+    private struct MTGDiceResultView: View {
+        let result: Int
+        let selectedTool: MTGToolItem?
+        let isRolling: Bool
+        @State private var showSparkles = false
+        
+        var body: some View {
+            VStack(spacing: MTGSpacing.md) {
+                if let tool = selectedTool {
+                    Text("\(tool.description) Cast!")
+                        .font(MTGTypography.caption)
+                        .foregroundColor(Color.MTG.textSecondary)
+                }
+                
+                HStack(spacing: MTGSpacing.md) {
+                    Text("Result:")
+                        .font(MTGTypography.headline)
+                        .foregroundColor(Color.MTG.textPrimary)
+                    
+                    ZStack {
+                        Circle()
+                            .fill(LinearGradient.MTG.magicalGlow)
+                            .frame(width: 60, height: 60)
+                            .mtgGlow(color: Color.MTG.glowSecondary, radius: 12)
+                        
+                        Text("\(result)")
+                            .font(MTGTypography.lifeCounter)
+                            .foregroundColor(Color.MTG.textPrimary)
+                            .fontWeight(.bold)
+                    }
+                    .scaleEffect(isRolling ? 1.2 : 1.0)
+                    .rotationEffect(.degrees(isRolling ? 360 : 0))
+                    .animation(MTGAnimation.bounceSpring, value: isRolling)
+                    
+                    // Sparkle effects
+                    if showSparkles {
+                        HStack(spacing: 4) {
+                            ForEach(0..<3, id: \.self) { _ in
+                                Image(systemName: MTGIcons.sparkles)
+                                    .foregroundStyle(LinearGradient.MTG.magicalGlow)
+                                    .font(.caption)
+                                    .opacity(showSparkles ? 1.0 : 0.0)
+                                    .scaleEffect(showSparkles ? 1.0 : 0.5)
+                            }
+                        }
+                        .animation(MTGAnimation.bounceSpring.delay(0.2), value: showSparkles)
+                    }
+                }
+            }
+            .onAppear {
+                withAnimation(MTGAnimation.bounceSpring.delay(0.5)) {
+                    showSparkles = true
+                }
             }
         }
     }

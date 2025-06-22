@@ -23,7 +23,7 @@ struct VerticalPressableRectangle: View {
         LinearGradient(
           colors: side == .left 
             ? [DEFAULT_STYLES.background, Color.darkNavyBackground.opacity(0.9)]
-            : [Color.red.opacity(0.8), Color.red.opacity(0.6)],
+          : [DEFAULT_STYLES.background, Color.darkNavyBackground.opacity(0.6)],
           startPoint: .topLeading,
           endPoint: .bottomTrailing
         )

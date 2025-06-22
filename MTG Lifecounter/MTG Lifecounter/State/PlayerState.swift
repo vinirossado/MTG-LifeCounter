@@ -22,13 +22,27 @@ public class PlayerState: ObservableObject {
     @Published public var players: [Player] = []
     
     public func initialize(gameSettings: GameSettings) {
-        players = (1...gameSettings.layout.playerCount).map{ idx in
+        let requiredPlayerCount = gameSettings.layout.playerCount
+        
+        // Clear existing players first to prevent any state inconsistencies
+        players.removeAll()
+        
+        // Create new players for the required layout
+        players = (1...requiredPlayerCount).map { idx in
             Player(HP: gameSettings.startingLife, name: "Player \(idx)")
         }
+        
+        // Force UI update
+        objectWillChange.send()
     }
     
     public func bindingForPlayer(at index: Int) -> Binding<Player>? {
-        guard players.indices.contains(index) else { return nil }
+        // Add extra safety check
+        guard index >= 0 && index < players.count else { 
+            print("Warning: Attempted to access player at index \(index) but only \(players.count) players exist")
+            return nil 
+        }
+        
         return Binding(
             get: { self.players[index] },
             set: { self.players[index] = $0 }

@@ -23,19 +23,21 @@ enum GameLayout {
 // MARK: - Layout Builder
 struct GameLayoutBuilder {
   static func buildLayout(layout: PlayerLayouts) -> some View {
-    switch layout {
-    case .two:
-      return AnyView(TwoPlayerLayout())
-    case .threeLeft:
-      return AnyView(ThreePlayerLayoutLeft())
-    case .threeRight:
-      return AnyView(ThreePlayerLayoutRight())
-    case .four:
-      return AnyView(FourPlayerLayout())
-    case .five:
-      return AnyView(FivePlayerLayout())
-    case .six:
-      return AnyView(SixPlayerLayout())
+    Group {
+      switch layout {
+      case .two:
+        TwoPlayerLayout()
+      case .threeLeft:
+        ThreePlayerLayoutLeft()
+      case .threeRight:
+        ThreePlayerLayoutRight()
+      case .four:
+        FourPlayerLayout()
+      case .five:
+        FivePlayerLayout()
+      case .six:
+        SixPlayerLayout()
+      }
     }
   }
 }
@@ -68,10 +70,29 @@ struct GameView: View {
                 Color.black
                     .ignoresSafeArea(.all)
                 
-                // Main Game Layout
-                GameLayoutBuilder.buildLayout(layout: gameSettings.layout)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
+                // Main Game Layout - Only render if player count matches expected layout
+                if playerState.players.count >= gameSettings.layout.playerCount {
+                    GameLayoutBuilder.buildLayout(layout: gameSettings.layout)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .id("GameLayout-\(gameSettings.layout)-\(playerState.players.count)") // Force refresh when layout or player count changes
+                } else {
+                    // Show loading state while player state catches up
+                    VStack {
+                        LoadingAnimation(
+                            colors: [Color.MTG.blue, Color.MTG.red, Color.MTG.green, Color.MTG.white, Color.MTG.black],
+                            size: 80,
+                            speed: 0.8,
+                            circleCount: 5
+                        )
+                        
+                        Text("Preparing game layout...")
+                            .font(MTGTypography.caption)
+                            .foregroundColor(Color.MTG.textSecondary)
+                            .padding(.top, MTGSpacing.md)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
                 
                 // Settings Button - Fixed position based on device orientation
                 VStack {
@@ -97,19 +118,29 @@ struct GameView: View {
             .clipped()
             .navigationBarHidden(true)
             .onAppear {
-                playerState.initialize(gameSettings: gameSettings)
+                // Ensure player state matches current settings on view appear
+                if playerState.players.count != gameSettings.layout.playerCount {
+                    playerState.initialize(gameSettings: gameSettings)
+                }
             }
                 // MTG-themed confirmation dialog
                 if showingResetAlert {
                     MTGConfirmationDialog.gameReset(
                         onConfirm: {
+                            // First update the layout
                             if let newLayout = pendingLayout {
                                 gameSettings.layout = newLayout
                             }
                             if let newLifePoints = pendingLifePoints {
                                 gameSettings.startingLife = newLifePoints
                             }
-                            playerState.initialize(gameSettings: gameSettings)
+                            
+                            // Then immediately reinitialize player state to match the new layout
+                            DispatchQueue.main.async {
+                                playerState.initialize(gameSettings: gameSettings)
+                            }
+                            
+                            // Clear pending changes
                             pendingLayout = nil
                             pendingLifePoints = nil
                             showingResetAlert = false
@@ -128,20 +159,30 @@ struct GameView: View {
         .ignoresSafeArea(.keyboard)
     }
         
-    // Settings Button
+    // Settings Button with MTG styling
     private var settingsButton: some View {
         Button(action: {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            withAnimation(MTGAnimation.standardSpring) {
                 selectedTab = selectedTab == 0 ? 1 : 0
             }
         }) {
-            Image(systemName: selectedTab == 1 ? "xmark.circle.fill" : "gear")
-                .font(.system(size: adaptiveIconSize))
-                .foregroundColor(.white)
-                .padding(adaptiveButtonPadding)
-                .background(Color.black.opacity(0.1))
-                .clipShape(Circle())
-                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            ZStack {
+                Circle()
+                    .fill(LinearGradient.MTG.cardBackground)
+                    .frame(width: adaptiveIconSize + MTGSpacing.md, height: adaptiveIconSize + MTGSpacing.md)
+                    .overlay(
+                        Circle()
+                            .stroke(LinearGradient.MTG.magicalGlow, lineWidth: MTGSpacing.borderWidth)
+                            .opacity(0.6)
+                    )
+                    .mtgGlow(color: Color.MTG.glowPrimary, radius: selectedTab == 1 ? 12 : 6)
+                
+                Image(systemName: selectedTab == 1 ? MTGIcons.close : MTGIcons.settings)
+                    .font(.system(size: adaptiveIconSize * 0.6))
+                    .foregroundStyle(LinearGradient.MTG.magicalGlow)
+                    .rotationEffect(.degrees(selectedTab == 1 ? 90 : 0))
+                    .animation(MTGAnimation.standardSpring, value: selectedTab)
+            }
         }
         .accessibilityLabel(selectedTab == 1 ? "Close Settings" : "Open Settings")
     }
