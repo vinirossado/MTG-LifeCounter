@@ -12,7 +12,6 @@ struct TwoPlayerLayout: View {
     
     var body: some View {
         ZStack {
-            // MTG themed background
             LinearGradient.MTG.mysticalBackground
                 .ignoresSafeArea()
             

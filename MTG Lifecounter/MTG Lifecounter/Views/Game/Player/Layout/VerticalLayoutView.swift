@@ -31,7 +31,6 @@ struct VerticalPressableRectangle: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .opacity(isPressed ? DEFAULT_STYLES.hoverOpacity : DEFAULT_STYLES.opacity)
       .overlay(
-        // Subtle card-frame inspired corners
         Rectangle()
           .stroke(
             LinearGradient(
@@ -47,7 +46,6 @@ struct VerticalPressableRectangle: View {
           )
       )
       .overlay(
-        // Mystical glow on press with mana-like colors
         Rectangle()
           .stroke(
             LinearGradient(
