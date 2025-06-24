@@ -1,0 +1,7 @@
+name: SwiftUI Documentation
+version: 0.0.1
+schema: v1
+docs:
+  - name: SwiftUI
+    startUrl: https://developer.apple.com/documentation/swift
+
