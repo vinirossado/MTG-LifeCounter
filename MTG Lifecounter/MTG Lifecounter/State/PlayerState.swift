@@ -11,10 +11,22 @@ public struct Player: Identifiable {
     public let id = UUID()
     public var HP: Int
     public var name: String
+    public var commanderName: String?
+    public var commanderImageURL: String?
+    public var commanderArtworkURL: String?
+    public var commanderColors: [String]?
+    public var commanderTypeLine: String?
+    public var useCommanderAsBackground: Bool = false
     
-    public init(HP: Int, name: String) {
+    public init(HP: Int, name: String, commanderName: String? = nil, commanderImageURL: String? = nil, commanderArtworkURL: String? = nil, commanderColors: [String]? = nil, commanderTypeLine: String? = nil, useCommanderAsBackground: Bool = false) {
         self.HP = HP
         self.name = name
+        self.commanderName = commanderName
+        self.commanderImageURL = commanderImageURL
+        self.commanderArtworkURL = commanderArtworkURL
+        self.commanderColors = commanderColors
+        self.commanderTypeLine = commanderTypeLine
+        self.useCommanderAsBackground = useCommanderAsBackground
     }
 }
 

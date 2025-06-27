@@ -13,6 +13,7 @@ struct EditPlayerView: View {
     @State private var isVisible = false
     @State private var mysticalGlow: Double = 0.3
     @State private var cardRotation: Double = 0
+    @State private var showCommanderSearch = false
     
     // Dynamic sizing based on device
     private var isIPad: Bool {
@@ -151,8 +152,13 @@ struct EditPlayerView: View {
                             if isLandscape {
                                 // Landscape layout
                                 HStack(alignment: .top, spacing: 20) {
-                                    // Input field section
-                                    mtgPlayerInputSection()
+                                    VStack(spacing: 20) {
+                                        // Input field section
+                                        mtgPlayerInputSection()
+                                        
+                                        // Commander section
+                                        mtgCommanderSection()
+                                    }
                                     
                                     // Button section
                                     mtgButtonSection()
@@ -164,6 +170,9 @@ struct EditPlayerView: View {
                                 VStack(spacing: isIPad ? 40 : 30) {
                                     // Input field section
                                     mtgPlayerInputSection()
+                                    
+                                    // Commander section
+                                    mtgCommanderSection()
                                     
                                     Spacer(minLength: isIPad ? 40 : 20)
                                     
@@ -246,6 +255,9 @@ struct EditPlayerView: View {
                 }
             }
         }
+        .sheet(isPresented: $showCommanderSearch) {
+            CommanderSearchView(player: $player)
+        }
     }
     
     // Helper method to track orientation changes
@@ -326,6 +338,285 @@ struct EditPlayerView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
     
+    // MTG-themed commander section
+    private func mtgCommanderSection() -> some View {
+        VStack(alignment: .leading, spacing: isIPad ? 16 : 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "crown.fill")
+                    .foregroundColor(.yellow.opacity(0.8))
+                    .font(.system(size: 18))
+                Text("Commander")
+                    .font(.system(size: labelFontSize, weight: .semibold, design: .serif))
+                    .foregroundColor(.lightGrayText)
+            }
+            
+            Text("Choose your legendary creature to lead your deck")
+                .font(.system(size: 14, design: .serif))
+                .foregroundColor(.mutedSilverText)
+                .italic()
+                .padding(.leading, 4)
+            
+            // Commander display or search button
+            if let commanderName = player.commanderName, !commanderName.isEmpty {
+                // Display current commander
+                HStack(spacing: 12) {
+                    // Commander image placeholder or actual image
+                    AsyncImage(url: URL(string: player.commanderImageURL ?? "")) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .onAppear {
+                                    print("✅ EditPlayer commander image loaded")
+                                }
+                        case .failure(let error):
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(LinearGradient(
+                                    colors: [Color.red.opacity(0.3), Color.red.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .overlay(
+                                    Image(systemName: "exclamationmark.triangle")
+                                        .foregroundColor(.orange)
+                                        .font(.system(size: 16))
+                                )
+                                .onAppear {
+                                    print("❌ EditPlayer commander image failed: \(error.localizedDescription)")
+                                }
+                        case .empty:
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(LinearGradient(
+                                    colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .overlay(
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                                        .scaleEffect(0.7)
+                                )
+                        @unknown default:
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(LinearGradient(
+                                    colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .overlay(
+                                    Image(systemName: "crown.fill")
+                                        .foregroundColor(.yellow.opacity(0.6))
+                                        .font(.system(size: 16))
+                                )
+                        }
+                    }
+                    .frame(width: 50, height: 70)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(commanderName)
+                            .font(.system(size: 16, weight: .semibold, design: .serif))
+                            .foregroundColor(.lightGrayText)
+                            .lineLimit(2)
+                        
+                        if let typeLine = player.commanderTypeLine {
+                            Text(typeLine)
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .foregroundColor(.mutedSilverText)
+                                .lineLimit(1)
+                        }
+                        
+                        // Mana cost or color identity
+                        if let colors = player.commanderColors, !colors.isEmpty {
+                            HStack(spacing: 2) {
+                                ForEach(colors.prefix(5), id: \.self) { color in
+                                    Circle()
+                                        .fill(manaColor(for: color))
+                                        .frame(width: 12, height: 12)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                                        )
+                                }
+                            }
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        showCommanderSearch = true
+                    }) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.blue.opacity(0.8))
+                    }
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.oceanBlueBackground.opacity(0.4),
+                                    Color.darkNavyBackground.opacity(0.6)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [Color.yellow.opacity(0.4), Color.blue.opacity(0.3)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
+                )
+            } else {
+                // Search for commander button
+                Button(action: {
+                    showCommanderSearch = true
+                }) {
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(LinearGradient(
+                                    colors: [Color.yellow.opacity(0.2), Color.orange.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ))
+                                .frame(width: 50, height: 70)
+                            
+                            VStack(spacing: 4) {
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(.yellow.opacity(0.8))
+                                    .font(.system(size: 18))
+                                
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.blue.opacity(0.6))
+                                    .font(.system(size: 12))
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Choose Commander")
+                                .font(.system(size: 16, weight: .semibold, design: .serif))
+                                .foregroundColor(.lightGrayText)
+                            
+                            Text("Search legendary creatures")
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .foregroundColor(.mutedSilverText)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.blue.opacity(0.6))
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.oceanBlueBackground.opacity(0.4),
+                                        Color.darkNavyBackground.opacity(0.6)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [Color.yellow.opacity(0.3), Color.blue.opacity(0.2)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1.5
+                                    )
+                            )
+                    )
+                }
+                .buttonStyle(MTGButtonStyle())
+            }
+            
+            // Commander background toggle (only show if commander is selected)
+            if player.commanderName != nil && !player.commanderName!.isEmpty {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Use Commander as Background")
+                            .font(.system(size: 14, weight: .semibold, design: .serif))
+                            .foregroundColor(.lightGrayText)
+                        
+                        Text("Display commander artwork behind player area")
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundColor(.mutedSilverText)
+                    }
+                    
+                    Spacer()
+                    
+                    Toggle("", isOn: $player.useCommanderAsBackground)
+                        .toggleStyle(SwitchToggleStyle(tint: .blue))
+                        .scaleEffect(0.8)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.darkNavyBackground.opacity(0.4))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                        )
+                )
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.oceanBlueBackground.opacity(0.3))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.yellow.opacity(0.4), Color.purple.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .frame(maxWidth: isLandscape && !isIPad ? nil : .infinity)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    
+    // Helper method to get mana color
+    private func manaColor(for colorSymbol: String) -> Color {
+        switch colorSymbol.uppercased() {
+        case "W":
+            return Color(hex: "F8F6E8") // White
+        case "U":
+            return Color(hex: "4A90E2") // Blue
+        case "B":
+            return Color(hex: "1C1C1E") // Black
+        case "R":
+            return Color(hex: "D32F2F") // Red
+        case "G":
+            return Color(hex: "388E3C") // Green
+        default:
+            return Color(hex: "A0AEC0") // Colorless/Generic
+        }
+    }
+
     // MTG-themed button section
     private func mtgButtonSection() -> some View {
         HStack(spacing: buttonSpacing) {
@@ -377,9 +668,10 @@ struct EditPlayerView: View {
                     Text("Bind Identity")
                         .font(.system(size: isIPad ? 20 : 16, weight: .semibold, design: .serif))
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, buttonVerticalPadding)
                 .foregroundColor(.white)
                 .frame(minWidth: buttonWidth)
-                .padding(.vertical, buttonVerticalPadding)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(

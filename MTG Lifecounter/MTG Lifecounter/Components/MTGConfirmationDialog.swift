@@ -238,7 +238,7 @@ extension MTGConfirmationDialog {
         MTGConfirmationDialog(
             title: "Reset the Battlefield?",
             message: "This will reset all life totals and start a new game. Your current progress will be lost to the void.",
-            confirmText: "Cast Reset",
+            confirmText: "Cast",
             cancelText: "Counter",
             onConfirm: onConfirm,
             onCancel: onCancel
@@ -289,7 +289,7 @@ struct MTGButtonStyle: ButtonStyle {
     MTGConfirmationDialog(
         title: "Reset the Battlefield?",
         message: "This will reset all life totals and start a new game. Your current progress will be lost to the void.",
-        confirmText: "Cast Reset",
+        confirmText: "Cast",
         cancelText: "Counter",
         onConfirm: {},
         onCancel: {}

@@ -22,8 +22,8 @@ struct VerticalPressableRectangle: View {
       .fill(
         LinearGradient(
           colors: side == .left 
-            ? [DEFAULT_STYLES.background, Color.darkNavyBackground.opacity(0.9)]
-          : [DEFAULT_STYLES.background, Color.darkNavyBackground.opacity(0.6)],
+            ? [DEFAULT_STYLES.background.opacity(0.6), Color.darkNavyBackground.opacity(0.7)]
+            : [DEFAULT_STYLES.background.opacity(0.6), Color.darkNavyBackground.opacity(0.5)],
           startPoint: .topLeading,
           endPoint: .bottomTrailing
         )
@@ -222,6 +222,30 @@ struct VerticalPlayerView: View {
   var body: some View {
     GeometryReader { geometry in
       ZStack {
+        // Commander artwork background if enabled (behind everything)
+        if player.useCommanderAsBackground,
+           let artworkURL = player.commanderArtworkURL ?? player.commanderImageURL {
+          AsyncImage(url: URL(string: artworkURL)) { phase in
+            switch phase {
+            case .success(let image):
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+                .opacity(0.4) // Subtle background
+                .blur(radius: 1) // Slight blur for text readability
+            case .failure(_):
+              Color.clear
+            case .empty:
+              Color.clear
+            @unknown default:
+              Color.clear
+            }
+          }
+          .cornerRadius(16)
+        }
+        
         // Player interaction areas (left and right sides for decrease/increase)
         HStack(spacing: 1) {
           VerticalPressableRectangle(
@@ -257,6 +281,8 @@ struct VerticalPlayerView: View {
             Text("\(player.HP)")
               .font(.system(size: 48, weight: .bold))
               .foregroundColor(.white)
+              .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 0)
+              .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 0)
               .rotationEffect(namePosition.rotation)
 
             // Minus icon (left side)
@@ -266,6 +292,7 @@ struct VerticalPlayerView: View {
                 Image(systemName: "minus")
                   .foregroundColor(DEFAULT_STYLES.foreground)
                   .font(.system(size: 24, weight: .medium))
+                  .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 0)
                   .rotationEffect(namePosition.rotation)
                   .padding(.leading, 32)
                 Spacer()
@@ -281,6 +308,7 @@ struct VerticalPlayerView: View {
                 Image(systemName: "plus")
                   .foregroundColor(DEFAULT_STYLES.foreground)
                   .font(.system(size: 24, weight: .medium))
+                  .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 0)
                   .rotationEffect(namePosition.rotation)
                   .padding(.trailing, 32)
               }
@@ -292,6 +320,8 @@ struct VerticalPlayerView: View {
               Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
                 .font(.system(size: 24, weight: .semibold))
                 .foregroundColor(cumulativeChange > 0 ? .green : .red)
+                .shadow(color: .black.opacity(0.8), radius: 2, x: 0, y: 0)
+                .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 0)
                 .offset(x: cumulativeChange > 0 ? 60 : -60)
                 .opacity(showChange ? 1 : 0)
                 .rotationEffect(namePosition.rotation)
