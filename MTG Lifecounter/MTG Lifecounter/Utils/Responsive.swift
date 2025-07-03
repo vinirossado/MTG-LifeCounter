@@ -7,48 +7,90 @@
 
 import SwiftUI
 
-public var isIPad: Bool {
-  return UIDevice.current.userInterfaceIdiom == .pad
+// Cached device properties for performance
+private struct ResponsiveProperties {
+  static let shared = ResponsiveProperties()
+  
+  let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+  let screenWidth = UIScreen.main.bounds.width
+  let screenHeight = UIScreen.main.bounds.height
+  
+  // Grid properties
+  var adaptiveGridColumns: Int {
+    // Since we're always in landscape, use 3 columns for iPad and landscape iPhone
+    return isIPad ? 3 : 3
+  }
+
+  var adaptiveGridSpacing: CGFloat {
+    isIPad ? 16 : 8
+  }
+
+  // Text sizes
+  var adaptiveTitleSize: CGFloat {
+    isIPad ? 36 : 24  // Always landscape
+  }
+
+  var adaptiveSubtitleSize: CGFloat {
+    isIPad ? 28 : 20  // Always landscape
+  }
+
+  // Spacing
+  var adaptiveSpacing: CGFloat {
+    isIPad ? 24 : 16
+  }
+
+  // Button/Icon sizes
+  var adaptiveIconSize: CGFloat {
+    isIPad ? 30 : 24
+  }
+
+  var adaptiveButtonPadding: CGFloat {
+    isIPad ? 16 : 12
+  }
+
+  var adaptivePadding: EdgeInsets {
+    if isIPad {
+      return EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20)
+    } else {
+      return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+    }
+  }
 }
 
-// Grid properties
+// Public interface using cached values
+public var isIPad: Bool {
+  ResponsiveProperties.shared.isIPad
+}
+
 public var adaptiveGridColumns: Int {
-  // Since we're always in landscape, use 3 columns for iPad and landscape iPhone
-  return isIPad ? 3 : 3
+  ResponsiveProperties.shared.adaptiveGridColumns
 }
 
 public var adaptiveGridSpacing: CGFloat {
-  isIPad ? 16 : 8
+  ResponsiveProperties.shared.adaptiveGridSpacing
 }
 
-// Text sizes
 public var adaptiveTitleSize: CGFloat {
-  isIPad ? 36 : 24  // Always landscape
+  ResponsiveProperties.shared.adaptiveTitleSize
 }
 
 public var adaptiveSubtitleSize: CGFloat {
-  isIPad ? 28 : 20  // Always landscape
+  ResponsiveProperties.shared.adaptiveSubtitleSize
 }
 
-// Spacing
 public var adaptiveSpacing: CGFloat {
-  isIPad ? 24 : 16
+  ResponsiveProperties.shared.adaptiveSpacing
 }
 
-// Button/Icon sizes
 public var adaptiveIconSize: CGFloat {
-  isIPad ? 30 : 24
+  ResponsiveProperties.shared.adaptiveIconSize
 }
 
 public var adaptiveButtonPadding: CGFloat {
-  isIPad ? 16 : 12
+  ResponsiveProperties.shared.adaptiveButtonPadding
 }
 
 public var adaptivePadding: EdgeInsets {
-  if isIPad {
-    return EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20)
-  } else {
-    return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-  }
+  ResponsiveProperties.shared.adaptivePadding
 }
 

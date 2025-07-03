@@ -6,22 +6,57 @@
 
 import SwiftUI
 
-// Panel dimensions
-public var settingsPanelWidth: CGFloat {
+// Panel dimensions - cached for performance
+private struct PanelDimensions {
+  static let shared = PanelDimensions()
+  
   let screenWidth = UIScreen.main.bounds.width
-  // iPad: 1/3 of screen, iPhone: 80% of screen
-  return isIPad ? screenWidth / 3 : screenWidth * 0.8
+  let screenHeight = UIScreen.main.bounds.height
+  
+  var settingsPanelWidth: CGFloat {
+    // iPad: 1/3 of screen, iPhone: 80% of screen
+    return isIPad ? screenWidth / 3 : screenWidth * 0.8
+  }
+  
+  var settingsPanelHeight: CGFloat {
+    // Used for iPhone in landscape
+    return screenHeight * 0.7
+  }
+}
+
+public var settingsPanelWidth: CGFloat {
+  PanelDimensions.shared.settingsPanelWidth
 }
 
 public var settingsPanelHeight: CGFloat {
-  // Used for iPhone in landscape
-  return UIScreen.main.bounds.height * 0.7
+  PanelDimensions.shared.settingsPanelHeight
 }
 
 struct SettingsPanelView: View {
   @Binding var selectedTab: Int
   @State private var isVisible = false
   @State private var mysticalGlow: Double = 0.3
+  
+  // Cached gradients for performance
+  private let backgroundGradient = LinearGradient(
+    colors: [
+      Color.darkNavyBackground,
+      Color.oceanBlueBackground.opacity(0.95),
+      Color.darkNavyBackground
+    ],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
+  
+  private let borderGradient = LinearGradient(
+    colors: [
+      Color.blue.opacity(0.6),
+      Color.purple.opacity(0.4),
+      Color.blue.opacity(0.6)
+    ],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
 
   var body: some View {
     GeometryReader { geometry in
@@ -46,31 +81,10 @@ struct SettingsPanelView: View {
             .background(
               // Spell book/grimoire appearance
               RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(
-                  LinearGradient(
-                    colors: [
-                      Color.darkNavyBackground,
-                      Color.oceanBlueBackground.opacity(0.95),
-                      Color.darkNavyBackground
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                  )
-                )
+                .fill(backgroundGradient)
                 .overlay(
                   RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(
-                      LinearGradient(
-                        colors: [
-                          Color.blue.opacity(0.6),
-                          Color.purple.opacity(0.4),
-                          Color.blue.opacity(0.6)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                      ),
-                      lineWidth: 2
-                    )
+                    .stroke(borderGradient, lineWidth: 2)
                 )
                 .shadow(color: Color.blue.opacity(mysticalGlow), radius: 15, x: 0, y: 5)
                 .shadow(color: Color.black.opacity(0.6), radius: 25, x: 0, y: 10)
@@ -92,8 +106,8 @@ struct SettingsPanelView: View {
           isVisible = true
         }
         
-        // Mystical glow animation
-        withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+        // Optimized mystical glow animation - less frequent updates
+        withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
           mysticalGlow = 0.6
         }
       }
@@ -320,7 +334,7 @@ struct MTGSettingsPanelContent: View {
   }
 }
 
-// MTG-themed player layouts grid
+// MTG-themed player layouts grid with performance optimizations
 struct MTGPlayerLayoutsGrid: View {
   @EnvironmentObject var gameSettings: GameSettings
   @Environment(\.requestLayoutChange) private var requestLayoutChange
@@ -329,11 +343,15 @@ struct MTGPlayerLayoutsGrid: View {
     .two, .threeLeft, .threeRight, .four, .five, .six
   ]
   
+  // Cached columns array for performance
+  private let gridColumns = Array(
+    repeating: GridItem(.flexible(), spacing: adaptiveGridSpacing),
+    count: adaptiveGridColumns
+  )
+  
   var body: some View {
     LazyVGrid(
-      columns: Array(
-        repeating: GridItem(.flexible(), spacing: adaptiveGridSpacing),
-        count: adaptiveGridColumns),
+      columns: gridColumns,
       spacing: adaptiveGridSpacing
     ) {
       ForEach(layouts, id: \.self) { layout in
@@ -351,59 +369,60 @@ struct MTGPlayerLayoutsGrid: View {
   }
 }
 
-// MTG-themed player layout component
+// MTG-themed player layout component with performance optimizations
 struct MTGPlayerLayout: View {
     let isSelected: Bool
     let onClick: () -> Void
     let players: PlayerLayouts
     @State private var mysticalGlow: Double = 0.2
     
+    // Cached gradients for performance
+    private var selectedGradient: LinearGradient {
+      LinearGradient(
+        colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.4)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    }
+    
+    private var unselectedGradient: LinearGradient {
+      LinearGradient(
+        colors: [Color.oceanBlueBackground.opacity(0.8), Color.darkNavyBackground.opacity(0.9)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    }
+    
+    private var selectedBorderGradient: LinearGradient {
+      LinearGradient(
+        colors: [Color.blue.opacity(0.8), Color.yellow.opacity(0.6)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    }
+    
+    private var unselectedBorderGradient: LinearGradient {
+      LinearGradient(
+        colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.2)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    }
+    
     var body: some View {
-        let grid: AnyView = {
-            switch players {
-            case .two:
-                return AnyView(TwoPlayerGridView())
-            case .threeLeft:
-                return AnyView(ThreePlayerLeftGridView())
-            case .threeRight:
-                return AnyView(ThreePlayerRightGridView())
-            case .four:
-                return AnyView(FourPlayerGridView())
-            case .five:
-                return AnyView(FivePlayerGridView())
-            case .six:
-                return AnyView(SixPlayerGridView())
-            }
-        }()
+        // Use @ViewBuilder for better performance instead of AnyView
+        let grid = createGridView(for: players)
         
         Button(action: onClick) {
             VStack(spacing: 8) {
                 // Card-like frame for the layout preview
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                colors: isSelected 
-                                    ? [Color.blue.opacity(0.6), Color.purple.opacity(0.4)]
-                                    : [Color.oceanBlueBackground.opacity(0.8), Color.darkNavyBackground.opacity(0.9)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .fill(isSelected ? selectedGradient : unselectedGradient)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(
-                                    isSelected 
-                                        ? LinearGradient(
-                                            colors: [Color.blue.opacity(0.8), Color.yellow.opacity(0.6)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                          )
-                                        : LinearGradient(
-                                            colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.2)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                          ),
+                                    isSelected ? selectedBorderGradient : unselectedBorderGradient,
                                     lineWidth: isSelected ? 2 : 1
                                 )
                         )
@@ -456,15 +475,16 @@ struct MTGPlayerLayout: View {
         }
         .buttonStyle(MTGButtonStyle())
         .onAppear {
+            // Only animate if selected and reduce animation frequency
             if isSelected {
-                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
                     mysticalGlow = 0.6
                 }
             }
         }
         .onChange(of: isSelected) { _, newValue in
             if newValue {
-                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
                     mysticalGlow = 0.6
                 }
             } else {
@@ -472,14 +492,58 @@ struct MTGPlayerLayout: View {
             }
         }
     }
+    
+    // Replace AnyView with direct view creation for better performance
+    @ViewBuilder
+    private func createGridView(for players: PlayerLayouts) -> some View {
+        switch players {
+        case .two:
+            TwoPlayerGridView()
+        case .threeLeft:
+            ThreePlayerLeftGridView()
+        case .threeRight:
+            ThreePlayerRightGridView()
+        case .four:
+            FourPlayerGridView()
+        case .five:
+            FivePlayerGridView()
+        case .six:
+            SixPlayerGridView()
+        }
+    }
 }
 
-// MTG-themed life points view
+// MTG-themed life points view with performance optimizations
 struct MTGLifePointsView: View {
   @EnvironmentObject var gameSettings: GameSettings
   @Environment(\.requestLifePointsChange) private var requestLifePointsChange
   let lifePointsOptions = [20, 25, 40, 0]
   @State private var customLifeValue: String = ""
+  
+  // Cached gradients for performance
+  private let selectedGradient = LinearGradient(
+    colors: [Color.red.opacity(0.6), Color.red.opacity(0.4)],
+    startPoint: .top,
+    endPoint: .bottom
+  )
+  
+  private let unselectedGradient = LinearGradient(
+    colors: [Color.oceanBlueBackground.opacity(0.6), Color.darkNavyBackground.opacity(0.8)],
+    startPoint: .top,
+    endPoint: .bottom
+  )
+  
+  private let selectedBorderGradient = LinearGradient(
+    colors: [Color.red.opacity(0.8), Color.yellow.opacity(0.6)],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
+  
+  private let unselectedBorderGradient = LinearGradient(
+    colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
 
   var body: some View {
     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
@@ -491,29 +555,11 @@ struct MTGLifePointsView: View {
         }) {
           ZStack {
             RoundedRectangle(cornerRadius: 8)
-              .fill(
-                LinearGradient(
-                  colors: gameSettings.startingLife == points 
-                    ? [Color.red.opacity(0.6), Color.red.opacity(0.4)]
-                    : [Color.oceanBlueBackground.opacity(0.6), Color.darkNavyBackground.opacity(0.8)],
-                  startPoint: .top,
-                  endPoint: .bottom
-                )
-              )
+              .fill(gameSettings.startingLife == points ? selectedGradient : unselectedGradient)
               .overlay(
                 RoundedRectangle(cornerRadius: 8)
                   .stroke(
-                    gameSettings.startingLife == points 
-                      ? LinearGradient(
-                          colors: [Color.red.opacity(0.8), Color.yellow.opacity(0.6)],
-                          startPoint: .topLeading,
-                          endPoint: .bottomTrailing
-                        )
-                      : LinearGradient(
-                          colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
-                          startPoint: .topLeading,
-                          endPoint: .bottomTrailing
-                        ),
+                    gameSettings.startingLife == points ? selectedBorderGradient : unselectedBorderGradient,
                     lineWidth: gameSettings.startingLife == points ? 2 : 1
                   )
               )
@@ -542,10 +588,23 @@ struct MTGLifePointsView: View {
   }
 }
 
-// MTG-themed Screen Wake Toggle
+// MTG-themed Screen Wake Toggle with performance optimizations
 struct MTGScreenWakeToggle: View {
   @EnvironmentObject var screenWakeManager: ScreenWakeManager
   @State private var mysticalGlow: Double = 0.2
+  
+  // Cached gradients for performance
+  private let activeGradient = LinearGradient(
+    colors: [Color.yellow.opacity(0.8), Color.orange.opacity(0.6)],
+    startPoint: .leading,
+    endPoint: .trailing
+  )
+  
+  private let inactiveGradient = LinearGradient(
+    colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
+    startPoint: .leading,
+    endPoint: .trailing
+  )
   
   var body: some View {
     HStack {
@@ -575,19 +634,7 @@ struct MTGScreenWakeToggle: View {
         ZStack {
           // Background track
           RoundedRectangle(cornerRadius: 20)
-            .fill(
-              screenWakeManager.isScreenAwake 
-                ? LinearGradient(
-                    colors: [Color.yellow.opacity(0.8), Color.orange.opacity(0.6)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                  )
-                : LinearGradient(
-                    colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                  )
-            )
+            .fill(screenWakeManager.isScreenAwake ? activeGradient : inactiveGradient)
             .frame(width: 60, height: 32)
             .overlay(
               RoundedRectangle(cornerRadius: 20)
@@ -636,8 +683,8 @@ struct MTGScreenWakeToggle: View {
     }
     .padding(.vertical, 8)
     .onAppear {
-      // Mystical glow animation
-      withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+      // Reduced animation frequency for better performance
+      withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
         mysticalGlow = 0.6
       }
     }
