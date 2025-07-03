@@ -284,7 +284,6 @@ struct MTGButtonStyle: ButtonStyle {
     }
 }
 
-// Preview
 #Preview {
     MTGConfirmationDialog(
         title: "Reset the Battlefield?",

@@ -218,7 +218,7 @@ struct HorizontalPlayerView: View {
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipped()
                 .opacity(0.4) // Subtle background
                 .blur(radius: 1) // Slight blur for text readability
@@ -230,6 +230,7 @@ struct HorizontalPlayerView: View {
               Color.clear
             }
           }
+          .frame(width: geometry.size.width, height: geometry.size.height)
           .cornerRadius(16)
         }
         
@@ -286,7 +287,6 @@ struct HorizontalPlayerView: View {
               }
               Spacer()
             }
-
             // Plus icon (right side)
             VStack {
               Spacer()

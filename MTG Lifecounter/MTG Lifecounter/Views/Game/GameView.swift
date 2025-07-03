@@ -166,7 +166,7 @@ struct GameView: View {
         .ignoresSafeArea(.all)
         .ignoresSafeArea(.keyboard)
     }
-        
+            
     // Settings Button with MTG styling
     private var settingsButton: some View {
         Button(action: {

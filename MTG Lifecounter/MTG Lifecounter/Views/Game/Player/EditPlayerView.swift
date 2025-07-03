@@ -259,7 +259,7 @@ struct EditPlayerView: View {
             CommanderSearchView(player: $player)
         }
     }
-    
+        
     // Helper method to track orientation changes
     private func updateOrientation() {
         orientation = UIDevice.current.orientation
@@ -277,7 +277,7 @@ struct EditPlayerView: View {
                     .foregroundColor(.lightGrayText)
             }
             
-            Text("Choose your identity in the multiverse")
+            Text("Choose your identity in the multiverse REGUIXA REGUIXA")
                 .font(.system(size: 14, design: .serif))
                 .foregroundColor(.mutedSilverText)
                 .italic()

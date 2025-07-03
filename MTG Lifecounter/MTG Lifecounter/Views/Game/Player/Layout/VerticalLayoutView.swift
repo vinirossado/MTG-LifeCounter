@@ -231,7 +231,7 @@ struct VerticalPlayerView: View {
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: geometry.size.width, height: geometry.size.height)
                 .clipped()
                 .opacity(0.4) // Subtle background
                 .blur(radius: 1) // Slight blur for text readability
@@ -243,6 +243,7 @@ struct VerticalPlayerView: View {
               Color.clear
             }
           }
+          .frame(width: geometry.size.width, height: geometry.size.height)
           .cornerRadius(16)
         }
         
