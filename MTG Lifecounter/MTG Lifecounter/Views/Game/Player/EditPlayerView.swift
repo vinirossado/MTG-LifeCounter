@@ -240,12 +240,12 @@ struct EditPlayerView: View {
                         isVisible = true
                     }
                     
-                    // Mystical glow animation
-                    withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
-                        mysticalGlow = 0.6
-                    }
-                    
-                    // Subtle card animation
+//                    // Mystical glow animation
+//                    withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+//                        mysticalGlow = 0.6
+//                    }
+//                    
+//                    // Subtle card animation
                     withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
                         cardRotation = 1
                     }
@@ -277,7 +277,7 @@ struct EditPlayerView: View {
                     .foregroundColor(.lightGrayText)
             }
             
-            Text("Choose your identity in the multiverse REGUIXA REGUIXA")
+            Text("Choose your identity in the multiverse")
                 .font(.system(size: 14, design: .serif))
                 .foregroundColor(.mutedSilverText)
                 .italic()

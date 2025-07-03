@@ -1,5 +1,4 @@
 import SwiftUI
-@_exported import HotSwiftUI
 
 struct ContentView: View {
   @State private var path = NavigationPath()
@@ -19,10 +18,8 @@ struct ContentView: View {
         screenWakeManager.disableScreenWake()
       }
     }
-    .eraseToAnyView()
   }
   
-  @ObserveInjection var redraw
   private var backgroundLayers: some View {
     ZStack {
       // Enhanced mystical background with layers
@@ -90,13 +87,6 @@ struct ContentView: View {
           .foregroundStyle(LinearGradient.MTG.magicalGlow)
           .mtgGlow(color: Color.MTG.glowPrimary, radius: isIPad ? 20 : 15)
       }
-      
-      // Elemental cost indicators
-//      HStack(spacing: MTGSpacing.sm) {
-//        ForEach(0..<5, id: \.self) { index in
-//          elementalSymbolBadge(for: index)
-//        }
-//      }
     }
   }
   
