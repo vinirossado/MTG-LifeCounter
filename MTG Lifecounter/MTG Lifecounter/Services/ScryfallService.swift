@@ -283,14 +283,18 @@ class CommanderSelectionViewModel: ObservableObject {
     }
     @Published var searchResults: [ScryfallCard] = []
     @Published var featuredCommanders: [ScryfallCard] = []
+    @Published var recentCommanders: [ScryfallCard] = []
     @Published var isSearching = false
     @Published var errorMessage: String?
     
     private let scryfallService = ScryfallService.shared
     private var searchTask: Task<Void, Never>?
     private var searchDebounceTask: Task<Void, Error>?
+    private let maxRecentCommanders = 10
+    private let recentCommandersKey = "RecentCommanders"
     
     init() {
+        loadRecentCommanders()
         loadFeaturedCommanders()
     }
     
@@ -353,6 +357,38 @@ class CommanderSelectionViewModel: ObservableObject {
                 print("Failed to load featured commanders: \(error)")
             }
         }
+    }
+    
+    // MARK: - Recent Commanders Management
+    private func loadRecentCommanders() {
+        if let data = UserDefaults.standard.data(forKey: recentCommandersKey),
+           let commanders = try? JSONDecoder().decode([ScryfallCard].self, from: data) {
+            recentCommanders = commanders
+        }
+    }
+    
+    private func saveRecentCommanders() {
+        if let data = try? JSONEncoder().encode(recentCommanders) {
+            UserDefaults.standard.set(data, forKey: recentCommandersKey)
+        }
+    }
+    
+    func addToRecentCommanders(_ commander: ScryfallCard) {
+        // Remove existing instance if it exists (to avoid duplicates)
+        recentCommanders.removeAll { $0.id == commander.id }
+        
+        // Add to the beginning of the list
+        recentCommanders.insert(commander, at: 0)
+        
+        // Keep only the most recent 10
+        if recentCommanders.count > maxRecentCommanders {
+            recentCommanders = Array(recentCommanders.prefix(maxRecentCommanders))
+        }
+        
+        // Save to UserDefaults
+        saveRecentCommanders()
+        
+        print("✅ Added '\(commander.name)' to recent commanders. Total: \(recentCommanders.count)")
     }
     
     func selectRandomCommander() async -> ScryfallCard? {

@@ -191,15 +191,25 @@ struct CommanderSearchView: View {
     private var featuredSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow.opacity(0.8))
+                Image(systemName: "clock.fill")
+                    .foregroundColor(.blue.opacity(0.8))
                     .font(.system(size: 16))
-                Text("Popular Commanders")
+                Text(viewModel.recentCommanders.isEmpty ? "Popular Commanders" : "Recently Played")
                     .font(.system(size: 20, weight: .bold, design: .serif))
                     .foregroundColor(.lightGrayText)
             }
             
-            if viewModel.featuredCommanders.isEmpty {
+            // Show recent commanders if available, otherwise show featured commanders
+            if !viewModel.recentCommanders.isEmpty {
+                LazyVGrid(columns: gridColumns, spacing: 12) {
+                    ForEach(viewModel.recentCommanders.prefix(12)) { commander in
+                        CommanderCardView(commander: commander) {
+                            selectedCommander = commander
+                            showingDetail = true
+                        }
+                    }
+                }
+            } else if viewModel.featuredCommanders.isEmpty {
                 loadingSection
             } else {
                 LazyVGrid(columns: gridColumns, spacing: 12) {
@@ -240,7 +250,7 @@ struct CommanderSearchView: View {
                 .font(.system(size: 18, weight: .semibold, design: .serif))
                 .foregroundColor(.lightGrayText)
             
-            Text("Try a different search term or browse popular commanders below")
+            Text("Try a different search term or browse below")
                 .font(.system(size: 14, design: .serif))
                 .foregroundColor(.mutedSilverText)
                 .multilineTextAlignment(.center)
@@ -250,6 +260,10 @@ struct CommanderSearchView: View {
     
     // MARK: - Helper Methods
     private func selectCommander(_ commander: ScryfallCard, useAsBackground: Bool = false) {
+        // Add to recent commanders list
+        viewModel.addToRecentCommanders(commander)
+        
+        // Update player with commander information
         player.commanderName = commander.name
         player.commanderImageURL = commander.imageURL
         player.commanderArtworkURL = commander.artworkURL
