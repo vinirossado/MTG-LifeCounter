@@ -16,8 +16,14 @@ struct ThreePlayerLayoutLeft: View {
             GeometryReader { geometry in
                 HStack(spacing: 0) {
                     if let player2 = playerState.bindingForPlayer(at: 1) {
-                        PlayerView(player: player2, orientation: .right)
-                            .frame(width: geometry.size.width * 0.5, height: geometry.size.height)
+                        GeometryReader { playerGeometry in
+                            PlayerView(player: player2, orientation: .normal)
+                                .frame(width: playerGeometry.size.height, height: playerGeometry.size.width)
+                                .rotationEffect(.degrees(90))
+                                .position(x: playerGeometry.size.width / 2, y: playerGeometry.size.height / 2)
+                        }
+                        .frame(width: geometry.size.width * 0.5, height: geometry.size.height)
+                        .clipped()
                     }
                     
                     VStack(spacing: 0) {

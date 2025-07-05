@@ -40,10 +40,17 @@ struct FivePlayerLayout: View {
 
           VStack(spacing: 0) {
             if let player5 = playerState.bindingForPlayer(at: 4) {
-              PlayerView(player: player5, orientation: .left)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+              GeometryReader { playerGeometry in
+                PlayerView(player: player5, orientation: .normal)
+                  .frame(width: playerGeometry.size.height, height: playerGeometry.size.width)
+                  .rotationEffect(.degrees(270))
+                  .position(x: playerGeometry.size.width / 2, y: playerGeometry.size.height / 2)
+              }
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .clipped()
             }
-          }.frame(maxWidth: geometry.size.width, maxHeight: geometry.size.height * 0.45)
+          }
+          .frame(width: geometry.size.width * 0.33, height: geometry.size.height)
         }
         .frame(width: geometry.size.width, height: geometry.size.height)
       }

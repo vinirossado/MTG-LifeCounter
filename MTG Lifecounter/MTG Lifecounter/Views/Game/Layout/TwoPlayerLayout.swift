@@ -10,34 +10,45 @@ import SwiftUI
 struct TwoPlayerLayout: View {
     @EnvironmentObject var playerState: PlayerState
     
-    var body: some View {
+var body: some View {
         ZStack {
+            // MTG themed background
             LinearGradient.MTG.mysticalBackground
                 .ignoresSafeArea()
             
-            VStack(spacing: 0) {
-                if playerState.players.count >= 2 {
-                    HStack(spacing: MTGSpacing.xs) {
-                        if let player1 = playerState.bindingForPlayer(at: 0) {
-                            PlayerView(player: player1, orientation: .right)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if playerState.players.count >= 2 {
+                HStack(spacing: 0) {
+                    if let player1 = playerState.bindingForPlayer(at: 0) {
+                        GeometryReader { geometry in
+                            PlayerView(player: player1, orientation: .normal)
+                                .frame(width: geometry.size.height, height: geometry.size.width)
+                                .rotationEffect(.degrees(90))
+                                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                         }
-                        
-                        // Mystical divider line
-                        Rectangle()
-                            .fill(LinearGradient.MTG.magicalGlow)
-                            .frame(width: MTGSpacing.borderWidth)
-                            .opacity(0.3)
-                        
-                        if let player2 = playerState.bindingForPlayer(at: 1) {
-                            PlayerView(player: player2, orientation: .left)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    MTGErrorView(message: "Not enough players for this layout")
+                    
+                    // Vertical divider
+                    Rectangle()
+                        .fill(LinearGradient.MTG.magicalGlow)
+                        .frame(width: MTGSpacing.borderWidth)
+                        .opacity(0.3)
+                    
+                    if let player2 = playerState.bindingForPlayer(at: 1) {
+                        GeometryReader { geometry in
+                            PlayerView(player: player2, orientation: .normal)
+                                .frame(width: geometry.size.height, height: geometry.size.width)
+                                .rotationEffect(.degrees(270))
+                                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                MTGErrorView(message: "Not enough players for this layout")
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

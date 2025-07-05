@@ -240,15 +240,6 @@ struct EditPlayerView: View {
                         isVisible = true
                     }
                     
-//                    // Mystical glow animation
-//                    withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
-//                        mysticalGlow = 0.6
-//                    }
-//                    
-//                    // Subtle card animation
-                    withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
-                        cardRotation = 1
-                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                     updateOrientation()
