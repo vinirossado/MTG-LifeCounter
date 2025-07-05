@@ -2,7 +2,7 @@
 //  CommanderSearchView.swift
 //  MTG Lifecounter
 //
-//  Created by Assistant on 26.06.2025.
+//  Created by Vinicius Rossado 26.06.2025.
 //
 
 import SwiftUI
