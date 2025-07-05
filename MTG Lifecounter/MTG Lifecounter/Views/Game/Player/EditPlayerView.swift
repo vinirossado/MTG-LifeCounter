@@ -1,7 +1,9 @@
 import SwiftUI
+import UIKit
 
 struct EditPlayerView: View {
     @Binding var player: Player
+    let playerOrientation: OrientationLayout
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -227,6 +229,7 @@ struct EditPlayerView: View {
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .rotationEffect(playerOrientation.toAngle())
                 .onAppear {
                     viewHeight = geometry.size.height
                     // Initialize with current player name
@@ -247,7 +250,7 @@ struct EditPlayerView: View {
             }
         }
         .sheet(isPresented: $showCommanderSearch) {
-            CommanderSearchView(player: $player)
+            CommanderSearchView(player: $player, playerOrientation: playerOrientation)
         }
     }
         
@@ -686,44 +689,57 @@ struct EditPlayerView: View {
     }
 }
 
-struct EditPlayerView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            // iPhone - Portrait
-            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")))
-                .previewDevice("iPhone 14")
-                .previewDisplayName("iPhone (Portrait)")
-            
-            // iPhone - Landscape
-            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")))
-                .previewDevice("iPhone 14")
-                .previewInterfaceOrientation(.landscapeLeft)
-                .previewDisplayName("iPhone (Landscape)")
-            
-            // iPhone - Dark mode
-            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")))
-                .previewDevice("iPhone 14")
-                .environment(\.colorScheme, .dark)
-                .previewDisplayName("iPhone (Dark)")
-            
-            // iPad - Portrait
-            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")))
-                .previewDevice("iPad Pro (11-inch)")
-                .environment(\.horizontalSizeClass, .regular)
-                .environment(\.verticalSizeClass, .regular)
-                .previewDisplayName("iPad (Portrait)")
-            
-            // iPad - Landscape
-            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")))
-                .previewDevice("iPad Pro (11-inch)")
-                .environment(\.horizontalSizeClass, .regular)
-                .environment(\.verticalSizeClass, .regular)
-                .previewInterfaceOrientation(.landscapeLeft)
-                .previewDisplayName("iPad (Landscape)")
-        }
-    }
-}
-
-#Preview {
-    EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")))
-}
+//struct EditPlayerView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        Group {
+//            // iPhone - Portrait
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .normal)
+//                .previewDevice("iPhone 14")
+//                .previewDisplayName("iPhone (Portrait)")
+//            
+//            // iPhone - Landscape
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .normal)
+//                .previewDevice("iPhone 14")
+//                .previewInterfaceOrientation(.landscapeLeft)
+//                .previewDisplayName("iPhone (Landscape)")
+//            
+//            // iPhone - Dark mode
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .normal)
+//                .previewDevice("iPhone 14")
+//                .environment(\.colorScheme, .dark)
+//                .previewDisplayName("iPhone (Dark)")
+//            
+//            // iPad - Portrait
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .normal)
+//                .previewDevice("iPad Pro (11-inch)")
+//                .environment(\.horizontalSizeClass, .regular)
+//                .environment(\.verticalSizeClass, .regular)
+//                .previewDisplayName("iPad (Portrait)")
+//            
+//            // iPad - Landscape
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .normal)
+//                .previewDevice("iPad Pro (11-inch)")
+//                .environment(\.horizontalSizeClass, .regular)
+//                .environment(\.verticalSizeClass, .regular)
+//                .previewInterfaceOrientation(.landscapeLeft)
+//                .previewDisplayName("iPad (Landscape)")
+//            
+//            // Player Orientation Tests
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .inverted)
+//                .previewDevice("iPhone 14")
+//                .previewDisplayName("Inverted Player")
+//            
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .left)
+//                .previewDevice("iPhone 14")
+//                .previewDisplayName("Left Player")
+//            
+//            EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .right)
+//                .previewDevice("iPhone 14")
+//                .previewDisplayName("Right Player")
+//        }
+//    }
+//}
+//
+//#Preview {
+//    EditPlayerView(player: .constant(Player(HP: 40, name: "Vinicius")), playerOrientation: .normal)
+//}

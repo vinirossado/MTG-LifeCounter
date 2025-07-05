@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - Commander Search View
 struct CommanderSearchView: View {
     @Binding var player: Player
+    let playerOrientation: OrientationLayout
     @Environment(\.presentationMode) var presentationMode
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
@@ -94,11 +95,13 @@ struct CommanderSearchView: View {
                         },
                         onSelectAsBackground: { selectedCard in
                             selectCommander(selectedCard, useAsBackground: true)
-                        }
+                        },
+                        playerOrientation: playerOrientation
                     )
                 }
             }
         }
+        .rotationEffect(playerOrientation.toAngle())
     }
     
     // MARK: - Search Section
@@ -515,5 +518,5 @@ struct ErrorMessageView: View {
 
 // MARK: - Preview
 #Preview {
-    CommanderSearchView(player: .constant(Player(HP: 40, name: "Test Player")))
+    CommanderSearchView(player: .constant(Player(HP: 40, name: "Test Player")), playerOrientation: .normal)
 }

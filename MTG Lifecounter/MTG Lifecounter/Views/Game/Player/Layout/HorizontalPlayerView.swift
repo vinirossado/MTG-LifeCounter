@@ -222,6 +222,7 @@ struct HorizontalPlayerView: View {
                 .clipped()
                 .opacity(0.4) // Subtle background
                 .blur(radius: 1) // Slight blur for text readability
+                .rotationEffect(orientation.toAngle())
             case .failure(_):
               Color.clear
             case .empty:
@@ -403,7 +404,7 @@ struct HorizontalPlayerView: View {
         }
       }
       .sheet(isPresented: $showEditSheet) {
-        EditPlayerView(player: $player)
+        EditPlayerView(player: $player, playerOrientation: orientation)
       }
     }
   }

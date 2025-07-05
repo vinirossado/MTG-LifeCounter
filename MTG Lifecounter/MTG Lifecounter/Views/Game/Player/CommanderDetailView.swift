@@ -11,6 +11,7 @@ struct CommanderDetailView: View {
   let commander: ScryfallCard
   let onSelect: (ScryfallCard) -> Void
   let onSelectAsBackground: ((ScryfallCard) -> Void)?
+  let playerOrientation: OrientationLayout
 
   @Environment(\.presentationMode) var presentationMode
   @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -28,12 +29,15 @@ struct CommanderDetailView: View {
   }
 
   init(
-    commander: ScryfallCard, onSelect: @escaping (ScryfallCard) -> Void,
-    onSelectAsBackground: ((ScryfallCard) -> Void)? = nil
+    commander: ScryfallCard, 
+    onSelect: @escaping (ScryfallCard) -> Void,
+    onSelectAsBackground: ((ScryfallCard) -> Void)? = nil,
+    playerOrientation: OrientationLayout
   ) {
     self.commander = commander
     self.onSelect = onSelect
     self.onSelectAsBackground = onSelectAsBackground
+    self.playerOrientation = playerOrientation
   }
 
   var body: some View {
@@ -82,6 +86,7 @@ struct CommanderDetailView: View {
         }
       }
     }
+    .rotationEffect(playerOrientation.toAngle())
     .onAppear {
       withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
         isVisible = true
@@ -392,24 +397,4 @@ struct CommanderDetailView: View {
     default: return (Color.gray, color)
     }
   }
-}
-
-// MARK: - Preview
-#Preview {
-  CommanderDetailView(
-    commander: ScryfallCard(
-      id: "preview",
-      name: "Example Commander",
-      type_line: "Legendary Creature — Human Wizard",
-      colors: ["U", "R"],
-      color_identity: ["U", "R"],
-      image_uris: nil,
-      card_faces: nil,
-      legalities: ["commander": "legal"],
-      mana_cost: "{2}{U}{R}",
-      cmc: 4
-    ),
-    onSelect: { _ in },
-    onSelectAsBackground: { _ in }
-  )
 }

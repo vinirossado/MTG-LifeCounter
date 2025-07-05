@@ -235,6 +235,7 @@ struct VerticalPlayerView: View {
                 .clipped()
                 .opacity(0.4) // Subtle background
                 .blur(radius: 1) // Slight blur for text readability
+                .rotationEffect(orientation.toAngle())
             case .failure(_):
               Color.clear
             case .empty:
@@ -418,7 +419,7 @@ struct VerticalPlayerView: View {
         }
       }
       .sheet(isPresented: $showEditSheet) {
-        EditPlayerView(player: $player)
+        EditPlayerView(player: $player, playerOrientation: orientation)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
