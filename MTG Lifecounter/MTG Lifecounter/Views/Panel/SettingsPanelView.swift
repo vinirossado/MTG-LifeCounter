@@ -517,8 +517,10 @@ struct MTGPlayerLayout: View {
 struct MTGLifePointsView: View {
   @EnvironmentObject var gameSettings: GameSettings
   @Environment(\.requestLifePointsChange) private var requestLifePointsChange
-  let lifePointsOptions = [20, 25, 40, 0]
+  let lifePointsOptions = [20, 25, 40]
   @State private var customLifeValue: String = ""
+  @State private var isCustomInputFocused: Bool = false
+  @FocusState private var isTextFieldFocused: Bool
   
   // Cached gradients for performance
   private let selectedGradient = LinearGradient(
@@ -544,46 +546,181 @@ struct MTGLifePointsView: View {
     startPoint: .topLeading,
     endPoint: .bottomTrailing
   )
+  
+  private let disabledGradient = LinearGradient(
+    colors: [Color.oceanBlueBackground.opacity(0.3), Color.darkNavyBackground.opacity(0.4)],
+    startPoint: .top,
+    endPoint: .bottom
+  )
+  
+  private let disabledBorderGradient = LinearGradient(
+    colors: [Color.blue.opacity(0.15), Color.purple.opacity(0.15)],
+    startPoint: .topLeading,
+    endPoint: .bottomTrailing
+  )
 
   var body: some View {
-    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 16) {
-      ForEach(lifePointsOptions, id: \.self) { points in
-        Button(action: {
-          if gameSettings.startingLife != points {
-            requestLifePointsChange(points)
+    VStack(spacing: 16) {
+      // Preset life point options
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
+        ForEach(lifePointsOptions, id: \.self) { points in
+          Button(action: {
+            if gameSettings.startingLife != points {
+              requestLifePointsChange(points)
+              // Clear custom input when preset is selected
+              customLifeValue = ""
+              isTextFieldFocused = false
+            }
+          }) {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(gameSettings.startingLife == points ? selectedGradient : unselectedGradient)
+                .overlay(
+                  RoundedRectangle(cornerRadius: 8)
+                    .stroke(
+                      gameSettings.startingLife == points ? selectedBorderGradient : unselectedBorderGradient,
+                      lineWidth: gameSettings.startingLife == points ? 2 : 1
+                    )
+                )
+                .shadow(
+                  color: gameSettings.startingLife == points 
+                    ? Color.red.opacity(0.4) 
+                    : Color.blue.opacity(0.2), 
+                  radius: gameSettings.startingLife == points ? 6 : 3, 
+                  x: 0, 
+                  y: 2
+                )
+                .animation(.easeInOut(duration: 0.2), value: gameSettings.startingLife)
+
+              Text("\(points)")
+                .font(.system(size: 28, weight: .bold, design: .serif))
+                .foregroundColor(.white)
+                .shadow(color: Color.black.opacity(0.5), radius: 2, x: 0, y: 1)
+            }
+            .frame(height: 80)
+            .scaleEffect(gameSettings.startingLife == points ? 1.05 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: gameSettings.startingLife)
           }
-        }) {
+          .buttonStyle(MTGButtonStyle())
+        }
+      }
+      
+      // Custom life input section
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Custom Life Total")
+          .font(.system(size: 16, weight: .semibold, design: .serif))
+          .foregroundColor(.lightGrayText)
+        
+        // Custom input field with apply button
+        HStack(spacing: 12) {
+          // Input field
           ZStack {
             RoundedRectangle(cornerRadius: 8)
-              .fill(gameSettings.startingLife == points ? selectedGradient : unselectedGradient)
+              .fill(isCustomSelected ? selectedGradient : unselectedGradient)
               .overlay(
                 RoundedRectangle(cornerRadius: 8)
                   .stroke(
-                    gameSettings.startingLife == points ? selectedBorderGradient : unselectedBorderGradient,
-                    lineWidth: gameSettings.startingLife == points ? 2 : 1
+                    isCustomSelected ? selectedBorderGradient : unselectedBorderGradient,
+                    lineWidth: isCustomSelected ? 2 : 1
                   )
               )
               .shadow(
-                color: gameSettings.startingLife == points 
+                color: isCustomSelected 
                   ? Color.red.opacity(0.4) 
                   : Color.blue.opacity(0.2), 
-                radius: gameSettings.startingLife == points ? 6 : 3, 
+                radius: isCustomSelected ? 6 : 3, 
                 x: 0, 
                 y: 2
               )
-              .animation(.easeInOut(duration: 0.2), value: gameSettings.startingLife)
-
-            Text("\(points)")
-              .font(.system(size: 28, weight: .bold, design: .serif))
+              .animation(.easeInOut(duration: 0.2), value: isCustomSelected)
+            
+            TextField("Enter life total", text: $customLifeValue)
+              .focused($isTextFieldFocused)
+              .keyboardType(.numberPad)
+              .font(.system(size: 20, weight: .bold, design: .serif))
               .foregroundColor(.white)
-              .shadow(color: Color.black.opacity(0.5), radius: 2, x: 0, y: 1)
+              .multilineTextAlignment(.center)
+              .onChange(of: customLifeValue) { _, newValue in
+                // Filter out non-numeric characters only
+                let filtered = newValue.filter { $0.isNumber }
+                if filtered != newValue {
+                  customLifeValue = filtered
+                }
+              }
           }
           .frame(height: 80)
-          .scaleEffect(gameSettings.startingLife == points ? 1.05 : 1.0)
-          .animation(.spring(response: 0.3, dampingFraction: 0.7), value: gameSettings.startingLife)
+          .scaleEffect(isCustomSelected ? 1.05 : 1.0)
+          .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isCustomSelected)
+          
+          // Apply button
+          Button(action: {
+            handleCustomLifeInput()
+            isTextFieldFocused = false
+          }) {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(canApplyCustomValue ? selectedGradient : disabledGradient)
+                .overlay(
+                  RoundedRectangle(cornerRadius: 8)
+                    .stroke(
+                      canApplyCustomValue ? selectedBorderGradient : disabledBorderGradient,
+                      lineWidth: 1
+                    )
+                )
+                .shadow(
+                  color: canApplyCustomValue 
+                    ? Color.red.opacity(0.4) 
+                    : Color.blue.opacity(0.1), 
+                  radius: canApplyCustomValue ? 6 : 2, 
+                  x: 0, 
+                  y: 2
+                )
+                .animation(.easeInOut(duration: 0.2), value: canApplyCustomValue)
+              
+              Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(canApplyCustomValue ? .white : .gray.opacity(0.6))
+                .shadow(color: Color.black.opacity(0.5), radius: 2, x: 0, y: 1)
+            }
+            .frame(width: 80, height: 80)
+            .scaleEffect(canApplyCustomValue ? 1.0 : 0.95)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: canApplyCustomValue)
+          }
+          .buttonStyle(MTGButtonStyle())
+          .disabled(!canApplyCustomValue)
         }
-        .buttonStyle(MTGButtonStyle())
       }
+    }
+  }
+  
+  // Computed property to check if custom value is selected
+  private var isCustomSelected: Bool {
+    if let customLife = Int(customLifeValue), customLife > 0 {
+      return gameSettings.startingLife == customLife && !lifePointsOptions.contains(customLife)
+    }
+    return isTextFieldFocused
+  }
+  
+  // Computed property to check if custom value can be applied
+  private var canApplyCustomValue: Bool {
+    guard let life = Int(customLifeValue), life > 0 else { return false }
+    return gameSettings.startingLife != life
+  }
+  
+  // Handle custom life input submission
+  private func handleCustomLifeInput() {
+    guard let life = Int(customLifeValue), life > 0 else {
+      // Reset to current setting if invalid
+      if lifePointsOptions.contains(gameSettings.startingLife) {
+        customLifeValue = ""
+      } else {
+        customLifeValue = "\(gameSettings.startingLife)"
+      }
+      return
+    }
+    
+    if gameSettings.startingLife != life {
+      requestLifePointsChange(life)
     }
   }
 }
