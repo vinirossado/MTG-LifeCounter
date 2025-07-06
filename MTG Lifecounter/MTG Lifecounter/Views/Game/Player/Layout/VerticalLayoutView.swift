@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct VerticalPressableRectangle: View {
   @Binding var isPressed: Bool

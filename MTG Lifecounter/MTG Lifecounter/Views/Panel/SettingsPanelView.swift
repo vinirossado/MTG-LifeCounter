@@ -5,7 +5,6 @@
 //  Created by Vinicius Rossado
 
 import SwiftUI
-import UIKit
 
 // Panel dimensions - cached for performance
 private struct PanelDimensions {

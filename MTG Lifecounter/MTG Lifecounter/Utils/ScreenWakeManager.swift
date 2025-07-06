@@ -5,7 +5,6 @@
 //  Created by Vinicius Rossado on 22.06.2025.
 //
 
-import UIKit
 import SwiftUI
 
 /// Manager class to handle screen wake state and prevent device from sleeping during gameplay

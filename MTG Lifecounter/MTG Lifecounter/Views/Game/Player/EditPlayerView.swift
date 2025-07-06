@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct EditPlayerView: View {
     @Binding var player: Player
