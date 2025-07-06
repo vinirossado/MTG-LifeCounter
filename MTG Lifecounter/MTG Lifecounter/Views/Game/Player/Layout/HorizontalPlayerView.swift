@@ -452,14 +452,16 @@ struct CommanderDamageIndicators: View {
   let geometry: GeometryProxy
   let namePosition: PlayerNamePosition
   
-  // Calculate total commander damage
-  private var totalCommanderDamage: Int {
-    player.commanderDamage.values.reduce(0, +)
+  // Get individual commander damage entries (non-zero only)
+  private var activeCommanderDamage: [(String, Int)] {
+    player.commanderDamage.compactMap { (opponentId, damage) in
+      damage > 0 ? (opponentId, damage) : nil
+    }.sorted { $0.1 > $1.1 } // Sort by damage descending
   }
   
   // Check if we should show indicators
   private var shouldShow: Bool {
-    totalCommanderDamage > 0 || player.poisonCounters > 0
+    !activeCommanderDamage.isEmpty || player.poisonCounters > 0
   }
   
   var body: some View {
@@ -468,10 +470,10 @@ struct CommanderDamageIndicators: View {
         if namePosition.isTop {
           Spacer()
           indicatorView
-            .padding(.bottom, 12)
+            .padding(.bottom, 8)
         } else {
           indicatorView
-            .padding(.top, 12)
+            .padding(.top, 8)
           Spacer()
         }
       }
@@ -479,71 +481,113 @@ struct CommanderDamageIndicators: View {
   }
   
   private var indicatorView: some View {
-    HStack(spacing: 8) {
-      Spacer()
-      
-      // Commander damage indicator
-      if totalCommanderDamage > 0 {
-        HStack(spacing: 4) {
-          Image(systemName: "crown.fill")
-            .font(.caption)
-            .foregroundColor(.orange)
-          
-          Text("\(totalCommanderDamage)")
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-          RoundedRectangle(cornerRadius: 6)
-            .fill(Color.black.opacity(0.6))
-            .overlay(
-              RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.orange.opacity(0.6), lineWidth: 1)
-            )
-        )
-        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
-        .rotationEffect(namePosition.rotation)
+    VStack(spacing: 6) {
+      // Individual Commander Damage Indicators
+      if !activeCommanderDamage.isEmpty {
+        modernCommanderDamageView
       }
       
-      // Poison counter indicator
+      // Poison Counter Indicator
       if player.poisonCounters > 0 {
-        HStack(spacing: 4) {
-          Image(systemName: "drop.fill")
-            .font(.caption)
-            .foregroundColor(player.poisonCounters >= 10 ? .red : .green)
+        modernPoisonIndicator
+      }
+    }
+  }
+  
+  private var modernCommanderDamageView: some View {
+    VStack(spacing: 4) {
+      ForEach(Array(activeCommanderDamage.enumerated()), id: \.offset) { index, damageEntry in
+        let (_, damage) = damageEntry
+        
+        HStack(spacing: 6) {
+          // Commander damage indicator with lethal warning
+          HStack(spacing: 4) {
+            Image(systemName: damage >= 21 ? "crown.fill" : "bolt.circle.fill")
+              .font(.system(size: 10, weight: .bold))
+              .foregroundColor(damage >= 21 ? .red : .orange)
+            
+            Text("\(damage)")
+              .font(.system(size: 11, weight: .black, design: .rounded))
+              .foregroundColor(damage >= 21 ? .red : .white)
+              .frame(minWidth: 16)
+            
+            // Small indicator dot to show this is from a specific commander
+            if activeCommanderDamage.count > 1 {
+              Circle()
+                .fill(Color.white.opacity(0.6))
+                .frame(width: 3, height: 3)
+            }
+          }
+          .padding(.horizontal, 8)
+          .padding(.vertical, 3)
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .fill(
+                damage >= 21 
+                  ? Color.red.opacity(0.4)
+                  : Color.black.opacity(0.7)
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                  .stroke(
+                    damage >= 21 
+                      ? Color.red.opacity(0.8)
+                      : Color.orange.opacity(0.6),
+                    lineWidth: damage >= 21 ? 1.5 : 1
+                  )
+              )
+          )
+          .shadow(
+            color: damage >= 21 ? Color.red.opacity(0.4) : Color.black.opacity(0.3),
+            radius: damage >= 21 ? 3 : 2,
+            x: 0,
+            y: 1
+          )
+          .rotationEffect(namePosition.rotation)
           
-          Text("\(player.poisonCounters)")
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundColor(player.poisonCounters >= 10 ? .red : .white)
+          Spacer()
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-          RoundedRectangle(cornerRadius: 6)
-            .fill(player.poisonCounters >= 10 ? Color.red.opacity(0.3) : Color.black.opacity(0.6))
-            .overlay(
-              RoundedRectangle(cornerRadius: 6)
-                .stroke(
-                  player.poisonCounters >= 10 ? Color.red.opacity(0.8) : Color.green.opacity(0.6), 
-                  lineWidth: 1
-                )
+      }
+    }
+  }
+  
+  private var modernPoisonIndicator: some View {
+    HStack(spacing: 4) {
+      Image(systemName: player.poisonCounters >= 10 ? "skull.fill" : "drop.fill")
+        .font(.system(size: 10, weight: .bold))
+        .foregroundColor(player.poisonCounters >= 10 ? .red : .green)
+      
+      Text("\(player.poisonCounters)")
+        .font(.system(size: 11, weight: .black, design: .rounded))
+        .foregroundColor(player.poisonCounters >= 10 ? .red : .white)
+        .frame(minWidth: 16)
+    }
+    .padding(.horizontal, 8)
+    .padding(.vertical, 3)
+    .background(
+      RoundedRectangle(cornerRadius: 8)
+        .fill(
+          player.poisonCounters >= 10 
+            ? Color.red.opacity(0.4)
+            : Color.black.opacity(0.7)
+        )
+        .overlay(
+          RoundedRectangle(cornerRadius: 8)
+            .stroke(
+              player.poisonCounters >= 10 
+                ? Color.red.opacity(0.8)
+                : Color.green.opacity(0.6),
+              lineWidth: player.poisonCounters >= 10 ? 1.5 : 1
             )
         )
-        .shadow(
-          color: player.poisonCounters >= 10 ? Color.red.opacity(0.5) : Color.black.opacity(0.3), 
-          radius: player.poisonCounters >= 10 ? 4 : 2, 
-          x: 0, 
-          y: 1
-        )
-        .rotationEffect(namePosition.rotation)
-      }
-      
-      Spacer()
-    }
+    )
+    .shadow(
+      color: player.poisonCounters >= 10 ? Color.red.opacity(0.4) : Color.black.opacity(0.3),
+      radius: player.poisonCounters >= 10 ? 3 : 2,
+      x: 0,
+      y: 1
+    )
+    .rotationEffect(namePosition.rotation)
   }
 }
 
