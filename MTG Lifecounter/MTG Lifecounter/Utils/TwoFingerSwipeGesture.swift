@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 public let minDragDistance: CGFloat = 80
 

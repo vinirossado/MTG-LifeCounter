@@ -28,9 +28,6 @@ struct ContentView: View {
 
       // Magical energy field background
       MagicalEnergyField()
-
-      // Mystical corner frames
-//      MysticalCornerFrames()
     }
   }
   
@@ -118,53 +115,17 @@ struct ContentView: View {
     .frame(width: size, height: size)
   }
   
-//  private func elementalSymbolBadge(for index: Int) -> some View {
-//    ZStack {
-//      Circle()
-//        .fill(manaColorBackground(for: index))
-//        .frame(width: isIPad ? 24 : 20, height: isIPad ? 24 : 20)
-//        .overlay(
-//          Circle()
-//            .stroke(Color.MTG.textPrimary, lineWidth: 1)
-//            .opacity(0.8)
-//        )
-//      
-//      Text(manaSymbolText(for: index))
-//        .font(.system(size: isIPad ? 14 : 12, weight: .medium))
-//        .foregroundColor(.black)
-//    }
-//  }
-  
+
   private var titleText: some View {
     VStack(spacing: MTGSpacing.md) {
       // MTG Logo Style
       HStack(spacing: MTGSpacing.xs) {
-//        Text("MAGIC")
-//          .font(.system(size: isIPad ? 42 : 32, weight: .heavy, design: .default))
-//          .foregroundStyle(LinearGradient.MTG.magicalGlow)
-//          .mtgGlow(color: Color.MTG.textAccent, radius: isIPad ? 12 : 8)
-//          .tracking(isIPad ? 4 : 2)
-//        
-//        Text("THE")
-//          .font(.system(size: isIPad ? 20 : 16, weight: .medium, design: .default))
-//          .foregroundColor(Color.MTG.textSecondary)
-//          .tracking(isIPad ? 3 : 2)
-//          .offset(y: isIPad ? 8 : 6)
-        
         Text("LIFECOUNTER")
           .font(.system(size: isIPad ? 42 : 32, weight: .heavy, design: .default))
           .foregroundStyle(LinearGradient.MTG.magicalGlow)
           .mtgGlow(color: Color.MTG.textAccent, radius: isIPad ? 12 : 8)
           .tracking(isIPad ? 4 : 2)
       }
-
-//      Text("LIFECOUNTER")
-//        .font(.system(size: isIPad ? 24 : 18, weight: .semibold, design: .default))
-//        .foregroundStyle(LinearGradient.MTG.whiteGradient)
-//        .tracking(isIPad ? 8 : 6)
-//        .opacity(0.9)
-
-//      mtgDivider
 
       Text("Track life totals across the multiverse")
         .font(isIPad ? MTGTypography.callout : MTGTypography.caption)
@@ -522,7 +483,7 @@ private struct AnimatedSparkles: View {
         screenSize = geometry.size
         generateMTGSymbols()
       }
-      .onChange(of: geometry.size) { newSize in
+      .onChange(of: geometry.size) {_, newSize in
         screenSize = newSize
         generateMTGSymbols()
       }
@@ -674,19 +635,6 @@ private struct MTGManaSymbol {
   let delay: Double
 }
 
-// MARK: - Press Events Extension (Deprecated - keeping for compatibility)
-extension View {
-  func pressEvents(onPress: @escaping () -> Void, onRelease: @escaping () -> Void) -> some View {
-    self
-      .scaleEffect(1.0)
-      .onTapGesture {
-        onPress()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-          onRelease()
-        }
-      }
-  }
-}
 
 // MARK: - Magical Energy Field
 private struct MagicalEnergyField: View {
@@ -711,80 +659,3 @@ private struct MagicalEnergyField: View {
     }
   }
 }
-
-// MARK: - Mystical Corner Frames
-//private struct MysticalCornerFrames: View {
-//  var body: some View {
-//    GeometryReader { geometry in
-//      ZStack {
-//        // Four corner frames
-//        VStack {
-//          HStack {
-//            CornerFrame()
-//            Spacer()
-//            CornerFrame()
-//              .rotationEffect(.degrees(90))
-//          }
-//          Spacer()
-//          HStack {
-//            CornerFrame()
-//              .rotationEffect(.degrees(-90))
-//            Spacer()
-//            CornerFrame()
-//              .rotationEffect(.degrees(180))
-//          }
-//        }
-//        .padding(isIPad ? MTGSpacing.xxxl : MTGSpacing.xl)
-//      }
-//    }
-//  }
-//}
-
-// MARK: - Corner Frame Component
-//private struct CornerFrame: View {
-//  var body: some View {
-//    let frameSize: CGFloat = isIPad ? 50 : 40
-//    let strokeWidth: CGFloat = isIPad ? 3 : 2
-//    
-//    return ZStack {
-//      // Main corner lines
-//      Path { path in
-//        path.move(to: CGPoint(x: 0, y: frameSize))
-//        path.addLine(to: CGPoint(x: 0, y: 0))
-//        path.addLine(to: CGPoint(x: frameSize, y: 0))
-//      }
-//      .stroke(LinearGradient.MTG.magicalGlow, lineWidth: strokeWidth)
-//      .opacity(0.7)
-//      .mtgGlow(color: Color.MTG.glowPrimary, radius: isIPad ? 8 : 6)
-//
-//      // Decorative elements
-//      VStack(alignment: .leading, spacing: isIPad ? 6 : 4) {
-//        HStack(spacing: isIPad ? 6 : 4) {
-//          Circle()
-//            .fill(Color.MTG.gold)
-//            .frame(width: isIPad ? 8 : 6, height: isIPad ? 8 : 6)
-//            .mtgGlow(color: Color.MTG.gold, radius: isIPad ? 8 : 6)
-//
-//          Rectangle()
-//            .fill(LinearGradient.MTG.magicalGlow)
-//            .frame(width: isIPad ? 25 : 20, height: isIPad ? 2 : 1.5)
-//            .opacity(0.8)
-//
-//          Spacer()
-//        }
-//
-//        HStack(spacing: isIPad ? 6 : 4) {
-//          Rectangle()
-//            .fill(LinearGradient.MTG.magicalGlow)
-//            .frame(width: isIPad ? 2 : 1.5, height: isIPad ? 25 : 20)
-//            .opacity(0.8)
-//
-//          Spacer()
-//        }
-//
-//        Spacer()
-//      }
-//      .frame(width: frameSize, height: frameSize)
-//    }
-//  }
-//}
