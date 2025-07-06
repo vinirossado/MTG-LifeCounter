@@ -7,6 +7,10 @@
 
 import SwiftUI
 
+// Import necessary types and utilities
+// These are defined in the same module so no explicit import needed,
+// but we need to ensure the types are accessible
+
 struct VerticalPressableRectangle: View {
   @Binding var isPressed: Bool
   @Binding var player: Player
@@ -16,17 +20,21 @@ struct VerticalPressableRectangle: View {
   var stopHoldTimer: () -> Void
   @State private var subtlePulse: Double = 0.1
 
+  private var rectangleGradient: LinearGradient {
+    let colors = side == .left 
+      ? [DEFAULT_STYLES.background.opacity(0.6), Color.darkNavyBackground.opacity(0.7)]
+      : [DEFAULT_STYLES.background.opacity(0.6), Color.darkNavyBackground.opacity(0.5)]
+    
+    return LinearGradient(
+      colors: colors,
+      startPoint: .topLeading,
+      endPoint: .bottomTrailing
+    )
+  }
+
   var body: some View {
     Rectangle()
-      .fill(
-        LinearGradient(
-          colors: side == .left 
-            ? [DEFAULT_STYLES.background.opacity(0.6), Color.darkNavyBackground.opacity(0.7)]
-            : [DEFAULT_STYLES.background.opacity(0.6), Color.darkNavyBackground.opacity(0.5)],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .fill(rectangleGradient)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .opacity(isPressed ? DEFAULT_STYLES.hoverOpacity : DEFAULT_STYLES.opacity)
       .overlay(
@@ -209,12 +217,14 @@ struct VerticalPlayerView: View {
   @Binding var holdTimer: Timer?
   @Binding var isHoldTimerActive: Bool
   @Binding var changeWorkItem: DispatchWorkItem?
+  let allPlayers: [Player] // Add this to get access to all players
   let updatePoints: (SideEnum, Int) -> Void
   let startHoldTimer: (SideEnum, Int) -> Void
   let stopHoldTimer: () -> Void
   var orientation: OrientationLayout
   @State private var showEditSheet = false
   @State private var showOverlay = false
+  @State private var showCommanderDamageOverlay = false // Add this state
   @State private var dragDistance: CGFloat = 0
   @State private var overlayOpacity: Double = 0
 
@@ -273,139 +283,30 @@ struct VerticalPlayerView: View {
             .stroke(Color.white.opacity(0.4), lineWidth: 3)
         )
         .foregroundColor(.white)
-        .overlay(
-          ZStack {
-            // Calculate name position once for the entire overlay
-            let namePosition = getVerticalPlayerNamePosition(for: orientation)
-            
-            // Main HP display - should be readable for each player
-            Text("\(player.HP)")
-              .font(.system(size: 48, weight: .bold))
-              .foregroundColor(.white)
-              .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 0)
-              .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 0)
-              .rotationEffect(namePosition.rotation)
-
-            // Minus icon (left side)
-            VStack {
-              Spacer()
-              HStack {
-                Image(systemName: "minus")
-                  .foregroundColor(DEFAULT_STYLES.foreground)
-                  .font(.system(size: 24, weight: .medium))
-                  .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 0)
-                  .rotationEffect(namePosition.rotation)
-                  .padding(.leading, 32)
-                Spacer()
-              }
-              Spacer()
-            }
-
-            // Plus icon (right side)
-            VStack {
-              Spacer()
-              HStack {
-                Spacer()
-                Image(systemName: "plus")
-                  .foregroundColor(DEFAULT_STYLES.foreground)
-                  .font(.system(size: 24, weight: .medium))
-                  .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 0)
-                  .rotationEffect(namePosition.rotation)
-                  .padding(.trailing, 32)
-              }
-              Spacer()
-            }
-
-            // Change indicator
-            if cumulativeChange != 0 {
-              Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundColor(cumulativeChange > 0 ? .green : .red)
-                .shadow(color: .black.opacity(0.8), radius: 2, x: 0, y: 0)
-                .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 0)
-                .offset(x: cumulativeChange > 0 ? 60 : -60)
-                .opacity(showChange ? 1 : 0)
-                .rotationEffect(namePosition.rotation)
-                .animation(.easeInOut(duration: 0.3), value: showChange)
-            }
-
-            // Player name - positioned on the "inner" side so each player can read it normally
-            if namePosition.isTop {
-              VStack {
-                HStack {
-                  Spacer()
-                  Text(player.name)
-                    .font(.system(
-                      size: min(max(geometry.size.width * 0.05, 14), 20), 
-                      weight: .semibold, 
-                      design: .rounded
-                    ))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                      RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.black.opacity(0.25))
-                        .overlay(
-                          RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                        )
-                    )
-                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
-                    .rotationEffect(namePosition.rotation)
-                    .scaleEffect(showEditSheet ? 1.05 : 1.0)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
-                    .onTapGesture {
-                      withAnimation {
-                        showEditSheet.toggle()
-                      }
-                    }
-                    .padding(.top, 12)
-                  Spacer()
-                }
-                Spacer()
-              }
-            } else {
-              VStack {
-                Spacer()
-                HStack {
-                  Spacer()
-                  Text(player.name)
-                    .font(.system(
-                      size: min(max(geometry.size.width * 0.05, 14), 20), 
-                      weight: .semibold, 
-                      design: .rounded
-                    ))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                      RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.black.opacity(0.25))
-                        .overlay(
-                          RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                        )
-                    )
-                    .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
-                    .rotationEffect(namePosition.rotation)
-                    .scaleEffect(showEditSheet ? 1.05 : 1.0)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
-                    .onTapGesture {
-                      withAnimation {
-                        showEditSheet.toggle()
-                      }
-                    }
-                    .padding(.bottom, 12)
-                  Spacer()
-                }
-              }
-            }
-          }
-        )
+        .overlay(verticalPlayerOverlay(geometry: geometry))
         // Apply rotation based on orientation
         .rotationEffect(orientation.toAngle())
         .clipped()
+        // Add two-finger swipe gesture for commander damage
+        .gesture(
+          DragGesture(minimumDistance: 30)
+            .onChanged { value in
+              // Detect if this is a two-finger gesture (we'll simulate with single finger for testing)
+              let swipeDirection = getSwipeDirectionVertical(for: orientation, translation: value.translation)
+              if isValidCommanderDamageSwipeVertical(translation: value.translation, direction: swipeDirection, startLocation: value.startLocation, geometry: geometry) {
+                  dragDistance = value.translation.height
+              }
+            }
+            .onEnded { value in
+              let swipeDirection = getSwipeDirectionVertical(for: orientation, translation: value.translation)
+              if isValidCommanderDamageSwipeVertical(translation: value.translation, direction: swipeDirection, startLocation: value.startLocation, geometry: geometry) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                  showCommanderDamageOverlay = true
+                }
+              }
+              dragDistance = 0
+            }
+        )
 
         // Player tools overlay
         if showOverlay {
@@ -416,6 +317,20 @@ struct VerticalPlayerView: View {
           })
           .transition(.move(edge: .bottom).combined(with: .opacity))
         }
+        
+        // Commander damage overlay
+        if showCommanderDamageOverlay {
+          CommanderDamageOverlay(
+            player: $player,
+            allPlayers: allPlayers,
+            onDismiss: {
+              withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                showCommanderDamageOverlay = false
+              }
+            }
+          )
+          .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
       }
       .sheet(isPresented: $showEditSheet) {
         EditPlayerView(player: $player, playerOrientation: orientation)
@@ -423,6 +338,167 @@ struct VerticalPlayerView: View {
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
+
+  // MARK: - Helper Views
+  @ViewBuilder
+  private func verticalPlayerOverlay(geometry: GeometryProxy) -> some View {
+    ZStack {
+      // Calculate name position once for the entire overlay
+      let namePosition = getVerticalPlayerNamePosition(for: orientation)
+      
+      // Main HP display - should be readable for each player
+      Text("\(player.HP)")
+        .font(.system(size: 48, weight: .bold))
+        .foregroundColor(.white)
+        .shadow(color: .black.opacity(0.8), radius: 3, x: 0, y: 0)
+        .shadow(color: .black.opacity(0.4), radius: 8, x: 0, y: 0)
+        .rotationEffect(namePosition.rotation)
+
+      verticalIconsOverlay(namePosition: namePosition)
+      
+      // Change indicator
+      if cumulativeChange != 0 {
+        Text(cumulativeChange > 0 ? "+\(cumulativeChange)" : "\(cumulativeChange)")
+          .font(.system(size: 24, weight: .semibold))
+          .foregroundColor(cumulativeChange > 0 ? .green : .red)
+          .shadow(color: .black.opacity(0.8), radius: 2, x: 0, y: 0)
+          .shadow(color: .black.opacity(0.4), radius: 6, x: 0, y: 0)
+          .offset(x: cumulativeChange > 0 ? 60 : -60)
+          .opacity(showChange ? 1 : 0)
+          .rotationEffect(namePosition.rotation)
+          .animation(.easeInOut(duration: 0.3), value: showChange)
+      }
+
+      verticalPlayerNameView(geometry: geometry, namePosition: namePosition)
+      
+      // Commander damage and poison counter indicators
+      CommanderDamageIndicators(player: player, geometry: geometry, namePosition: namePosition)
+    }
+  }
+
+  @ViewBuilder
+  private func verticalIconsOverlay(namePosition: PlayerNamePosition) -> some View {
+    // Minus icon (left side)
+    VStack {
+      Spacer()
+      HStack {
+        Image(systemName: "minus")
+          .foregroundColor(DEFAULT_STYLES.foreground)
+          .font(.system(size: 24, weight: .medium))
+          .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 0)
+          .rotationEffect(namePosition.rotation)
+          .padding(.leading, 32)
+        Spacer()
+      }
+      Spacer()
+    }
+
+    // Plus icon (right side)
+    VStack {
+      Spacer()
+      HStack {
+        Spacer()
+        Image(systemName: "plus")
+          .foregroundColor(DEFAULT_STYLES.foreground)
+          .font(.system(size: 24, weight: .medium))
+          .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 0)
+          .rotationEffect(namePosition.rotation)
+          .padding(.trailing, 32)
+      }
+      Spacer()
+    }
+  }
+
+  @ViewBuilder
+  private func verticalPlayerNameView(geometry: GeometryProxy, namePosition: PlayerNamePosition) -> some View {
+    // Player name - positioned on the "inner" side so each player can read it normally
+    if namePosition.isTop {
+      VStack {
+        HStack {
+          Spacer()
+          playerNameText(geometry: geometry, namePosition: namePosition)
+            .padding(.top, 12)
+          Spacer()
+        }
+        Spacer()
+      }
+    } else {
+      VStack {
+        Spacer()
+        HStack {
+          Spacer()
+          playerNameText(geometry: geometry, namePosition: namePosition)
+            .padding(.bottom, 12)
+          Spacer()
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func playerNameText(geometry: GeometryProxy, namePosition: PlayerNamePosition) -> some View {
+    Text(player.name)
+      .font(.system(
+        size: min(max(geometry.size.width * 0.05, 14), 20), 
+        weight: .semibold, 
+        design: .rounded
+      ))
+      .foregroundColor(.white)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 6)
+      .background(
+        RoundedRectangle(cornerRadius: 8)
+          .fill(Color.black.opacity(0.25))
+          .overlay(
+            RoundedRectangle(cornerRadius: 8)
+              .stroke(Color.white.opacity(0.15), lineWidth: 1)
+          )
+      )
+      .shadow(color: .black.opacity(0.15), radius: 1, x: 0, y: 1)
+      .rotationEffect(namePosition.rotation)
+      .scaleEffect(showEditSheet ? 1.05 : 1.0)
+      .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showEditSheet)
+      .onTapGesture {
+        withAnimation {
+          showEditSheet.toggle()
+        }
+      }
+  }
+}
+
+// MARK: - Swipe Detection Helper Functions for Vertical Layout
+func getSwipeDirectionVertical(for orientation: OrientationLayout, translation: CGSize) -> CGVector {
+  switch orientation {
+  case .left:
+    // Left orientation: swipe down (positive Y) in the rotated view
+    return CGVector(dx: 0, dy: 1)
+  case .right:
+    // Right orientation: swipe up (negative Y) in the rotated view
+    return CGVector(dx: 0, dy: -1)
+  default:
+    // Fallback - should not happen in vertical layout
+    return CGVector(dx: 0, dy: 1)
+  }
+}
+
+func isValidCommanderDamageSwipeVertical(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
+  let minimumSwipeDistance: CGFloat = 50
+  let nameAreaThreshold: CGFloat = 0.3 // Top/bottom 30% depending on orientation
+  
+  // Check if swipe started in the name area
+  let isInNameArea: Bool
+  if direction.dy > 0 {
+    // Swipe down - should start in top area (where name is positioned)
+    isInNameArea = startLocation.y < geometry.size.height * nameAreaThreshold
+  } else {
+    // Swipe up - should start in bottom area (where name is positioned)
+    isInNameArea = startLocation.y > geometry.size.height * (1 - nameAreaThreshold)
+  }
+  
+  // Check swipe distance in the correct direction
+  let swipeDistance = abs(translation.height * CGFloat(direction.dy))
+  
+  return isInNameArea && swipeDistance >= minimumSwipeDistance
 }
 
 // MARK: - Preview
@@ -436,6 +512,12 @@ struct VerticalPlayerView: View {
         holdTimer: .constant(nil),
         isHoldTimerActive: .constant(false),
         changeWorkItem: .constant(nil),
+        allPlayers: [
+            Player(HP: 20, name: "Player 1"),
+            Player(HP: 20, name: "Player 2"),
+            Player(HP: 20, name: "Player 3"),
+            Player(HP: 20, name: "Player 4")
+        ],
         updatePoints: { _, _ in },
         startHoldTimer: { _, _ in },
         stopHoldTimer: { },

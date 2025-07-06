@@ -17,8 +17,10 @@ public struct Player: Identifiable {
     public var commanderColors: [String]?
     public var commanderTypeLine: String?
     public var useCommanderAsBackground: Bool = false
+    public var commanderDamage: [String: Int] = [:] // Tracks damage from each opponent's commander by player name
+    public var poisonCounters: Int = 0
     
-    public init(HP: Int, name: String, commanderName: String? = nil, commanderImageURL: String? = nil, commanderArtworkURL: String? = nil, commanderColors: [String]? = nil, commanderTypeLine: String? = nil, useCommanderAsBackground: Bool = false) {
+    public init(HP: Int, name: String, commanderName: String? = nil, commanderImageURL: String? = nil, commanderArtworkURL: String? = nil, commanderColors: [String]? = nil, commanderTypeLine: String? = nil, useCommanderAsBackground: Bool = false, commanderDamage: [String: Int] = [:], poisonCounters: Int = 0) {
         self.HP = HP
         self.name = name
         self.commanderName = commanderName
@@ -27,6 +29,8 @@ public struct Player: Identifiable {
         self.commanderColors = commanderColors
         self.commanderTypeLine = commanderTypeLine
         self.useCommanderAsBackground = useCommanderAsBackground
+        self.commanderDamage = commanderDamage
+        self.poisonCounters = poisonCounters
     }
 }
 

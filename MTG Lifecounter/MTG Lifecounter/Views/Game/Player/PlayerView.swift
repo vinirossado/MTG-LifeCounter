@@ -11,6 +11,7 @@ import SwiftUI
 struct PlayerView: View {
   @Binding var player: Player
   let orientation: OrientationLayout
+  @EnvironmentObject var playerState: PlayerState // Add this to get access to all players
 
   @State private var isLeftPressed = false
   @State private var isRightPressed = false
@@ -32,6 +33,7 @@ struct PlayerView: View {
           holdTimer: $holdTimer,
           isHoldTimerActive: $isHoldTimerActive,
           changeWorkItem: $changeWorkItem,
+          allPlayers: playerState.players, // Pass all players
           updatePoints: updatePoints,
           startHoldTimer: startHoldTimer,
           stopHoldTimer: stopHoldTimer,
@@ -47,6 +49,7 @@ struct PlayerView: View {
           holdTimer: $holdTimer,
           isHoldTimerActive: $isHoldTimerActive,
           changeWorkItem: $changeWorkItem,
+          allPlayers: playerState.players, // Pass all players
           updatePoints: updatePoints,
           startHoldTimer: startHoldTimer,
           stopHoldTimer: stopHoldTimer,
