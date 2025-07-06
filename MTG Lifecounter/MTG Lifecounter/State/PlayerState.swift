@@ -36,32 +36,58 @@ public struct Player: Identifiable {
 
 public class PlayerState: ObservableObject {
     @Published public var players: [Player] = []
+    @Published public var isTransitioning: Bool = false // Add transition state
     
     public func initialize(gameSettings: GameSettings) {
         let requiredPlayerCount = gameSettings.layout.playerCount
         
+        // Set transitioning state to prevent view rendering during changes
+        isTransitioning = true
+        
         // Clear existing players first to prevent any state inconsistencies
         players.removeAll()
+        
+        // Force UI update immediately to clear any existing views
+        objectWillChange.send()
         
         // Create new players for the required layout
         players = (1...requiredPlayerCount).map { idx in
             Player(HP: gameSettings.startingLife, name: "Player \(idx)")
         }
         
-        // Force UI update
+        // Clear transitioning state
+        isTransitioning = false
+        
+        // Force another UI update to ensure new state is propagated
         objectWillChange.send()
     }
     
     public func bindingForPlayer(at index: Int) -> Binding<Player>? {
-        // Add extra safety check
+        // Add extra safety check with detailed logging for debugging
         guard index >= 0 && index < players.count else { 
-            print("Warning: Attempted to access player at index \(index) but only \(players.count) players exist")
+            print("⚠️ Warning: Attempted to access player at index \(index) but only \(players.count) players exist")
+            print("📝 Debug: Current player count: \(players.count)")
+            if !players.isEmpty {
+                print("📝 Debug: Available player indices: 0 to \(players.count - 1)")
+            }
             return nil 
         }
         
         return Binding(
-            get: { self.players[index] },
-            set: { self.players[index] = $0 }
+            get: { 
+                guard index >= 0 && index < self.players.count else {
+                    print("⚠️ WARNING: bindingForPlayer get access out of bounds - index: \(index), count: \(self.players.count)")
+                    return Player(HP: 20, name: "Player \(index + 1)")
+                }
+                return self.players[index] 
+            },
+            set: { newValue in
+                guard index >= 0 && index < self.players.count else {
+                    print("⚠️ WARNING: bindingForPlayer set access out of bounds - index: \(index), count: \(self.players.count)")
+                    return
+                }
+                self.players[index] = newValue
+            }
         )
     }
 }

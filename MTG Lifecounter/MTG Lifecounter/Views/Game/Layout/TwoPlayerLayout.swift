@@ -16,7 +16,8 @@ var body: some View {
             LinearGradient.MTG.mysticalBackground
                 .ignoresSafeArea()
             
-            if playerState.players.count >= 2 {
+            // Additional safety check to prevent index out of bounds
+            if !playerState.isTransitioning && playerState.players.count == 2 {
                 HStack(spacing: 0) {
                     if let player1 = playerState.bindingForPlayer(at: 0) {
                         GeometryReader { geometry in
@@ -47,8 +48,14 @@ var body: some View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if playerState.isTransitioning {
+                VStack {
+                    LoadingAnimation()
+                    Text("Updating layout...")
+                        .foregroundColor(.white.opacity(0.8))
+                }
             } else {
-                MTGErrorView(message: "Not enough players for this layout")
+                MTGErrorView(message: "Not enough players for this layout (need 2, have \(playerState.players.count))")
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

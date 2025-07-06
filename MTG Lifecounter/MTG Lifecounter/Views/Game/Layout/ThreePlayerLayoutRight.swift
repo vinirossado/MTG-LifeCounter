@@ -11,7 +11,7 @@ struct ThreePlayerLayoutRight: View {
     @EnvironmentObject var playerState: PlayerState
     
     var body: some View {
-        if playerState.players.count >= 3 {
+        if playerState.players.count == 3 {
             GeometryReader { geometry in
                 HStack(spacing: 0) {
                     VStack(spacing: 0) {

@@ -40,27 +40,29 @@ struct CommanderDamageOverlay: View {
   }
 
   private var headerSection: some View {
-    VStack(spacing: 8) {
-      HStack {
+    VStack(spacing: 12) {
+      HStack(spacing: 12) {
         Image(systemName: "crown.fill")
-          .font(.title2)
+          .font(.title3)
           .foregroundColor(.yellow)
 
         Text("Commander Damage")
-          .font(.title2)
-          .fontWeight(.semibold)
+          .font(.title3)
+          .fontWeight(.bold)
           .foregroundColor(.white)
 
         Image(systemName: "crown.fill")
-          .font(.title2)
+          .font(.title3)
           .foregroundColor(.yellow)
       }
 
-      Text("Track damage from enemy commanders")
+      Text("Track damage from enemy commanders • Changes save automatically")
         .font(.caption)
         .foregroundColor(.gray)
+        .multilineTextAlignment(.center)
     }
-    .padding()
+    .padding(.vertical, 16)
+    .padding(.horizontal, 20)
     .background(headerBackground)
   }
 
@@ -89,23 +91,29 @@ struct CommanderDamageOverlay: View {
   }
 
   private var mainContentView: some View {
-    VStack(spacing: 20) {
+    VStack(spacing: 0) {
       pullIndicator
       headerSection
       modernScrollContent
     }
+    .background(
+      RoundedRectangle(cornerRadius: 20)
+        .fill(Color.black.opacity(0.95))
+        .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
+    )
+    .padding(.horizontal, 16)
+    .padding(.bottom, 40)
   }
 
   private var modernScrollContent: some View {
     ScrollView {
-      VStack(spacing: 20) {
+      VStack(spacing: 24) {
         commanderDamageSection
         poisonCountersSection
-        actionButtonsSection
       }
       .padding(.horizontal, 20)
     }
-    .frame(maxHeight: 500)
+    .frame(maxHeight: 450)
   }
 
   private var commanderDamageSection: some View {
@@ -157,6 +165,8 @@ struct CommanderDamageOverlay: View {
       damage: tempCommanderDamage[opponent.id.uuidString] ?? 0,
       onDamageChanged: { newValue in
         tempCommanderDamage[opponent.id.uuidString] = newValue
+        // Apply changes immediately
+        player.commanderDamage[opponent.id.uuidString] = newValue
       }
     )
     .scaleEffect(animateAppear ? 1.0 : 0.85)
@@ -194,6 +204,8 @@ struct CommanderDamageOverlay: View {
         counters: tempPoisonCounters,
         onCountersChanged: { newValue in
           tempPoisonCounters = newValue
+          // Apply changes immediately
+          player.poisonCounters = newValue
         }
       )
       .scaleEffect(animateAppear ? 1.0 : 0.85)
@@ -203,50 +215,6 @@ struct CommanderDamageOverlay: View {
         value: animateAppear
       )
     }
-  }
-
-  private var actionButtonsSection: some View {
-    HStack(spacing: 16) {
-      Button("Cancel") {
-        dismissWithAnimation()
-      }
-      .font(.system(size: 16, weight: .semibold))
-      .foregroundColor(.white)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 14)
-      .background(
-        RoundedRectangle(cornerRadius: 12)
-          .stroke(
-            LinearGradient(
-              colors: [Color.white.opacity(0.4), Color.white.opacity(0.2)],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            ),
-            lineWidth: 1.5
-          )
-      )
-
-      Button("Apply Changes") {
-        applyChanges()
-        dismissWithAnimation()
-      }
-      .font(.system(size: 16, weight: .semibold))
-      .foregroundColor(.white)
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 14)
-      .background(
-        RoundedRectangle(cornerRadius: 12)
-          .fill(
-            LinearGradient(
-              colors: [Color.blue, Color.blue.opacity(0.8)],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            )
-          )
-          .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
-      )
-    }
-    .padding(.top, 8)
   }
 
   private func setupInitialValues() {
@@ -263,11 +231,6 @@ struct CommanderDamageOverlay: View {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
       onDismiss()
     }
-  }
-
-  private func applyChanges() {
-    player.commanderDamage = tempCommanderDamage
-    player.poisonCounters = tempPoisonCounters
   }
 }
 

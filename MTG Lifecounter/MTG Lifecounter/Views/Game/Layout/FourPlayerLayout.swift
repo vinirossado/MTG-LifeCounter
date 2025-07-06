@@ -17,7 +17,8 @@ struct FourPlayerLayout: View {
                 .ignoresSafeArea()
             
             VStack(spacing: MTGSpacing.xs) {
-                if playerState.players.count >= 4 {
+                // Additional safety check to prevent index out of bounds
+                if !playerState.isTransitioning && playerState.players.count == 4 {
                     // Top row players
                     HStack(spacing: MTGSpacing.xs) {
                         if let player1 = playerState.bindingForPlayer(at: 0) {
@@ -63,8 +64,14 @@ struct FourPlayerLayout: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if playerState.isTransitioning {
+                    VStack {
+                        LoadingAnimation()
+                        Text("Updating layout...")
+                            .foregroundColor(.white.opacity(0.8))
+                    }
                 } else {
-                    MTGErrorView(message: "Not enough players for this layout")
+                    MTGErrorView(message: "Not enough players for this layout (need 4, have \(playerState.players.count))")
                 }
             }
         }

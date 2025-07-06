@@ -71,8 +71,8 @@ struct GameView: View {
                 Color.black
                     .ignoresSafeArea(.all)
                 
-                // Main Game Layout - Only render if player count matches expected layout
-                if playerState.players.count >= gameSettings.layout.playerCount {
+                // Main Game Layout - Only render if player count matches expected layout and not transitioning
+                if !playerState.isTransitioning && playerState.players.count == gameSettings.layout.playerCount {
                     GameLayoutBuilder.buildLayout(layout: gameSettings.layout)
                         .frame(width: geometry.size.width, height: geometry.size.height)
                         .clipped()
@@ -87,7 +87,7 @@ struct GameView: View {
                             circleCount: 5
                         )
                         
-                        Text("Preparing game layout...")
+                        Text(playerState.isTransitioning ? "Updating layout..." : "Preparing game layout...")
                             .font(MTGTypography.caption)
                             .foregroundColor(Color.MTG.textSecondary)
                             .padding(.top, MTGSpacing.md)
@@ -120,7 +120,7 @@ struct GameView: View {
             .navigationBarHidden(true)
             .onAppear {
                 // Ensure player state matches current settings on view appear
-                if playerState.players.count != gameSettings.layout.playerCount {
+                if !playerState.isTransitioning && playerState.players.count != gameSettings.layout.playerCount {
                     playerState.initialize(gameSettings: gameSettings)
                 }
                 
@@ -135,23 +135,37 @@ struct GameView: View {
                 if showingResetAlert {
                     MTGConfirmationDialog.gameReset(
                         onConfirm: {
-                            // First update the layout
-                            if let newLayout = pendingLayout {
-                                gameSettings.layout = newLayout
+                            // Perform atomic layout change to prevent crashes
+                            withAnimation(.none) {
+                                // Set transitioning flag immediately to prevent view updates
+                                playerState.isTransitioning = true
+                                
+                                // Store the new values
+                                let newLayout = pendingLayout
+                                let newLifePoints = pendingLifePoints
+                                
+                                // Clear pending changes immediately
+                                pendingLayout = nil
+                                pendingLifePoints = nil
+                                showingResetAlert = false
+                                
+                                // Force a complete refresh cycle
+                                DispatchQueue.main.async {
+                                    // First update settings
+                                    if let layout = newLayout {
+                                        gameSettings.layout = layout
+                                    }
+                                    if let lifePoints = newLifePoints {
+                                        gameSettings.startingLife = lifePoints
+                                    }
+                                    
+                                    // Then reinitialize (this will clear players and rebuild safely)
+                                    DispatchQueue.main.async {
+                                        playerState.initialize(gameSettings: gameSettings)
+                                        // isTransitioning flag will be set to false inside initialize()
+                                    }
+                                }
                             }
-                            if let newLifePoints = pendingLifePoints {
-                                gameSettings.startingLife = newLifePoints
-                            }
-                            
-                            // Then immediately reinitialize player state to match the new layout
-                            DispatchQueue.main.async {
-                                playerState.initialize(gameSettings: gameSettings)
-                            }
-                            
-                            // Clear pending changes
-                            pendingLayout = nil
-                            pendingLifePoints = nil
-                            showingResetAlert = false
                         },
                         onCancel: {
                             pendingLayout = nil

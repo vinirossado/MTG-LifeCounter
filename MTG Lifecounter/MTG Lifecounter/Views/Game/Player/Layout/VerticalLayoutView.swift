@@ -372,7 +372,10 @@ struct VerticalPlayerView: View {
       verticalPlayerNameView(geometry: geometry, namePosition: namePosition)
       
       // Commander damage and poison counter indicators
-      CommanderDamageIndicators(player: player, geometry: geometry, namePosition: namePosition)
+      CommanderDamageIndicators(player: player, allPlayers: allPlayers, geometry: geometry, namePosition: namePosition)
+      
+      // Damage summary badge for quick overview  
+      DamageSummaryBadge(player: player, allPlayers: allPlayers, namePosition: namePosition)
     }
   }
 

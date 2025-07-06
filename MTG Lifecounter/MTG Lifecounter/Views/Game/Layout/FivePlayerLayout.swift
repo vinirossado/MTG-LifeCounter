@@ -11,7 +11,7 @@ struct FivePlayerLayout: View {
   @EnvironmentObject var playerState: PlayerState
 
   var body: some View {
-    if playerState.players.count >= 5 {
+    if playerState.players.count == 5 {
       GeometryReader { geometry in
         HStack(spacing: 0) {
           VStack(spacing: 0) {

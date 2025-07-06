@@ -22,6 +22,9 @@ struct PlayerView: View {
   @State private var changeWorkItem: DispatchWorkItem?
 
   var body: some View {
+    // Defensive check: ensure playerState has been properly initialized
+    let safeAllPlayers = playerState.players.isEmpty ? [player] : playerState.players
+    
     Group {
       if orientation == .normal || orientation == .inverted {
         HorizontalPlayerView(
@@ -33,7 +36,7 @@ struct PlayerView: View {
           holdTimer: $holdTimer,
           isHoldTimerActive: $isHoldTimerActive,
           changeWorkItem: $changeWorkItem,
-          allPlayers: playerState.players, // Pass all players
+          allPlayers: safeAllPlayers, // Use safe array
           updatePoints: updatePoints,
           startHoldTimer: startHoldTimer,
           stopHoldTimer: stopHoldTimer,
@@ -49,7 +52,7 @@ struct PlayerView: View {
           holdTimer: $holdTimer,
           isHoldTimerActive: $isHoldTimerActive,
           changeWorkItem: $changeWorkItem,
-          allPlayers: playerState.players, // Pass all players
+          allPlayers: safeAllPlayers, // Use safe array
           updatePoints: updatePoints,
           startHoldTimer: startHoldTimer,
           stopHoldTimer: stopHoldTimer,
