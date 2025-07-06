@@ -5,6 +5,7 @@
 //  Created by Vinicius Rossado
 
 import SwiftUI
+import UIKit
 
 // Panel dimensions - cached for performance
 private struct PanelDimensions {
@@ -222,112 +223,34 @@ struct MTGSettingsPanelContent: View {
         .padding(.bottom, adaptiveSpacing)
 
         // Battlefield Layout section
-        VStack(alignment: .leading, spacing: adaptiveSpacing) {
-          HStack(spacing: 8) {
-            Image(systemName: "person.3.fill")
-              .foregroundColor(.blue.opacity(0.7))
-              .font(.system(size: 18))
-            Text("Battlefield Layout")
-              .font(.system(size: adaptiveSubtitleSize, weight: .semibold, design: .serif))
-              .foregroundColor(.lightGrayText)
-          }
-          
-          Text("Choose the number of planeswalkers")
-            .font(.system(size: 14, design: .serif))
-            .foregroundColor(.mutedSilverText)
-            .italic()
+        MTGSectionContainer(standardStyle: {
+          VStack(alignment: .leading, spacing: adaptiveSpacing) {
+            MTGSectionHeader.playerLayout()
 
-          // Layout Grid with mystical styling
-          MTGPlayerLayoutsGrid()
-        }
-        .padding(16)
-        .background(
-          RoundedRectangle(cornerRadius: 12)
-            .fill(Color.oceanBlueBackground.opacity(0.3))
-            .overlay(
-              RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                  LinearGradient(
-                    colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.2)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                  ),
-                  lineWidth: 1
-                )
-            )
-        )
+            // Layout Grid with mystical styling
+            MTGPlayerLayoutsGrid()
+          }
+        })
 
         // Life Force section
-        VStack(alignment: .leading, spacing: adaptiveSpacing) {
-          HStack(spacing: 8) {
-            Image(systemName: "heart.fill")
-              .foregroundColor(.red.opacity(0.7))
-              .font(.system(size: 18))
-            Text("Life Force")
-              .font(.system(size: adaptiveSubtitleSize, weight: .semibold, design: .serif))
-              .foregroundColor(.lightGrayText)
-          }
-          
-          Text("Set starting life totals for all planeswalkers")
-            .font(.system(size: 14, design: .serif))
-            .foregroundColor(.mutedSilverText)
-            .italic()
+        MTGSectionContainer(lifeThemed: {
+          VStack(alignment: .leading, spacing: adaptiveSpacing) {
+            MTGSectionHeader.lifePoints()
 
-          // Life Points with mystical styling
-          MTGLifePointsView()
-        }
-        .padding(16)
-        .background(
-          RoundedRectangle(cornerRadius: 12)
-            .fill(Color.oceanBlueBackground.opacity(0.3))
-            .overlay(
-              RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                  LinearGradient(
-                    colors: [Color.red.opacity(0.4), Color.purple.opacity(0.2)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                  ),
-                  lineWidth: 1
-                )
-            )
-        )
+            // Life Points with mystical styling
+            MTGLifePointsView()
+          }
+        })
 
         // Screen Wake Settings section
-        VStack(alignment: .leading, spacing: adaptiveSpacing) {
-          HStack(spacing: 8) {
-            Image(systemName: "sun.max.fill")
-              .foregroundColor(.yellow.opacity(0.7))
-              .font(.system(size: 18))
-            Text("Screen Control")
-              .font(.system(size: adaptiveSubtitleSize, weight: .semibold, design: .serif))
-              .foregroundColor(.lightGrayText)
-          }
-          
-          Text("Keep screen awake during gameplay")
-            .font(.system(size: 14, design: .serif))
-            .foregroundColor(.mutedSilverText)
-            .italic()
+        MTGSectionContainer(commanderThemed: {
+          VStack(alignment: .leading, spacing: adaptiveSpacing) {
+            MTGSectionHeader.screenControl()
 
-          // Screen Wake Toggle with mystical styling
-          MTGScreenWakeToggle()
-        }
-        .padding(16)
-        .background(
-          RoundedRectangle(cornerRadius: 12)
-            .fill(Color.oceanBlueBackground.opacity(0.3))
-            .overlay(
-              RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                  LinearGradient(
-                    colors: [Color.yellow.opacity(0.4), Color.purple.opacity(0.2)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                  ),
-                  lineWidth: 1
-                )
-            )
-        )
+            // Screen Wake Toggle with mystical styling
+            MTGScreenWakeToggle()
+          }
+        })
       }
       .padding(adaptivePadding)
     }

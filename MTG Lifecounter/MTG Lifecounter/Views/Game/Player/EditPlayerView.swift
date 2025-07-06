@@ -261,97 +261,31 @@ struct EditPlayerView: View {
     
     // MTG-themed player input section
     private func mtgPlayerInputSection() -> some View {
-        VStack(alignment: .leading, spacing: isIPad ? 16 : 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "person.crop.circle.fill")
-                    .foregroundColor(.blue.opacity(0.7))
-                    .font(.system(size: 18))
-                Text("Planeswalker Name")
-                    .font(.system(size: labelFontSize, weight: .semibold, design: .serif))
-                    .foregroundColor(.lightGrayText)
-            }
-            
-            Text("Choose your identity in the multiverse")
-                .font(.system(size: 14, design: .serif))
-                .foregroundColor(.mutedSilverText)
-                .italic()
-                .padding(.leading, 4)
-            
-            TextField("", text: Binding(
-                get: { self.playerName.isEmpty ? self.player.name : self.playerName },
-                set: { self.playerName = $0 }
-            ))
-            .font(.system(size: inputFontSize, weight: .medium, design: .serif))
-            .padding(.vertical, isIPad ? 16 : 14)
-            .padding(.horizontal, isIPad ? 20 : 16)
-            .background(
-                RoundedRectangle(cornerRadius: isIPad ? 16 : 12)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.oceanBlueBackground.opacity(0.6),
-                                Color.darkNavyBackground.opacity(0.8)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: isIPad ? 16 : 12)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.3)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.5
-                            )
-                    )
-                    .shadow(color: Color.blue.opacity(0.2), radius: 6, x: 0, y: 3)
-            )
-            .foregroundColor(.lightGrayText)
-            .autocapitalization(.words)
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.oceanBlueBackground.opacity(0.3))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color.blue.opacity(0.4), Color.purple.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+        MTGSectionContainer(standardStyle: {
+            VStack(alignment: .leading, spacing: isIPad ? 16 : 12) {
+                MTGSectionHeader.playerIdentity()
+                
+                MTGTextField(
+                    text: Binding(
+                        get: { self.playerName.isEmpty ? self.player.name : self.playerName },
+                        set: { self.playerName = $0 }
+                    ),
+                    fontSize: inputFontSize
                 )
-        )
+            }
+        })
         .frame(maxWidth: isLandscape && !isIPad ? nil : .infinity)
         .fixedSize(horizontal: false, vertical: true)
     }
     
     // MTG-themed commander section
     private func mtgCommanderSection() -> some View {
-        VStack(alignment: .leading, spacing: isIPad ? 16 : 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "crown.fill")
-                    .foregroundColor(.yellow.opacity(0.8))
-                    .font(.system(size: 18))
-                Text("Commander")
-                    .font(.system(size: labelFontSize, weight: .semibold, design: .serif))
-                    .foregroundColor(.lightGrayText)
-            }
-            
-            Text("Choose your legendary creature to lead your deck")
-                .font(.system(size: 14, design: .serif))
-                .foregroundColor(.mutedSilverText)
-                .italic()
-                .padding(.leading, 4)
-            
-            // Commander display or search button
-            if let commanderName = player.commanderName, !commanderName.isEmpty {
+        MTGSectionContainer(commanderThemed: {
+            VStack(alignment: .leading, spacing: isIPad ? 16 : 12) {
+                MTGSectionHeader.commander()
+                
+                // Commander display or search button
+                if let commanderName = player.commanderName, !commanderName.isEmpty {
                 // Display current commander
                 HStack(spacing: 12) {
                     // Commander image placeholder or actual image
@@ -572,23 +506,8 @@ struct EditPlayerView: View {
                         )
                 )
             }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.oceanBlueBackground.opacity(0.3))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color.yellow.opacity(0.4), Color.purple.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-        )
+            }
+        })
         .frame(maxWidth: isLandscape && !isIPad ? nil : .infinity)
         .fixedSize(horizontal: false, vertical: true)
     }
