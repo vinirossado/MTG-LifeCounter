@@ -26,6 +26,7 @@ public struct Player: Identifiable {
     public var plusOnePlusOneCounters: Int = 0
     public var isMonarch: Bool = false
     public var hasInitiative: Bool = false
+    public var hasCitiesBlessing: Bool = false
     
     // Global game state (these would ideally be in a separate GameState, but for now we'll track per player)
     public var stormCount: Int = 0 // Storm count (resets each turn)

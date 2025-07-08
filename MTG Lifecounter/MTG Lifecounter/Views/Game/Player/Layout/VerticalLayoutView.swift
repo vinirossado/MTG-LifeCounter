@@ -291,8 +291,8 @@ struct VerticalPlayerView: View {
               // Single-finger swipe gesture for Tools
               print("🛠️ VerticalLayoutView: Swipe gesture detected for Tools")
               
-              let startLocation = value.startLocation
-              let translation = CGVector(dx: value.translation.width, dy: value.translation.height)
+                _ = value.startLocation
+                _ = CGVector(dx: value.translation.width, dy: value.translation.height)
               let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
               
               // Only trigger if the drag is significant and in the right area
