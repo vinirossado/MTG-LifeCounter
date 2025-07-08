@@ -97,7 +97,3 @@ struct MTGOverlayButton: View {
         }
     }
 }
-
-// Legacy compatibility wrapper
-typealias OverlayButton = MTGOverlayButton
-typealias ScaleButtonStyle = MTGScaleButtonStyle

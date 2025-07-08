@@ -9,8 +9,14 @@ import Testing
 
 struct MTG_LifecounterTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func gameSettingsTests() async throws {
+        // TODO: Add tests for GameSettings
+        #expect(true)
+    }
+    
+    @Test func playerStateTests() async throws {
+        // TODO: Add tests for PlayerState
+        #expect(true)
     }
 
 }

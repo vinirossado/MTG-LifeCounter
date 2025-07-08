@@ -2,7 +2,7 @@
 //  MTGPlayerAreaRepresentation.swift
 //  MTG Lifecounter
 //
-//  Created by Refactor Assistant on 08/07/25.
+//  Created by Vinicius Rossado on 08/07/25.
 //
 
 import SwiftUI

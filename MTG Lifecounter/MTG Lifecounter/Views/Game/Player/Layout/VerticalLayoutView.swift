@@ -502,28 +502,6 @@ func isValidCommanderSwipeVertical(
   return isInNameArea
 }
 
-// MARK: - Legacy Single-Finger Gesture Support (kept for backward compatibility)
-
-func isValidCommanderDamageSwipeVertical(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
-  let minimumSwipeDistance: CGFloat = 50
-  let nameAreaThreshold: CGFloat = 0.3 // Top/bottom 30% depending on orientation
-  
-  // Check if swipe started in the name area
-  let isInNameArea: Bool
-  if direction.dy > 0 {
-    // Swipe down - should start in top area (where name is positioned)
-    isInNameArea = startLocation.y < geometry.size.height * nameAreaThreshold
-  } else {
-    // Swipe up - should start in bottom area (where name is positioned)
-    isInNameArea = startLocation.y > geometry.size.height * (1 - nameAreaThreshold)
-  }
-  
-  // Check swipe distance in the correct direction
-  let swipeDistance = abs(translation.height * CGFloat(direction.dy))
-  
-  return isInNameArea && swipeDistance >= minimumSwipeDistance
-}
-
 // MARK: - Preview
 #Preview("Vertical Player View") {
     VerticalPlayerView(

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftData
 
 @main
 struct MTG_LifecounterApp: App {
