@@ -11,6 +11,7 @@ import SwiftUI
 struct CommanderDamageOverlay: View {
   @Binding var player: Player
   let allPlayers: [Player]
+  let playerOrientation: OrientationLayout // Add orientation parameter
   var onDismiss: () -> Void
 
   @State private var animateAppear = false
@@ -30,49 +31,6 @@ struct CommanderDamageOverlay: View {
       .ignoresSafeArea()
   }
 
-  private var headerBackground: some View {
-    RoundedRectangle(cornerRadius: 12)
-      .fill(Color.black.opacity(0.8))
-      .overlay(
-        RoundedRectangle(cornerRadius: 12)
-          .stroke(Color.white.opacity(0.2), lineWidth: 1)
-      )
-  }
-
-  private var headerSection: some View {
-    VStack(spacing: 12) {
-      HStack(spacing: 12) {
-        Image(systemName: "crown.fill")
-          .font(.title3)
-          .foregroundColor(.yellow)
-
-        Text("Commander Damage")
-          .font(.title3)
-          .fontWeight(.bold)
-          .foregroundColor(.white)
-
-        Image(systemName: "crown.fill")
-          .font(.title3)
-          .foregroundColor(.yellow)
-      }
-
-      Text("Track damage from enemy commanders • Changes save automatically")
-        .font(.caption)
-        .foregroundColor(.gray)
-        .multilineTextAlignment(.center)
-    }
-    .padding(.vertical, 16)
-    .padding(.horizontal, 20)
-    .background(headerBackground)
-  }
-
-  private var pullIndicator: some View {
-    RoundedRectangle(cornerRadius: 2)
-      .fill(Color.white.opacity(0.6))
-      .frame(width: 40, height: 5)
-      .padding(.top, 8)
-  }
-
   var body: some View {
     ZStack {
       backgroundView
@@ -80,86 +38,64 @@ struct CommanderDamageOverlay: View {
           dismissWithAnimation()
         }
 
-      mainContentView
+      compactContentView
     }
+    .rotationEffect(playerOrientation.toAngle()) // Apply player orientation
     .onAppear {
       setupInitialValues()
-      withAnimation(Animation.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+      withAnimation(Animation.spring(response: 0.4, dampingFraction: 0.8).delay(0.1)) {
         animateAppear = true
       }
     }
   }
 
-  private var mainContentView: some View {
+  private var compactContentView: some View {
     VStack(spacing: 0) {
-      pullIndicator
-      headerSection
-      modernScrollContent
+      // Simple pull indicator
+      RoundedRectangle(cornerRadius: 2)
+        .fill(Color.white.opacity(0.6))
+        .frame(width: 40, height: 4)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
+      
+      compactScrollContent
     }
     .background(
-      RoundedRectangle(cornerRadius: 20)
+      RoundedRectangle(cornerRadius: 16)
         .fill(Color.black.opacity(0.95))
-        .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
     )
-    .padding(.horizontal, 16)
-    .padding(.bottom, 40)
+    .padding(.horizontal, 20)
+    .padding(.bottom, 50)
   }
 
-  private var modernScrollContent: some View {
+  private var compactScrollContent: some View {
     ScrollView {
-      VStack(spacing: 24) {
-        commanderDamageSection
-        poisonCountersSection
+      VStack(spacing: 12) {
+        compactCommanderDamageSection
+        compactPoisonCountersSection
       }
-      .padding(.horizontal, 20)
+      .padding(.horizontal, 16)
+      .padding(.vertical, 8)
     }
-    .frame(maxHeight: 450)
+    .frame(maxHeight: 350) // Reduced height for compactness
   }
 
-  private var commanderDamageSection: some View {
-    VStack(spacing: 16) {
-      commanderDamageCards
-    }
-  }
-
-  private var commanderDamageSectionHeader: some View {
-    HStack {
-      HStack(spacing: 8) {
-        Image(systemName: "bolt.circle.fill")
-          .foregroundColor(.orange)
-          .font(.title3)
-        
-        VStack(alignment: .leading, spacing: 2) {
-          Text("Commander Damage")
-            .font(.headline)
-            .fontWeight(.bold)
-            .foregroundColor(.white)
-          
-          Text("Track damage from each commander")
-            .font(.caption2)
-            .foregroundColor(.gray)
-        }
-      }
-      Spacer()
-    }
-    .padding(.horizontal, 4)
-  }
-
-  private var commanderDamageCards: some View {
-    LazyVStack(spacing: 12) {
+  private var compactCommanderDamageSection: some View {
+    VStack(spacing: 8) {
       ForEach(otherPlayers) { opponent in
-        commanderDamageCard(for: opponent)
+        compactCommanderDamageCard(for: opponent)
       }
     }
   }
 
-  private func commanderDamageCard(for opponent: Player) -> some View {
+  private func compactCommanderDamageCard(for opponent: Player) -> some View {
     let opponentIndex = otherPlayers.firstIndex { player in
       player.id == opponent.id
     } ?? 0
-    let animationDelay = Double(opponentIndex) * 0.15
+    let animationDelay = Double(opponentIndex) * 0.1
     
-    return ModernCommanderDamageCard(
+    return CompactCommanderDamageCard(
       opponent: opponent,
       damage: tempCommanderDamage[opponent.id.uuidString] ?? 0,
       onDamageChanged: { newValue in
@@ -168,52 +104,29 @@ struct CommanderDamageOverlay: View {
         player.commanderDamage[opponent.id.uuidString] = newValue
       }
     )
-    .scaleEffect(animateAppear ? 1.0 : 0.85)
+    .scaleEffect(animateAppear ? 1.0 : 0.9)
     .opacity(animateAppear ? 1.0 : 0.0)
     .animation(
-      Animation.spring(response: 0.6, dampingFraction: 0.7).delay(animationDelay),
+      Animation.spring(response: 0.4, dampingFraction: 0.7).delay(animationDelay),
       value: animateAppear
     )
   }
 
-  private var poisonCountersSection: some View {
-    VStack(spacing: 16) {
-      HStack {
-        HStack(spacing: 8) {
-          Image(systemName: "drop.circle.fill")
-            .foregroundColor(tempPoisonCounters >= 10 ? .red : .green)
-            .font(.title3)
-          
-          VStack(alignment: .leading, spacing: 2) {
-            Text("Poison Counters")
-              .font(.headline)
-              .fontWeight(.bold)
-              .foregroundColor(.white)
-            
-            Text("You lose at 10 poison counters")
-              .font(.caption2)
-              .foregroundColor(tempPoisonCounters >= 10 ? .red : .gray)
-          }
-        }
-        Spacer()
+  private var compactPoisonCountersSection: some View {
+    CompactPoisonCounterCard(
+      counters: tempPoisonCounters,
+      onCountersChanged: { newValue in
+        tempPoisonCounters = newValue
+        // Apply changes immediately
+        player.poisonCounters = newValue
       }
-      .padding(.horizontal, 4)
-
-      ModernPoisonCounterCard(
-        counters: tempPoisonCounters,
-        onCountersChanged: { newValue in
-          tempPoisonCounters = newValue
-          // Apply changes immediately
-          player.poisonCounters = newValue
-        }
-      )
-      .scaleEffect(animateAppear ? 1.0 : 0.85)
-      .opacity(animateAppear ? 1.0 : 0.0)
-      .animation(
-        Animation.spring(response: 0.6, dampingFraction: 0.7).delay(Double(otherPlayers.count) * 0.15 + 0.2),
-        value: animateAppear
-      )
-    }
+    )
+    .scaleEffect(animateAppear ? 1.0 : 0.9)
+    .opacity(animateAppear ? 1.0 : 0.0)
+    .animation(
+      Animation.spring(response: 0.4, dampingFraction: 0.7).delay(Double(otherPlayers.count) * 0.1 + 0.1),
+      value: animateAppear
+    )
   }
 
   private func setupInitialValues() {
@@ -223,17 +136,226 @@ struct CommanderDamageOverlay: View {
   }
 
   private func dismissWithAnimation() {
-    withAnimation(Animation.easeIn(duration: 0.2)) {
+    withAnimation(Animation.easeIn(duration: 0.15)) {
       animateAppear = false
     }
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
       onDismiss()
     }
   }
 }
 
-// MARK: - Modern Commander Damage Card
+// MARK: - Compact Commander Damage Card
+struct CompactCommanderDamageCard: View {
+  let opponent: Player
+  let damage: Int
+  let onDamageChanged: (Int) -> Void
+  
+  var body: some View {
+    HStack(spacing: 12) {
+      // Player info - more compact
+      HStack(spacing: 8) {
+        // Small avatar
+        Group {
+          if let artworkURL = opponent.commanderImageURL,
+             let url = URL(string: artworkURL) {
+            AsyncImage(url: url) { phase in
+              switch phase {
+              case .success(let image):
+                image
+                  .resizable()
+                  .aspectRatio(contentMode: .fill)
+                  .frame(width: 32, height: 32)
+                  .clipShape(Circle())
+              case .failure(_), .empty:
+                compactPlayerAvatar
+              @unknown default:
+                compactPlayerAvatar
+              }
+            }
+          } else {
+            compactPlayerAvatar
+          }
+        }
+        
+        VStack(alignment: .leading, spacing: 2) {
+          Text(opponent.name)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.white)
+            .lineLimit(1)
+          
+          // Status indicator
+          HStack(spacing: 4) {
+            Circle()
+              .fill(damage >= 21 ? Color.red : (damage > 0 ? Color.orange : Color.gray))
+              .frame(width: 4, height: 4)
+            
+            Text(damage >= 21 ? "LETHAL" : (damage > 0 ? "DAMAGED" : "SAFE"))
+              .font(.system(size: 10, weight: .medium))
+              .foregroundColor(damage >= 21 ? .red : (damage > 0 ? .orange : .gray))
+          }
+        }
+      }
+      
+      Spacer()
+      
+      // Compact counter section
+      HStack(spacing: 8) {
+        // Minus button
+        Button(action: {
+          let newValue = max(0, damage - 1)
+          onDamageChanged(newValue)
+        }) {
+          Image(systemName: "minus.circle.fill")
+            .font(.system(size: 24))
+            .foregroundColor(damage > 0 ? .red : .gray.opacity(0.5))
+        }
+        .disabled(damage <= 0)
+        
+        // Damage display
+        Text("\(damage)")
+          .font(.system(size: 20, weight: .bold, design: .rounded))
+          .foregroundColor(damage >= 21 ? .red : .white)
+          .frame(minWidth: 30)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .fill(damage >= 21 ? Color.red.opacity(0.2) : Color.gray.opacity(0.2))
+              .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                  .stroke(damage >= 21 ? Color.red : Color.gray.opacity(0.5), lineWidth: 1)
+              )
+          )
+        
+        // Plus button
+        Button(action: {
+          let newValue = damage + 1
+          onDamageChanged(newValue)
+        }) {
+          Image(systemName: "plus.circle.fill")
+            .font(.system(size: 24))
+            .foregroundColor(.green)
+        }
+      }
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .background(
+      RoundedRectangle(cornerRadius: 12)
+        .fill(Color.black.opacity(0.4))
+        .overlay(
+          RoundedRectangle(cornerRadius: 12)
+            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    )
+  }
+  
+  private var compactPlayerAvatar: some View {
+    Circle()
+      .fill(Color.gray.opacity(0.6))
+      .frame(width: 32, height: 32)
+      .overlay(
+        Image(systemName: "person.fill")
+          .font(.system(size: 16))
+          .foregroundColor(.white.opacity(0.7))
+      )
+  }
+}
+
+// MARK: - Compact Poison Counter Card
+struct CompactPoisonCounterCard: View {
+  let counters: Int
+  let onCountersChanged: (Int) -> Void
+  
+  var body: some View {
+    HStack(spacing: 12) {
+      // Info section - compact
+      HStack(spacing: 8) {
+        Circle()
+          .fill(counters >= 10 ? Color.red : Color.green)
+          .frame(width: 32, height: 32)
+          .overlay(
+            Image(systemName: "drop.fill")
+              .font(.system(size: 16))
+              .foregroundColor(.white)
+          )
+        
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Poison")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(.white)
+          
+          // Status indicator
+          HStack(spacing: 4) {
+            Circle()
+              .fill(counters >= 10 ? Color.red : (counters > 0 ? Color.orange : Color.gray))
+              .frame(width: 4, height: 4)
+            
+            Text(counters >= 10 ? "DEFEATED" : (counters > 0 ? "POISONED" : "HEALTHY"))
+              .font(.system(size: 10, weight: .medium))
+              .foregroundColor(counters >= 10 ? .red : (counters > 0 ? .orange : .gray))
+          }
+        }
+      }
+      
+      Spacer()
+      
+      // Counter section
+      HStack(spacing: 8) {
+        // Minus button
+        Button(action: {
+          let newValue = max(0, counters - 1)
+          onCountersChanged(newValue)
+        }) {
+          Image(systemName: "minus.circle.fill")
+            .font(.system(size: 24))
+            .foregroundColor(counters > 0 ? .red : .gray.opacity(0.5))
+        }
+        .disabled(counters <= 0)
+        
+        // Counter display
+        Text("\(counters)")
+          .font(.system(size: 20, weight: .bold, design: .rounded))
+          .foregroundColor(counters >= 10 ? .red : .white)
+          .frame(minWidth: 30)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(
+            RoundedRectangle(cornerRadius: 8)
+              .fill(counters >= 10 ? Color.red.opacity(0.2) : Color.gray.opacity(0.2))
+              .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                  .stroke(counters >= 10 ? Color.red : Color.gray.opacity(0.5), lineWidth: 1)
+              )
+          )
+        
+        // Plus button
+        Button(action: {
+          let newValue = counters + 1
+          onCountersChanged(newValue)
+        }) {
+          Image(systemName: "plus.circle.fill")
+            .font(.system(size: 24))
+            .foregroundColor(.green)
+        }
+      }
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .background(
+      RoundedRectangle(cornerRadius: 12)
+        .fill(Color.black.opacity(0.4))
+        .overlay(
+          RoundedRectangle(cornerRadius: 12)
+            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    )
+  }
+}
+
+// MARK: - Legacy Large Cards (keeping for reference but not used)
 struct ModernCommanderDamageCard: View {
   let opponent: Player
   let damage: Int

@@ -322,6 +322,7 @@ struct VerticalPlayerView: View {
           CommanderDamageOverlay(
             player: $player,
             allPlayers: allPlayers,
+            playerOrientation: orientation, // Add orientation parameter
             onDismiss: {
               withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 showCommanderDamageOverlay = false

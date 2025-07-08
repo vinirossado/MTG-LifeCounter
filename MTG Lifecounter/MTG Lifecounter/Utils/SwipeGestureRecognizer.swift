@@ -15,7 +15,6 @@ class SwipeGestureRecognizer: UIGestureRecognizer {
     var onGestureRecognized: ((CGPoint, CGVector, CGFloat) -> Void)?
     
     // MARK: - Touch Handling
-    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         
