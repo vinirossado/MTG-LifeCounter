@@ -118,7 +118,6 @@ struct CommanderDamageOverlay: View {
 
   private var commanderDamageSection: some View {
     VStack(spacing: 16) {
-      commanderDamageSectionHeader
       commanderDamageCards
     }
   }

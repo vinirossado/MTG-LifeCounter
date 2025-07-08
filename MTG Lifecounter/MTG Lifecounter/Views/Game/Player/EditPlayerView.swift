@@ -53,21 +53,7 @@ struct EditPlayerView: View {
         return isLandscape ? 24 : 24
     }
     
-    // Dynamic button properties
-    private var buttonWidth: CGFloat {
-        if isIPad { return 160 }
-        return isLandscape ? 120 : 100
-    }
-    
-    private var buttonSpacing: CGFloat {
-        if isIPad { return 40 }
-        return isLandscape ? 30 : 20
-    }
-    
-    private var buttonVerticalPadding: CGFloat {
-        if isIPad { return 18 }
-        return 14
-    }
+
     
     // Background color based on color scheme
     private var backgroundColor: Color {
@@ -153,17 +139,12 @@ struct EditPlayerView: View {
                             // Adaptive layout for landscape mode
                             if isLandscape {
                                 // Landscape layout
-                                HStack(alignment: .top, spacing: 20) {
-                                    VStack(spacing: 20) {
-                                        // Input field section
-                                        mtgPlayerInputSection()
-                                        
-                                        // Commander section
-                                        mtgCommanderSection()
-                                    }
+                                VStack(alignment: .center, spacing: 20) {
+                                    // Input field section
+                                    mtgPlayerInputSection()
                                     
-                                    // Button section
-                                    mtgButtonSection()
+                                    // Commander section
+                                    mtgCommanderSection()
                                 }
                                 .padding(.horizontal, horizontalPadding)
                                 .padding(.bottom, verticalPadding)
@@ -177,9 +158,6 @@ struct EditPlayerView: View {
                                     mtgCommanderSection()
                                     
                                     Spacer(minLength: isIPad ? 40 : 20)
-                                    
-                                    // Button section
-                                    mtgButtonSection()
                                 }
                                 .padding(.horizontal, horizontalPadding)
                                 .padding(.bottom, verticalPadding)
@@ -246,6 +224,16 @@ struct EditPlayerView: View {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                     updateOrientation()
+                }
+                .onChange(of: playerName) {_, newValue in
+                    // Auto-save player name changes
+                    if !newValue.isEmpty && newValue != player.name {
+                        player.name = newValue
+                    }
+                }
+                .onChange(of: player.useCommanderAsBackground) {_, _ in
+                    // Auto-save commander background toggle changes
+                    // The binding already updates the player object automatically
                 }
             }
         }
@@ -530,80 +518,4 @@ struct EditPlayerView: View {
         }
     }
 
-    // MTG-themed button section
-    private func mtgButtonSection() -> some View {
-        HStack(spacing: buttonSpacing) {
-            // Cancel Button (Counterspell style)
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "xmark.shield.fill")
-                        .font(.system(size: 16, weight: .medium))
-                    Text("Dismiss")
-                        .font(.system(size: isIPad ? 20 : 16, weight: .semibold, design: .serif))
-                }
-                .foregroundColor(.white)
-                .frame(minWidth: buttonWidth)
-                .padding(.vertical, buttonVerticalPadding)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.gray.opacity(0.7), Color.gray.opacity(0.5)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                        )
-                )
-                .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
-            }
-            .buttonStyle(MTGButtonStyle())
-            
-            // Save Button (Enchantment style)
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    if !playerName.isEmpty {
-                        player.name = playerName
-                    }
-                    presentationMode.wrappedValue.dismiss()
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 16, weight: .medium))
-                    Text("Bind Identity")
-                        .font(.system(size: isIPad ? 20 : 16, weight: .semibold, design: .serif))
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, buttonVerticalPadding)
-                .foregroundColor(.white)
-                .frame(minWidth: buttonWidth)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.green.opacity(0.8), Color.green.opacity(0.6)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
-                )
-                .shadow(color: Color.green.opacity(0.4), radius: 6, x: 0, y: 3)
-            }
-            .buttonStyle(MTGButtonStyle())
-        }
-        .padding(.vertical, isIPad ? 20 : 10)
-        .frame(maxWidth: isLandscape && !isIPad ? nil : .infinity, alignment: .center)
-    }
 }

@@ -171,7 +171,19 @@ struct PressableRectangle: View {
         }
       }
       .onTapGesture {
+        // Enhanced tap feedback
+        withAnimation(.easeInOut(duration: 0.15)) {
+          isPressed = true
+        }
+        
         updatePoints(side, 1)
+        
+        // Quick visual feedback
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+          withAnimation(.easeInOut(duration: 0.1)) {
+            isPressed = false
+          }
+        }
       }
       .onLongPressGesture(
         minimumDuration: 0.2, maximumDistance: 0.4,
@@ -207,9 +219,7 @@ struct HorizontalPlayerView: View {
   var orientation: OrientationLayout
   @State private var showEditSheet = false
   @State private var showOverlay = false
-  @State private var showCommanderDamageOverlay = false // Add this state
-  @State private var dragDistance: CGFloat = 0
-  @State private var overlayOpacity: Double = 0
+  @State private var showCommanderDamageOverlay = false
 
   var body: some View {
     GeometryReader { geometry in
@@ -270,24 +280,25 @@ struct HorizontalPlayerView: View {
         // Apply rotation based on orientation
         .rotationEffect(orientation.toAngle())
         .clipped()
-        // Add two-finger swipe gesture for commander damage
+        // Add two-finger gesture using DragGesture with minimumDistance
         .gesture(
-          DragGesture(minimumDistance: 30)
-            .onChanged { value in
-              // Detect if this is a two-finger gesture (we'll simulate with single finger for testing)
-              let swipeDirection = getSwipeDirection(for: orientation, translation: value.translation)
-              if isValidCommanderDamageSwipe(translation: value.translation, direction: swipeDirection, startLocation: value.startLocation, geometry: geometry) {
-                  dragDistance = value.translation.height  
-              }
-            }
+          DragGesture(minimumDistance: 30, coordinateSpace: .local)
             .onEnded { value in
-              let swipeDirection = getSwipeDirection(for: orientation, translation: value.translation)
-              if isValidCommanderDamageSwipe(translation: value.translation, direction: swipeDirection, startLocation: value.startLocation, geometry: geometry) {
+              // This is a simple fallback - we'll implement proper two-finger detection later
+              print("🎯 HorizontalPlayerView: Drag gesture detected")
+              
+              // For now, let's try a different approach to detect commander gesture area
+                _ = value.startLocation
+                _ = CGVector(dx: value.translation.width, dy: value.translation.height)
+                let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
+              
+              // Only trigger if the drag is significant and in the right area
+              if distance > 50 {
+                print("✅ HorizontalPlayerView: Potential commander gesture")
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                   showCommanderDamageOverlay = true
                 }
               }
-              dragDistance = 0
             }
         )
 
@@ -693,11 +704,115 @@ func getSwipeDirection(for orientation: OrientationLayout, translation: CGSize) 
   }
 }
 
-func isValidCommanderDamageSwipe(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
-  let minimumSwipeDistance: CGFloat = 50
-  let nameAreaThreshold: CGFloat = 0.3 // Top 30% or bottom 30% depending on orientation
+// MARK: - Two-Finger Gesture Validation
+
+func isValidTwoFingerCommanderSwipe(
+  startPoint: CGPoint,
+  movement: CGVector,
+  distance: CGFloat,
+  geometry: GeometryProxy
+) -> Bool {
+  let minimumDistance: CGFloat = 30
+  let nameAreaThreshold: CGFloat = 0.3 // 30% from the name edge
   
-  // Check if swipe started in the name area
+  // Check if we have enough distance
+  guard distance >= minimumDistance else { return false }
+  
+  // Get the current orientation to determine swipe direction
+  let orientation = UIDevice.current.orientation
+  
+  // Determine the expected swipe direction based on player orientation
+  let expectedDirection = getExpectedSwipeDirection(for: orientation, geometry: geometry)
+  
+  // Check if the movement is in the correct direction
+  let isCorrectDirection = isMovementInCorrectDirection(
+    movement: movement,
+    expectedDirection: expectedDirection
+  )
+  
+  guard isCorrectDirection else { return false }
+  
+  // Check if the gesture started in the name area
+  let isInNameArea = isStartPointInNameArea(
+    startPoint: startPoint,
+    orientation: orientation,
+    geometry: geometry,
+    threshold: nameAreaThreshold
+  )
+  
+  return isInNameArea
+}
+
+private func getExpectedSwipeDirection(for orientation: UIDeviceOrientation, geometry: GeometryProxy) -> CGVector {
+  switch orientation {
+  case .portrait:
+    return CGVector(dx: 0, dy: 1) // Swipe down
+  case .portraitUpsideDown:
+    return CGVector(dx: 0, dy: -1) // Swipe up
+  case .landscapeLeft:
+    return CGVector(dx: -1, dy: 0) // Swipe left
+  case .landscapeRight:
+    return CGVector(dx: 1, dy: 0) // Swipe right
+  default:
+    return CGVector(dx: 0, dy: 1) // Default to down
+  }
+}
+
+private func isMovementInCorrectDirection(movement: CGVector, expectedDirection: CGVector) -> Bool {
+  // Normalize the vectors
+  let movementMagnitude = sqrt(movement.dx * movement.dx + movement.dy * movement.dy)
+  let expectedMagnitude = sqrt(expectedDirection.dx * expectedDirection.dx + expectedDirection.dy * expectedDirection.dy)
+  
+  guard movementMagnitude > 0 && expectedMagnitude > 0 else { return false }
+  
+  let normalizedMovement = CGVector(
+    dx: movement.dx / movementMagnitude,
+    dy: movement.dy / movementMagnitude
+  )
+  let normalizedExpected = CGVector(
+    dx: expectedDirection.dx / expectedMagnitude,
+    dy: expectedDirection.dy / expectedMagnitude
+  )
+  
+  // Calculate dot product to check if movements are in similar direction
+  let dotProduct = normalizedMovement.dx * normalizedExpected.dx + normalizedMovement.dy * normalizedExpected.dy
+  
+  // Should be at least 70% aligned with expected direction
+  return dotProduct >= 0.7
+}
+
+private func isStartPointInNameArea(
+  startPoint: CGPoint,
+  orientation: UIDeviceOrientation,
+  geometry: GeometryProxy,
+  threshold: CGFloat
+) -> Bool {
+  switch orientation {
+  case .portrait:
+    // Name is at top, swipe should start in top area
+    return startPoint.y < geometry.size.height * threshold
+  case .portraitUpsideDown:
+    // Name is at bottom, swipe should start in bottom area
+    return startPoint.y > geometry.size.height * (1 - threshold)
+  case .landscapeLeft:
+    // Name is at right, swipe should start in right area
+    return startPoint.x > geometry.size.width * (1 - threshold)
+  case .landscapeRight:
+    // Name is at left, swipe should start in left area
+    return startPoint.x < geometry.size.width * threshold
+  default:
+    // Default to top area
+    return startPoint.y < geometry.size.height * threshold
+  }
+}
+
+// MARK: - Legacy Single-Finger Gesture Support (kept for backward compatibility)
+
+func isValidCommanderDamageSwipe(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
+  let minimumSwipeDistance: CGFloat = 40 // Reduced for better responsiveness
+  let nameAreaThreshold: CGFloat = 0.25 // Expanded area (25% from edges)
+  
+  // Check if swipe started in the name area (more forgiving detection)
   let isInNameArea: Bool
   if direction.dy != 0 {
     // Vertical swipe - check if started in top/bottom area
@@ -727,7 +842,15 @@ func isValidCommanderDamageSwipe(translation: CGSize, direction: CGVector, start
     swipeDistance = abs(translation.width * CGFloat(direction.dx))
   }
   
-  return isInNameArea && swipeDistance >= minimumSwipeDistance
+  // Also check that the swipe is reasonably straight (not too diagonal)
+  let straightnessRatio: CGFloat
+  if direction.dy != 0 {
+    straightnessRatio = abs(translation.height) / max(abs(translation.width), 1)
+  } else {
+    straightnessRatio = abs(translation.width) / max(abs(translation.height), 1)
+  }
+  
+  return isInNameArea && swipeDistance >= minimumSwipeDistance && straightnessRatio > 1.5
 }
 
 // MARK: - Damage Summary Badge

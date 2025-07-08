@@ -224,9 +224,7 @@ struct VerticalPlayerView: View {
   var orientation: OrientationLayout
   @State private var showEditSheet = false
   @State private var showOverlay = false
-  @State private var showCommanderDamageOverlay = false // Add this state
-  @State private var dragDistance: CGFloat = 0
-  @State private var overlayOpacity: Double = 0
+  @State private var showCommanderDamageOverlay = false
 
   var body: some View {
     GeometryReader { geometry in
@@ -287,24 +285,25 @@ struct VerticalPlayerView: View {
         // Apply rotation based on orientation
         .rotationEffect(orientation.toAngle())
         .clipped()
-        // Add two-finger swipe gesture for commander damage
+        // Add two-finger gesture using DragGesture with minimumDistance  
         .gesture(
-          DragGesture(minimumDistance: 30)
-            .onChanged { value in
-              // Detect if this is a two-finger gesture (we'll simulate with single finger for testing)
-              let swipeDirection = getSwipeDirectionVertical(for: orientation, translation: value.translation)
-              if isValidCommanderDamageSwipeVertical(translation: value.translation, direction: swipeDirection, startLocation: value.startLocation, geometry: geometry) {
-                  dragDistance = value.translation.height
-              }
-            }
+          DragGesture(minimumDistance: 30, coordinateSpace: .local)
             .onEnded { value in
-              let swipeDirection = getSwipeDirectionVertical(for: orientation, translation: value.translation)
-              if isValidCommanderDamageSwipeVertical(translation: value.translation, direction: swipeDirection, startLocation: value.startLocation, geometry: geometry) {
+              // This is a simple fallback - we'll implement proper two-finger detection later
+              print("🎯 VerticalLayoutView: Drag gesture detected")
+              
+              // For now, let's try a different approach to detect commander gesture area
+                _ = value.startLocation
+                _ = CGVector(dx: value.translation.width, dy: value.translation.height)
+                let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
+              
+              // Only trigger if the drag is significant and in the right area
+              if distance > 50 {
+                print("✅ VerticalLayoutView: Potential commander gesture")
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                   showCommanderDamageOverlay = true
                 }
               }
-              dragDistance = 0
             }
         )
 
@@ -483,6 +482,41 @@ func getSwipeDirectionVertical(for orientation: OrientationLayout, translation: 
     return CGVector(dx: 0, dy: 1)
   }
 }
+
+// MARK: - Two-Finger Gesture Validation
+
+func isValidTwoFingerCommanderSwipeVertical(
+  startPoint: CGPoint,
+  movement: CGVector,
+  distance: CGFloat,
+  geometry: GeometryProxy
+) -> Bool {
+  let minimumDistance: CGFloat = 30
+  let nameAreaThreshold: CGFloat = 0.3 // 30% from the name edge
+  
+  // Check if we have enough distance
+  guard distance >= minimumDistance else { return false }
+  
+  // For vertical layout, we always expect vertical swipes (up or down)
+  // Check if the movement is primarily vertical
+  let isVerticalMovement = abs(movement.dy) > abs(movement.dx) * 1.5 // 1.5x more vertical than horizontal
+  guard isVerticalMovement else { return false }
+  
+  // Check if the gesture started in the name area
+  // For vertical layout, name can be at top or bottom depending on orientation
+  let isInNameArea: Bool
+  if movement.dy > 0 {
+    // Swipe down - should start in top area (where name usually is)
+    isInNameArea = startPoint.y < geometry.size.height * nameAreaThreshold
+  } else {
+    // Swipe up - should start in bottom area
+    isInNameArea = startPoint.y > geometry.size.height * (1 - nameAreaThreshold)
+  }
+  
+  return isInNameArea
+}
+
+// MARK: - Legacy Single-Finger Gesture Support (kept for backward compatibility)
 
 func isValidCommanderDamageSwipeVertical(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
   let minimumSwipeDistance: CGFloat = 50

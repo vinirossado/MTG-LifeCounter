@@ -13,21 +13,31 @@ struct MTGTextField: View {
     let placeholder: String
     let fontSize: CGFloat
     let cornerRadius: CGFloat
+    let onEditingChanged: ((Bool) -> Void)?
+    let onCommit: (() -> Void)?
     
     init(
         text: Binding<String>,
         placeholder: String = "",
         fontSize: CGFloat = 22,
-        cornerRadius: CGFloat = 12
+        cornerRadius: CGFloat = 12,
+        onEditingChanged: ((Bool) -> Void)? = nil,
+        onCommit: (() -> Void)? = nil
     ) {
         self._text = text
         self.placeholder = placeholder
         self.fontSize = fontSize
         self.cornerRadius = cornerRadius
+        self.onEditingChanged = onEditingChanged
+        self.onCommit = onCommit
     }
     
     var body: some View {
-        TextField(placeholder, text: $text)
+        TextField(placeholder, text: $text, onEditingChanged: { editing in
+            onEditingChanged?(editing)
+        }, onCommit: {
+            onCommit?()
+        })
             .font(.system(size: fontSize, weight: .medium, design: .serif))
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
