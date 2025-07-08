@@ -51,18 +51,75 @@ struct CommanderDamageOverlay: View {
 
   private var compactContentView: some View {
     VStack(spacing: 0) {
-      // Simple pull indicator
-      RoundedRectangle(cornerRadius: 2)
-        .fill(Color.white.opacity(0.6))
-        .frame(width: 40, height: 4)
-        .padding(.top, 8)
-        .padding(.bottom, 16)
+      // Enhanced header with title
+      VStack(spacing: 12) {
+        // Pull indicator
+        RoundedRectangle(cornerRadius: 2)
+          .fill(Color.white.opacity(0.6))
+          .frame(width: 40, height: 4)
+          .padding(.top, 8)
+        
+        // Title section
+        HStack(spacing: 8) {
+          Image(systemName: "crown.fill")
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(.red)
+          
+          Text("Commander Damage")
+            .font(.system(size: 18, weight: .bold))
+            .foregroundColor(.white)
+          
+          Spacer()
+          
+          // Quick reset button
+          Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+              resetAllDamage()
+            }
+          }) {
+            HStack(spacing: 4) {
+              Image(systemName: "arrow.counterclockwise")
+                .font(.system(size: 12, weight: .medium))
+              Text("Reset")
+                .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(.orange)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+              RoundedRectangle(cornerRadius: 6)
+                .fill(Color.orange.opacity(0.2))
+                .overlay(
+                  RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                )
+            )
+          }
+        }
+        .padding(.horizontal, 16)
+        
+        // Helper text
+        Text("Track damage from each opponent's commander")
+          .font(.system(size: 12, weight: .medium))
+          .foregroundColor(.white.opacity(0.7))
+          .padding(.horizontal, 16)
+      }
+      .padding(.bottom, 8)
       
       compactScrollContent
     }
     .background(
       RoundedRectangle(cornerRadius: 16)
-        .fill(Color.black.opacity(0.95))
+        .fill(
+          LinearGradient(
+            colors: [
+              Color.black.opacity(0.95),
+              Color.black.opacity(0.9)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+        )
         .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
     )
     .padding(.horizontal, 20)
@@ -71,29 +128,103 @@ struct CommanderDamageOverlay: View {
 
   private var compactScrollContent: some View {
     ScrollView {
-      VStack(spacing: 12) {
-        compactCommanderDamageSection
-//        compactPoisonCountersSection
+      LazyVStack(spacing: 16) {
+        // Check if there are any opponents
+        if otherPlayers.isEmpty {
+          VStack(spacing: 16) {
+            Image(systemName: "person.2.slash")
+              .font(.system(size: 40))
+              .foregroundColor(.gray.opacity(0.6))
+            
+            Text("No Other Players")
+              .font(.system(size: 16, weight: .semibold))
+              .foregroundColor(.white.opacity(0.8))
+            
+            Text("Commander damage is tracked between players in multiplayer games")
+              .font(.system(size: 12, weight: .medium))
+              .foregroundColor(.gray)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 20)
+          }
+          .padding(.vertical, 40)
+        } else {
+          // Quick actions section (if there are active damages)
+          if tempCommanderDamage.values.contains(where: { $0 > 0 }) {
+            quickActionsSection
+          }
+          
+          ForEach(otherPlayers) { opponent in
+            compactCommanderDamageCard(for: opponent)
+          }
+        }
       }
       .padding(.horizontal, 16)
-      .padding(.vertical, 8)
+      .padding(.vertical, 12)
     }
-    .frame(maxHeight: 350) // Reduced height for compactness
+    .frame(maxHeight: 450) // Increased for better content display
   }
-
-  private var compactCommanderDamageSection: some View {
-    VStack(spacing: 8) {
-      ForEach(otherPlayers) { opponent in
-        compactCommanderDamageCard(for: opponent)
+  
+  private var quickActionsSection: some View {
+    VStack(spacing: 12) {
+      HStack {
+        Image(systemName: "bolt.fill")
+          .font(.system(size: 12))
+          .foregroundColor(.yellow)
+        
+        Text("Quick Actions")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundColor(.white)
+        
+        Spacer()
+      }
+      
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          // Quick damage buttons
+          ForEach([1, 2, 3, 5, 10], id: \.self) { damage in
+            Button(action: {
+              addDamageToAll(damage)
+            }) {
+              HStack(spacing: 4) {
+                Image(systemName: "plus")
+                  .font(.system(size: 10, weight: .bold))
+                Text("\(damage)")
+                  .font(.system(size: 12, weight: .bold))
+              }
+              .foregroundColor(.white)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 6)
+              .background(
+                RoundedRectangle(cornerRadius: 8)
+                  .fill(Color.red.opacity(0.3))
+                  .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                      .stroke(Color.red.opacity(0.6), lineWidth: 1)
+                  )
+              )
+            }
+          }
+        }
+        .padding(.horizontal, 16)
       }
     }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
+    .background(
+      RoundedRectangle(cornerRadius: 12)
+        .fill(Color.black.opacity(0.3))
+        .overlay(
+          RoundedRectangle(cornerRadius: 12)
+            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    )
   }
 
   private func compactCommanderDamageCard(for opponent: Player) -> some View {
     let opponentIndex = otherPlayers.firstIndex { player in
       player.id == opponent.id
     } ?? 0
-    let animationDelay = Double(opponentIndex) * 0.1
+    let animationDelay = Double(opponentIndex) * 0.15 // Slightly longer delay for better effect
     
     return CompactCommanderDamageCard(
       opponent: opponent,
@@ -106,8 +237,9 @@ struct CommanderDamageOverlay: View {
     )
     .scaleEffect(animateAppear ? 1.0 : 0.9)
     .opacity(animateAppear ? 1.0 : 0.0)
+    .offset(y: animateAppear ? 0 : 20)
     .animation(
-      Animation.spring(response: 0.4, dampingFraction: 0.7).delay(animationDelay),
+      Animation.spring(response: 0.5, dampingFraction: 0.8).delay(animationDelay),
       value: animateAppear
     )
   }
@@ -134,6 +266,32 @@ struct CommanderDamageOverlay: View {
     tempCommanderDamage = player.commanderDamage
     tempPoisonCounters = player.poisonCounters
   }
+  
+  private func resetAllDamage() {
+    // Reset all commander damage for this player
+    tempCommanderDamage.removeAll()
+    player.commanderDamage.removeAll()
+    
+    // Haptic feedback
+    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+    impactFeedback.impactOccurred()
+  }
+  
+  private func addDamageToAll(_ damage: Int) {
+    // Add damage to all opponents with existing damage
+    for opponent in otherPlayers {
+      let currentDamage = tempCommanderDamage[opponent.id.uuidString] ?? 0
+      if currentDamage > 0 {
+        let newDamage = min(currentDamage + damage, 99)
+        tempCommanderDamage[opponent.id.uuidString] = newDamage
+        player.commanderDamage[opponent.id.uuidString] = newDamage
+      }
+    }
+    
+    // Haptic feedback
+    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+    impactFeedback.impactOccurred()
+  }
 
   private func dismissWithAnimation() {
     withAnimation(Animation.easeIn(duration: 0.15)) {
@@ -152,114 +310,246 @@ struct CompactCommanderDamageCard: View {
   let damage: Int
   let onDamageChanged: (Int) -> Void
   
+  @State private var isPressed = false
+  @State private var showDamageChange = false
+  
   var body: some View {
-    HStack(spacing: 12) {
-      // Player info - more compact
-      HStack(spacing: 8) {
-        // Small avatar
-        Group {
-          if let artworkURL = opponent.commanderImageURL,
-             let url = URL(string: artworkURL) {
-            AsyncImage(url: url) { phase in
-              switch phase {
-              case .success(let image):
-                image
-                  .resizable()
-                  .aspectRatio(contentMode: .fill)
-                  .frame(width: 32, height: 32)
-                  .clipShape(Circle())
-              case .failure(_), .empty:
-                compactPlayerAvatar
-              @unknown default:
-                compactPlayerAvatar
+    HStack(spacing: 16) {
+      // Enhanced player info section
+      HStack(spacing: 12) {
+        // Player avatar with status indicator
+        ZStack {
+          Group {
+            if let artworkURL = opponent.commanderImageURL,
+               let url = URL(string: artworkURL) {
+              AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                  image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
+                    .overlay(
+                      Circle()
+                        .stroke(
+                          damage >= 21 ? Color.red : (damage > 0 ? Color.orange : Color.gray.opacity(0.5)),
+                          lineWidth: 2
+                        )
+                    )
+                case .failure(_), .empty:
+                  compactPlayerAvatar
+                @unknown default:
+                  compactPlayerAvatar
+                }
+              }
+            } else {
+              compactPlayerAvatar
+            }
+          }
+          
+          // Status indicator badge
+          if damage >= 21 {
+            VStack {
+              Spacer()
+              HStack {
+                Spacer()
+                Circle()
+                  .fill(Color.red)
+                  .frame(width: 12, height: 12)
+                  .overlay(
+                    Image(systemName: "exclamationmark")
+                      .font(.system(size: 6, weight: .bold))
+                      .foregroundColor(.white)
+                  )
+                  .shadow(color: .red.opacity(0.6), radius: 4)
               }
             }
-          } else {
-            compactPlayerAvatar
           }
         }
         
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
           Text(opponent.name)
-            .font(.system(size: 14, weight: .semibold))
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(.white)
             .lineLimit(1)
           
-          // Status indicator
-          HStack(spacing: 4) {
+          if let commanderName = opponent.commanderName {
+            Text(commanderName)
+              .font(.system(size: 11, weight: .medium))
+              .foregroundColor(.white.opacity(0.7))
+              .lineLimit(1)
+          }
+          
+          // Enhanced status indicator
+          HStack(spacing: 6) {
             Circle()
-              .fill(damage >= 21 ? Color.red : (damage > 0 ? Color.orange : Color.gray))
-              .frame(width: 4, height: 4)
+              .fill(damage >= 21 ? Color.red : (damage > 0 ? Color.orange : Color.green))
+              .frame(width: 6, height: 6)
+              .shadow(color: damage >= 21 ? Color.red.opacity(0.6) : Color.clear, radius: 2)
             
             Text(damage >= 21 ? "LETHAL" : (damage > 0 ? "DAMAGED" : "SAFE"))
-              .font(.system(size: 10, weight: .medium))
-              .foregroundColor(damage >= 21 ? .red : (damage > 0 ? .orange : .gray))
+              .font(.system(size: 10, weight: .bold))
+              .foregroundColor(damage >= 21 ? .red : (damage > 0 ? .orange : .green))
           }
         }
       }
       
       Spacer()
       
-      // Compact counter section
-      HStack(spacing: 8) {
-        // Minus button
+      // Enhanced counter section
+      HStack(spacing: 12) {
+        // Minus button with better feedback
         Button(action: {
           let newValue = max(0, damage - 1)
-          onDamageChanged(newValue)
+          withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            onDamageChanged(newValue)
+          }
+          
+          // Haptic feedback
+          let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+          impactFeedback.impactOccurred()
         }) {
           Image(systemName: "minus.circle.fill")
-            .font(.system(size: 24))
+            .font(.system(size: 28))
             .foregroundColor(damage > 0 ? .red : .gray.opacity(0.5))
+            .scaleEffect(isPressed ? 0.9 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
         .disabled(damage <= 0)
+        .simultaneousGesture(
+          DragGesture(minimumDistance: 0)
+            .onChanged { _ in isPressed = true }
+            .onEnded { _ in isPressed = false }
+        )
         
-        // Damage display
-        Text("\(damage)")
-          .font(.system(size: 20, weight: .bold, design: .rounded))
-          .foregroundColor(damage >= 21 ? .red : .white)
-          .frame(minWidth: 30)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 4)
-          .background(
-            RoundedRectangle(cornerRadius: 8)
-              .fill(damage >= 21 ? Color.red.opacity(0.2) : Color.gray.opacity(0.2))
-              .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(damage >= 21 ? Color.red : Color.gray.opacity(0.5), lineWidth: 1)
+        // Enhanced damage display
+        VStack(spacing: 2) {
+          Text("\(damage)")
+            .font(.system(size: 24, weight: .bold, design: .rounded))
+            .foregroundColor(damage >= 21 ? .red : .white)
+            .frame(minWidth: 35)
+          
+          Text("DMG")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundColor(.white.opacity(0.6))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+          RoundedRectangle(cornerRadius: 10)
+            .fill(
+              LinearGradient(
+                colors: damage >= 21 
+                  ? [Color.red.opacity(0.3), Color.red.opacity(0.2)]
+                  : [Color.gray.opacity(0.3), Color.gray.opacity(0.2)],
+                startPoint: .top,
+                endPoint: .bottom
               )
-          )
+            )
+            .overlay(
+              RoundedRectangle(cornerRadius: 10)
+                .stroke(
+                  damage >= 21 ? Color.red.opacity(0.8) : Color.gray.opacity(0.6),
+                  lineWidth: 1.5
+                )
+            )
+        )
+        .shadow(
+          color: damage >= 21 ? Color.red.opacity(0.4) : Color.clear,
+          radius: damage >= 21 ? 6 : 0
+        )
+        .scaleEffect(showDamageChange ? 1.1 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: showDamageChange)
         
-        // Plus button
+        // Plus button with better feedback
         Button(action: {
-          let newValue = damage + 1
-          onDamageChanged(newValue)
+          let newValue = min(damage + 1, 99) // Cap at 99
+          withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            onDamageChanged(newValue)
+            showDamageChange = true
+          }
+          
+          // Reset scale animation
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            showDamageChange = false
+          }
+          
+          // Special haptic feedback for lethal damage
+          if newValue >= 21 && damage < 21 {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+            impactFeedback.impactOccurred()
+          } else {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+          }
         }) {
           Image(systemName: "plus.circle.fill")
-            .font(.system(size: 24))
+            .font(.system(size: 28))
             .foregroundColor(.green)
+            .scaleEffect(isPressed ? 0.9 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         }
+        .simultaneousGesture(
+          DragGesture(minimumDistance: 0)
+            .onChanged { _ in isPressed = true }
+            .onEnded { _ in isPressed = false }
+        )
       }
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 12)
     .background(
-      RoundedRectangle(cornerRadius: 12)
-        .fill(Color.black.opacity(0.4))
+      RoundedRectangle(cornerRadius: 14)
+        .fill(
+          LinearGradient(
+            colors: [
+              Color.black.opacity(0.4),
+              Color.black.opacity(0.6)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          )
+        )
         .overlay(
-          RoundedRectangle(cornerRadius: 12)
-            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+          RoundedRectangle(cornerRadius: 14)
+            .stroke(
+              LinearGradient(
+                colors: [
+                  Color.white.opacity(0.2),
+                  Color.white.opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              ),
+              lineWidth: 1
+            )
         )
     )
+    .shadow(color: .black.opacity(0.3), radius: 6, x: 0, y: 3)
   }
   
   private var compactPlayerAvatar: some View {
     Circle()
-      .fill(Color.gray.opacity(0.6))
-      .frame(width: 32, height: 32)
+      .fill(
+        LinearGradient(
+          colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.8)],
+          startPoint: .topLeading,
+          endPoint: .bottomTrailing
+        )
+      )
+      .frame(width: 44, height: 44)
       .overlay(
         Image(systemName: "person.fill")
-          .font(.system(size: 16))
+          .font(.system(size: 18))
           .foregroundColor(.white.opacity(0.7))
+      )
+      .overlay(
+        Circle()
+          .stroke(
+            damage >= 21 ? Color.red : (damage > 0 ? Color.orange : Color.gray.opacity(0.5)),
+            lineWidth: 2
+          )
       )
   }
 }

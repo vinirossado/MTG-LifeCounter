@@ -50,6 +50,12 @@ struct PlayerToolsOverlay: View {
         .fill(Color.white.opacity(0.6))
         .frame(width: 40, height: 4)
         .padding(.top, 8)
+        .padding(.bottom, 12)
+      
+      // Helper text
+      Text("Tap to increase • Long press to decrease")
+        .font(.system(size: 11, weight: .medium))
+        .foregroundColor(.white.opacity(0.7))
         .padding(.bottom, 16)
 
       toolsScrollContent
@@ -83,56 +89,69 @@ struct PlayerToolsOverlay: View {
 
   private var toolsScrollContent: some View {
     ScrollView {
-      VStack(spacing: 16) {
-        countersSection
+      VStack(spacing: 20) {
+//        quickActionsSection
 
-        //        quickActionsSection
+        countersSection
 
         diceAndRandomSection
 
         gameStateSection
       }
       .padding(.horizontal, 16)
-      .padding(.vertical, 8)
+      .padding(.vertical, 12)
     }
-    .frame(maxHeight: 400)  // Compact height
+    .frame(maxHeight: 450)  // Slightly larger for better spacing
   }
 
   // MARK: - Quick Actions Section
-  private var quickActionsSection: some View {
-    VStack(spacing: 8) {
-      HStack {
-        Image(systemName: "bolt.fill")
-          .foregroundColor(.yellow)
-          .font(.system(size: 14))
-        Text("Quick Actions")
-          .font(.system(size: 14, weight: .semibold))
-          .foregroundColor(.white)
-        Spacer()
-      }
-
-      LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-        ToolButton(
-          icon: "heart.fill",
-          title: "+5 Life",
-          color: .green,
-          action: { adjustLife(5) }
-        )
-
-        ToolButton(
-          icon: "heart.slash",
-          title: "-5 Life",
-          color: .red,
-          action: { adjustLife(-5) }
-        )
-
-      }
-    }
-  }
+//  private var quickActionsSection: some View {
+//    VStack(spacing: 12) {
+//      HStack {
+//        Image(systemName: "bolt.fill")
+//          .foregroundColor(.yellow)
+//          .font(.system(size: 14))
+//        Text("Quick Life Changes")
+//          .font(.system(size: 14, weight: .semibold))
+//          .foregroundColor(.white)
+//        Spacer()
+//      }
+//
+//      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
+//        ToolButton(
+//          icon: "heart.fill",
+//          title: "+1",
+//          color: .green,
+//          action: { adjustLife(1) }
+//        )
+//        
+//        ToolButton(
+//          icon: "heart.fill",
+//          title: "+5",
+//          color: .green,
+//          action: { adjustLife(5) }
+//        )
+//
+//        ToolButton(
+//          icon: "heart.slash",
+//          title: "-1",
+//          color: .red,
+//          action: { adjustLife(-1) }
+//        )
+//        
+//        ToolButton(
+//          icon: "heart.slash",
+//          title: "-5",
+//          color: .red,
+//          action: { adjustLife(-5) }
+//        )
+//      }
+//    }
+//  }
 
   // MARK: - Dice & Random Section
   private var diceAndRandomSection: some View {
-    VStack(spacing: 8) {
+    VStack(spacing: 12) {
       HStack {
         Image(systemName: "dice.fill")
           .foregroundColor(.blue)
@@ -143,7 +162,7 @@ struct PlayerToolsOverlay: View {
         Spacer()
       }
 
-      LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
         ToolButton(
           icon: "dice",
           title: "D6",
@@ -179,21 +198,22 @@ struct PlayerToolsOverlay: View {
 
   // MARK: - Counters Section
   private var countersSection: some View {
-    VStack(spacing: 8) {
+    VStack(spacing: 12) {
       HStack {
         Image(systemName: "plus.circle.fill")
           .foregroundColor(.green)
           .font(.system(size: 14))
-        Text("Counters")
+        Text("Counters & Damage")
           .font(.system(size: 14, weight: .semibold))
           .foregroundColor(.white)
         Spacer()
       }
 
-      LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
+      // Commander damage row
+      VStack(spacing: 8) {
         ToolButton(
           icon: "crown.fill",
-          title: "Commander Dmg",
+          title: "Commander Damage",
           color: .red,
           action: {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -201,15 +221,32 @@ struct PlayerToolsOverlay: View {
             }
           }
         )
-
+      }
+      
+      // Counters grid - 2x2 layout for better spacing
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
         ToolButton(
-          icon: "drop.fill",
-          title: "+1 Poison",
-          color: .purple,
+          icon: "drop.triangle.fill",
+          title: "Poison: \(player.poisonCounters)",
+          color: player.poisonCounters >= 10 ? .red : .purple,
           action: { addPoison(1) },
           longPressAction: {
             if player.poisonCounters > 0 {
               player.poisonCounters = max(0, player.poisonCounters - 1)
+              let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+              impactFeedback.impactOccurred()
+            }
+          }
+        )
+
+        ToolButton(
+          icon: "bolt.circle.fill",
+          title: "Energy: \(player.energyCounters)",
+          color: .cyan,
+          action: { addEnergyCounters() },
+          longPressAction: {
+            if player.energyCounters > 0 {
+              player.energyCounters = max(0, player.energyCounters - 1)
               let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
               impactFeedback.impactOccurred()
             }
@@ -230,33 +267,25 @@ struct PlayerToolsOverlay: View {
         )
 
         ToolButton(
-          icon: "bolt.circle.fill",
-          title: "Energy: \(player.energyCounters)",
-          color: .cyan,
-          action: { addEnergyCounters() },
+          icon: "star.fill",
+          title: "Experience: \(player.experienceCounters)",
+          color: .yellow,
+          action: { addExperienceCounters() },
           longPressAction: {
-            if player.energyCounters > 0 {
-              player.energyCounters = max(0, player.energyCounters - 1)
+            if player.experienceCounters > 0 {
+              player.experienceCounters = max(0, player.experienceCounters - 1)
               let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
               impactFeedback.impactOccurred()
             }
           }
         )
-
-//        ToolButton(
-//          icon: "star.fill",
-//          title: "Experience: \(player.experienceCounters)",
-//          color: .yellow,
-//          action: { addExperienceCounters() }
-//        )
-
       }
     }
   }
 
   // MARK: - Game State Section
   private var gameStateSection: some View {
-    VStack(spacing: 8) {
+    VStack(spacing: 12) {
       HStack {
         Image(systemName: "gamecontroller.fill")
           .foregroundColor(.purple)
@@ -267,10 +296,10 @@ struct PlayerToolsOverlay: View {
         Spacer()
       }
 
-      LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 8) {
+      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 2), spacing: 12) {
         ToolButton(
           icon: "crown.fill",
-          title: player.isMonarch ? "👑 Monarch" : "Monarch",
+          title: player.isMonarch ? "👑 Monarch" : "Monarchy",
           color: player.isMonarch ? .yellow : .gray,
           action: { toggleMonarch() }
         )
@@ -295,21 +324,35 @@ struct PlayerToolsOverlay: View {
   private func resultDisplay(text: String, color: Color) -> some View {
     HStack {
       Text(text)
-        .font(.system(size: 16, weight: .bold))
-        .foregroundColor(color)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .font(.system(size: 18, weight: .bold))
+        .foregroundColor(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
         .background(
-          RoundedRectangle(cornerRadius: 8)
-            .fill(color.opacity(0.2))
+          RoundedRectangle(cornerRadius: 12)
+            .fill(
+              LinearGradient(
+                colors: [color.opacity(0.8), color.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              )
+            )
             .overlay(
-              RoundedRectangle(cornerRadius: 8)
-                .stroke(color, lineWidth: 1)
+              RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                  LinearGradient(
+                    colors: [color.opacity(0.9), color.opacity(0.7)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  ),
+                  lineWidth: 2
+                )
             )
         )
+        .shadow(color: color.opacity(0.5), radius: 8, x: 0, y: 4)
     }
     .scaleEffect(animateAppear ? 1.0 : 0.8)
-    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: animateAppear)
+    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: animateAppear)
   }
 
   // MARK: - Actions
@@ -419,6 +462,8 @@ struct ToolButton: View {
   let action: () -> Void
   let longPressAction: (() -> Void)?
   
+  @State private var isPressed = false
+  
   init(icon: String, title: String, color: Color, action: @escaping () -> Void, longPressAction: (() -> Void)? = nil) {
     self.icon = icon
     self.title = title
@@ -428,36 +473,61 @@ struct ToolButton: View {
   }
 
   var body: some View {
-    VStack(spacing: 4) {
-      HStack {
+    VStack(spacing: 6) {
+      HStack(spacing: 4) {
         Image(systemName: icon)
-          .font(.system(size: 20, weight: .medium))
+          .font(.system(size: 18, weight: .medium))
           .foregroundColor(color)
         
         // Show a small indicator if long press is available
         if longPressAction != nil {
           Image(systemName: "hand.point.up.fill")
-            .font(.system(size: 8))
-            .foregroundColor(color.opacity(0.6))
+            .font(.system(size: 7))
+            .foregroundColor(color.opacity(0.7))
         }
       }
 
       Text(title)
-        .font(.system(size: 10, weight: .medium))
+        .font(.system(size: 11, weight: .semibold))
         .foregroundColor(.white)
-        .lineLimit(1)
+        .lineLimit(2)
+        .multilineTextAlignment(.center)
         .minimumScaleFactor(0.8)
     }
-    .frame(height: 60)
+    .frame(height: 70)
     .frame(maxWidth: .infinity)
+    .padding(.vertical, 8)
+    .padding(.horizontal, 12)
     .background(
-      RoundedRectangle(cornerRadius: 10)
-        .fill(Color.black.opacity(0.4))
+      RoundedRectangle(cornerRadius: 12)
+        .fill(
+          LinearGradient(
+            colors: [
+              Color.black.opacity(0.5),
+              Color.black.opacity(0.3)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+        )
         .overlay(
-          RoundedRectangle(cornerRadius: 10)
-            .stroke(color.opacity(0.3), lineWidth: 1)
+          RoundedRectangle(cornerRadius: 12)
+            .stroke(
+              LinearGradient(
+                colors: [
+                  color.opacity(0.6),
+                  color.opacity(0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              ),
+              lineWidth: 1.5
+            )
         )
     )
+    .scaleEffect(isPressed ? 0.95 : 1.0)
+    .shadow(color: color.opacity(0.3), radius: isPressed ? 8 : 4, x: 0, y: 2)
+    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
     .onTapGesture {
       action()
     }
@@ -467,6 +537,19 @@ struct ToolButton: View {
         longPressAction()
       }
     }
+    .simultaneousGesture(
+      DragGesture(minimumDistance: 0)
+        .onChanged { _ in
+          withAnimation(.easeInOut(duration: 0.1)) {
+            isPressed = true
+          }
+        }
+        .onEnded { _ in
+          withAnimation(.easeInOut(duration: 0.1)) {
+            isPressed = false
+          }
+        }
+    )
   }
 }
 

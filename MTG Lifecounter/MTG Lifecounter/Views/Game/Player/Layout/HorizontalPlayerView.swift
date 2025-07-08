@@ -503,10 +503,10 @@ struct CommanderDamageIndicators: View {
   }
   
   private var indicatorView: some View {
-    VStack(spacing: 3) {
+    VStack(spacing: 4) {
       // Commander damage indicators - clearly show each source
       if !activeCommanderDamage.isEmpty {
-        VStack(spacing: 2) {
+        VStack(spacing: 3) {
           ForEach(Array(activeCommanderDamage.enumerated()), id: \.offset) { index, damageInfo in
             let (opponent, damage) = damageInfo
             enhancedCommanderDamageIndicator(opponent: opponent, damage: damage)
@@ -514,46 +514,65 @@ struct CommanderDamageIndicators: View {
         }
       }
       
-      // Counter indicators row
-      HStack(spacing: 4) {
-        // Poison counter indicator (if any)
-        if player.poisonCounters > 0 {
-          enhancedPoisonIndicator
+      // Counter indicators - arranged in rows for better visibility
+      VStack(spacing: 4) {
+        // First row - critical counters
+        HStack(spacing: 6) {
+          // Poison counter indicator (if any)
+          if player.poisonCounters > 0 {
+            enhancedPoisonIndicator
+          }
+          
+          // Storm count indicator
+          if player.stormCount > 0 {
+            enhancedCounterIndicator(
+              icon: "tornado",
+              label: "STM",
+              count: player.stormCount,
+              color: .gray
+            )
+          }
         }
         
-        // Energy counter indicator
-        if player.energyCounters > 0 {
-          enhancedCounterIndicator(
-            icon: "bolt.fill",
-            label: "E",
-            count: player.energyCounters,
-            color: .cyan
-          )
+        // Second row - resource counters
+        HStack(spacing: 6) {
+          // Energy counter indicator
+          if player.energyCounters > 0 {
+            enhancedCounterIndicator(
+              icon: "bolt.fill",
+              label: "E",
+              count: player.energyCounters,
+              color: .cyan
+            )
+          }
+          
+          // Experience counter indicator
+          if player.experienceCounters > 0 {
+            enhancedCounterIndicator(
+              icon: "star.fill",
+              label: "EXP",
+              count: player.experienceCounters,
+              color: .yellow
+            )
+          }
         }
         
-        // Experience counter indicator
-        if player.experienceCounters > 0 {
-          enhancedCounterIndicator(
-            icon: "star.fill",
-            label: "EXP",
-            count: player.experienceCounters,
-            color: .yellow
-          )
-        }
-        
-        // +1/+1 counter indicator
-        if player.plusOnePlusOneCounters > 0 {
-          enhancedCounterIndicator(
-            icon: "plus.square.fill",
-            label: "+1",
-            count: player.plusOnePlusOneCounters,
-            color: .green
-          )
+        // Third row - permanent counters
+        HStack(spacing: 6) {
+          // +1/+1 counter indicator
+          if player.plusOnePlusOneCounters > 0 {
+            enhancedCounterIndicator(
+              icon: "plus.square.fill",
+              label: "+1",
+              count: player.plusOnePlusOneCounters,
+              color: .green
+            )
+          }
         }
       }
       
       // State indicators row
-      HStack(spacing: 4) {
+      HStack(spacing: 6) {
         // Monarch indicator
         if player.isMonarch {
           enhancedStateIndicator(
@@ -569,16 +588,6 @@ struct CommanderDamageIndicators: View {
             icon: "shield.fill",
             label: "INIT",
             color: .blue
-          )
-        }
-        
-        // Storm count indicator
-        if player.stormCount > 0 {
-          enhancedCounterIndicator(
-            icon: "tornado",
-            label: "STM",
-            count: player.stormCount,
-            color: .gray
           )
         }
       }
@@ -676,8 +685,8 @@ struct CommanderDamageIndicators: View {
   
   private var enhancedPoisonIndicator: some View {
     HStack(spacing: 4) {
-      // Poison drop icon
-      Image(systemName: player.poisonCounters >= 10 ? "skull.fill" : "drop.fill")
+      // Poison drop icon - use different icon for lethal poison
+      Image(systemName: player.poisonCounters >= 10 ? "exclamationmark.triangle.fill" : "drop.triangle.fill")
         .font(.system(size: 12, weight: .bold))
         .foregroundColor(.white)
         .frame(width: 16)
@@ -686,97 +695,109 @@ struct CommanderDamageIndicators: View {
       Text("PSN")
         .font(.system(size: 9, weight: .black, design: .rounded))
         .foregroundColor(.white)
-        .frame(minWidth: 16)
+        .frame(minWidth: 18)
       
       // Counter amount
       Text("\(player.poisonCounters)")
         .font(.system(size: 12, weight: .black, design: .rounded))
         .foregroundColor(player.poisonCounters >= 10 ? .red : .white)
-        .frame(minWidth: 16)
+        .frame(minWidth: 18)
     }
-    .padding(.horizontal, 6)
-    .padding(.vertical, 3)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 5)
     .background(
       RoundedRectangle(cornerRadius: 8)
         .fill(
           player.poisonCounters >= 10 
             ? LinearGradient(colors: [Color.red.opacity(0.9), Color.red.opacity(0.7)], startPoint: .top, endPoint: .bottom)
-            : LinearGradient(colors: [Color.green.opacity(0.8), Color.green.opacity(0.6)], startPoint: .top, endPoint: .bottom)
+            : LinearGradient(colors: [Color.purple.opacity(0.9), Color.purple.opacity(0.7)], startPoint: .top, endPoint: .bottom)
         )
         .overlay(
           RoundedRectangle(cornerRadius: 8)
             .stroke(
-              player.poisonCounters >= 10 ? Color.red : Color.green,
-              lineWidth: player.poisonCounters >= 10 ? 2 : 1
+              player.poisonCounters >= 10 ? Color.red : Color.purple,
+              lineWidth: player.poisonCounters >= 10 ? 2 : 1.5
             )
         )
     )
     .shadow(
-      color: player.poisonCounters >= 10 ? Color.red.opacity(0.6) : Color.green.opacity(0.4),
-      radius: player.poisonCounters >= 10 ? 4 : 2,
+      color: player.poisonCounters >= 10 ? Color.red.opacity(0.6) : Color.purple.opacity(0.5),
+      radius: player.poisonCounters >= 10 ? 6 : 3,
       x: 0,
-      y: 1
+      y: 2
     )
-    .scaleEffect(player.poisonCounters >= 10 ? 1.05 : 1.0)
+    .scaleEffect(player.poisonCounters >= 10 ? 1.08 : 1.0)
     .animation(.easeInOut(duration: 0.2), value: player.poisonCounters >= 10)
   }
   
   // Generic counter indicator for energy, experience, +1/+1, etc.
   private func enhancedCounterIndicator(icon: String, label: String, count: Int, color: Color) -> some View {
-    HStack(spacing: 2) {
+    HStack(spacing: 3) {
       Image(systemName: icon)
-        .font(.system(size: 8, weight: .bold))
+        .font(.system(size: 10, weight: .bold))
         .foregroundColor(.white)
-        .frame(width: 12)
+        .frame(width: 14)
       
       Text(label)
-        .font(.system(size: 7, weight: .black, design: .rounded))
-        .foregroundColor(.white.opacity(0.8))
-        .frame(minWidth: 12)
+        .font(.system(size: 8, weight: .black, design: .rounded))
+        .foregroundColor(.white.opacity(0.9))
+        .frame(minWidth: 16)
       
       Text("\(count)")
-        .font(.system(size: 8, weight: .black, design: .rounded))
+        .font(.system(size: 10, weight: .black, design: .rounded))
         .foregroundColor(.white)
-        .frame(minWidth: 12)
+        .frame(minWidth: 14)
     }
-    .padding(.horizontal, 4)
-    .padding(.vertical, 2)
+    .padding(.horizontal, 6)
+    .padding(.vertical, 4)
     .background(
-      RoundedRectangle(cornerRadius: 4)
-        .fill(color.opacity(0.8))
+      RoundedRectangle(cornerRadius: 6)
+        .fill(
+          LinearGradient(
+            colors: [color.opacity(0.9), color.opacity(0.7)],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+        )
         .overlay(
-          RoundedRectangle(cornerRadius: 4)
-            .stroke(color, lineWidth: 0.5)
+          RoundedRectangle(cornerRadius: 6)
+            .stroke(color, lineWidth: 1)
         )
     )
-    .shadow(color: color.opacity(0.4), radius: 1, x: 0, y: 0.5)
+    .shadow(color: color.opacity(0.5), radius: 2, x: 0, y: 1)
   }
   
   // State indicator for monarch, initiative, etc.
   private func enhancedStateIndicator(icon: String, label: String, color: Color) -> some View {
-    HStack(spacing: 2) {
+    HStack(spacing: 3) {
       Image(systemName: icon)
-        .font(.system(size: 8, weight: .bold))
+        .font(.system(size: 10, weight: .bold))
         .foregroundColor(.white)
-        .frame(width: 12)
+        .frame(width: 14)
       
       Text(label)
-        .font(.system(size: 7, weight: .black, design: .rounded))
+        .font(.system(size: 8, weight: .black, design: .rounded))
         .foregroundColor(.white)
-        .frame(minWidth: 20)
+        .frame(minWidth: 24)
     }
-    .padding(.horizontal, 4)
-    .padding(.vertical, 2)
+    .padding(.horizontal, 6)
+    .padding(.vertical, 4)
     .background(
-      RoundedRectangle(cornerRadius: 4)
-        .fill(color.opacity(0.9))
+      RoundedRectangle(cornerRadius: 6)
+        .fill(
+          LinearGradient(
+            colors: [color.opacity(0.9), color.opacity(0.7)],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+        )
         .overlay(
-          RoundedRectangle(cornerRadius: 4)
-            .stroke(color, lineWidth: 0.5)
+          RoundedRectangle(cornerRadius: 6)
+            .stroke(color, lineWidth: 1)
         )
     )
-    .shadow(color: color.opacity(0.6), radius: 2, x: 0, y: 1)
-    .scaleEffect(1.05)
+    .shadow(color: color.opacity(0.6), radius: 3, x: 0, y: 1)
+    .scaleEffect(1.02)
     .animation(.easeInOut(duration: 0.2), value: true)
   }
 }
