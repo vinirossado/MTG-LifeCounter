@@ -20,7 +20,18 @@ public struct Player: Identifiable {
     public var commanderDamage: [String: Int] = [:] // Tracks damage from each opponent's commander by player name
     public var poisonCounters: Int = 0
     
-    public init(HP: Int, name: String, commanderName: String? = nil, commanderImageURL: String? = nil, commanderArtworkURL: String? = nil, commanderColors: [String]? = nil, commanderTypeLine: String? = nil, useCommanderAsBackground: Bool = false, commanderDamage: [String: Int] = [:], poisonCounters: Int = 0) {
+    // New MTG counters and states
+    public var energyCounters: Int = 0
+    public var experienceCounters: Int = 0
+    public var plusOnePlusOneCounters: Int = 0
+    public var isMonarch: Bool = false
+    public var hasInitiative: Bool = false
+    
+    // Global game state (these would ideally be in a separate GameState, but for now we'll track per player)
+    public var stormCount: Int = 0 // Storm count (resets each turn)
+    public var isDayTime: Bool = true // Day/Night cycle
+    
+    public init(HP: Int, name: String, commanderName: String? = nil, commanderImageURL: String? = nil, commanderArtworkURL: String? = nil, commanderColors: [String]? = nil, commanderTypeLine: String? = nil, useCommanderAsBackground: Bool = false, commanderDamage: [String: Int] = [:], poisonCounters: Int = 0, energyCounters: Int = 0, experienceCounters: Int = 0, plusOnePlusOneCounters: Int = 0, isMonarch: Bool = false, hasInitiative: Bool = false, stormCount: Int = 0, isDayTime: Bool = true) {
         self.HP = HP
         self.name = name
         self.commanderName = commanderName
@@ -31,6 +42,13 @@ public struct Player: Identifiable {
         self.useCommanderAsBackground = useCommanderAsBackground
         self.commanderDamage = commanderDamage
         self.poisonCounters = poisonCounters
+        self.energyCounters = energyCounters
+        self.experienceCounters = experienceCounters
+        self.plusOnePlusOneCounters = plusOnePlusOneCounters
+        self.isMonarch = isMonarch
+        self.hasInitiative = hasInitiative
+        self.stormCount = stormCount
+        self.isDayTime = isDayTime
     }
 }
 

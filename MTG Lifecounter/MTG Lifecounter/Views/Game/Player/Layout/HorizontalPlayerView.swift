@@ -219,7 +219,6 @@ struct HorizontalPlayerView: View {
   var orientation: OrientationLayout
   @State private var showEditSheet = false
   @State private var showOverlay = false
-  @State private var showCommanderDamageOverlay = false
 
   var body: some View {
     GeometryReader { geometry in
@@ -280,23 +279,22 @@ struct HorizontalPlayerView: View {
         // Apply rotation based on orientation
         .rotationEffect(orientation.toAngle())
         .clipped()
-        // Add single-finger swipe gesture using DragGesture with minimumDistance
+        // Add single-finger swipe gesture for Tools access
         .gesture(
           DragGesture(minimumDistance: 30, coordinateSpace: .local)
             .onEnded { value in
-              // Single-finger swipe gesture for commander damage
-              print("🎯 HorizontalPlayerView: Swipe gesture detected")
+              // Single-finger swipe gesture for Tools
+              print("🛠️ HorizontalPlayerView: Swipe gesture detected for Tools")
               
-              // For now, let's try a different approach to detect commander gesture area
                 _ = value.startLocation
                 _ = CGVector(dx: value.translation.width, dy: value.translation.height)
-                let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
+              let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
               
               // Only trigger if the drag is significant and in the right area
               if distance > 50 {
-                print("✅ HorizontalPlayerView: Potential commander gesture")
+                print("✅ HorizontalPlayerView: Opening Tools overlay")
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                  showCommanderDamageOverlay = true
+                  showOverlay = true
                 }
               }
             }
@@ -304,23 +302,13 @@ struct HorizontalPlayerView: View {
 
         // Player tools overlay
         if showOverlay {
-          PlayerToolsOverlay(onDismiss: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-              showOverlay = false
-            }
-          })
-          .transition(.move(edge: .bottom).combined(with: .opacity))
-        }
-        
-        // Commander damage overlay
-        if showCommanderDamageOverlay {
-          CommanderDamageOverlay(
+          PlayerToolsOverlay(
             player: $player,
             allPlayers: allPlayers,
-            playerOrientation: orientation, // Add orientation parameter
+            playerOrientation: orientation,
             onDismiss: {
               withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                showCommanderDamageOverlay = false
+                showOverlay = false
               }
             }
           )
@@ -369,7 +357,7 @@ struct HorizontalPlayerView: View {
       CommanderDamageIndicators(player: player, allPlayers: allPlayers, geometry: geometry, namePosition: namePosition)
       
       // Damage summary badge for quick overview
-      DamageSummaryBadge(player: player, allPlayers: allPlayers, namePosition: namePosition)
+//      DamageSummaryBadge(player: player, allPlayers: allPlayers, namePosition: namePosition)
     }
   }
 
@@ -408,7 +396,6 @@ struct HorizontalPlayerView: View {
 
   @ViewBuilder
   private func horizontalPlayerNameView(geometry: GeometryProxy, namePosition: PlayerNamePosition) -> some View {
-    // Player name - positioned on the "inner" side so each player can read it normally
     VStack {
       if namePosition.isTop {
         HStack {
@@ -489,7 +476,14 @@ struct CommanderDamageIndicators: View {
   
   // Check if we should show indicators
   private var shouldShow: Bool {
-    !activeCommanderDamage.isEmpty || player.poisonCounters > 0
+    !activeCommanderDamage.isEmpty || 
+    player.poisonCounters > 0 || 
+    player.energyCounters > 0 ||
+    player.experienceCounters > 0 ||
+    player.plusOnePlusOneCounters > 0 ||
+    player.isMonarch ||
+    player.hasInitiative ||
+    player.stormCount > 0
   }
   
   var body: some View {
@@ -520,9 +514,73 @@ struct CommanderDamageIndicators: View {
         }
       }
       
-      // Poison counter indicator (if any)
-      if player.poisonCounters > 0 {
-        enhancedPoisonIndicator
+      // Counter indicators row
+      HStack(spacing: 4) {
+        // Poison counter indicator (if any)
+        if player.poisonCounters > 0 {
+          enhancedPoisonIndicator
+        }
+        
+        // Energy counter indicator
+        if player.energyCounters > 0 {
+          enhancedCounterIndicator(
+            icon: "bolt.fill",
+            label: "E",
+            count: player.energyCounters,
+            color: .cyan
+          )
+        }
+        
+        // Experience counter indicator
+        if player.experienceCounters > 0 {
+          enhancedCounterIndicator(
+            icon: "star.fill",
+            label: "EXP",
+            count: player.experienceCounters,
+            color: .yellow
+          )
+        }
+        
+        // +1/+1 counter indicator
+        if player.plusOnePlusOneCounters > 0 {
+          enhancedCounterIndicator(
+            icon: "plus.square.fill",
+            label: "+1",
+            count: player.plusOnePlusOneCounters,
+            color: .green
+          )
+        }
+      }
+      
+      // State indicators row
+      HStack(spacing: 4) {
+        // Monarch indicator
+        if player.isMonarch {
+          enhancedStateIndicator(
+            icon: "crown.fill",
+            label: "MONARCH",
+            color: .yellow
+          )
+        }
+        
+        // Initiative indicator
+        if player.hasInitiative {
+          enhancedStateIndicator(
+            icon: "shield.fill",
+            label: "INIT",
+            color: .blue
+          )
+        }
+        
+        // Storm count indicator
+        if player.stormCount > 0 {
+          enhancedCounterIndicator(
+            icon: "tornado",
+            label: "STM",
+            count: player.stormCount,
+            color: .gray
+          )
+        }
       }
     }
     .rotationEffect(namePosition.rotation)
@@ -661,6 +719,65 @@ struct CommanderDamageIndicators: View {
     )
     .scaleEffect(player.poisonCounters >= 10 ? 1.05 : 1.0)
     .animation(.easeInOut(duration: 0.2), value: player.poisonCounters >= 10)
+  }
+  
+  // Generic counter indicator for energy, experience, +1/+1, etc.
+  private func enhancedCounterIndicator(icon: String, label: String, count: Int, color: Color) -> some View {
+    HStack(spacing: 2) {
+      Image(systemName: icon)
+        .font(.system(size: 8, weight: .bold))
+        .foregroundColor(.white)
+        .frame(width: 12)
+      
+      Text(label)
+        .font(.system(size: 7, weight: .black, design: .rounded))
+        .foregroundColor(.white.opacity(0.8))
+        .frame(minWidth: 12)
+      
+      Text("\(count)")
+        .font(.system(size: 8, weight: .black, design: .rounded))
+        .foregroundColor(.white)
+        .frame(minWidth: 12)
+    }
+    .padding(.horizontal, 4)
+    .padding(.vertical, 2)
+    .background(
+      RoundedRectangle(cornerRadius: 4)
+        .fill(color.opacity(0.8))
+        .overlay(
+          RoundedRectangle(cornerRadius: 4)
+            .stroke(color, lineWidth: 0.5)
+        )
+    )
+    .shadow(color: color.opacity(0.4), radius: 1, x: 0, y: 0.5)
+  }
+  
+  // State indicator for monarch, initiative, etc.
+  private func enhancedStateIndicator(icon: String, label: String, color: Color) -> some View {
+    HStack(spacing: 2) {
+      Image(systemName: icon)
+        .font(.system(size: 8, weight: .bold))
+        .foregroundColor(.white)
+        .frame(width: 12)
+      
+      Text(label)
+        .font(.system(size: 7, weight: .black, design: .rounded))
+        .foregroundColor(.white)
+        .frame(minWidth: 20)
+    }
+    .padding(.horizontal, 4)
+    .padding(.vertical, 2)
+    .background(
+      RoundedRectangle(cornerRadius: 4)
+        .fill(color.opacity(0.9))
+        .overlay(
+          RoundedRectangle(cornerRadius: 4)
+            .stroke(color, lineWidth: 0.5)
+        )
+    )
+    .shadow(color: color.opacity(0.6), radius: 2, x: 0, y: 1)
+    .scaleEffect(1.05)
+    .animation(.easeInOut(duration: 0.2), value: true)
   }
 }
 
@@ -809,152 +926,127 @@ private func isStartPointInNameArea(
 
 // MARK: - Legacy Single-Finger Gesture Support (kept for backward compatibility)
 
-func isValidCommanderDamageSwipe(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
-  let minimumSwipeDistance: CGFloat = 40 // Reduced for better responsiveness
-  let nameAreaThreshold: CGFloat = 0.25 // Expanded area (25% from edges)
-  
-  // Check if swipe started in the name area (more forgiving detection)
-  let isInNameArea: Bool
-  if direction.dy != 0 {
-    // Vertical swipe - check if started in top/bottom area
-    if direction.dy > 0 {
-      // Swipe down - should start in top area
-      isInNameArea = startLocation.y < geometry.size.height * nameAreaThreshold
-    } else {
-      // Swipe up - should start in bottom area  
-      isInNameArea = startLocation.y > geometry.size.height * (1 - nameAreaThreshold)
-    }
-  } else {
-    // Horizontal swipe - check if started in appropriate side area
-    if direction.dx > 0 {
-      // Swipe right - should start in left area
-      isInNameArea = startLocation.x < geometry.size.width * nameAreaThreshold
-    } else {
-      // Swipe left - should start in right area
-      isInNameArea = startLocation.x > geometry.size.width * (1 - nameAreaThreshold)
-    }
-  }
-  
-  // Check swipe distance in the correct direction
-  let swipeDistance: CGFloat
-  if direction.dy != 0 {
-    swipeDistance = abs(translation.height * CGFloat(direction.dy))
-  } else {
-    swipeDistance = abs(translation.width * CGFloat(direction.dx))
-  }
-  
-  // Also check that the swipe is reasonably straight (not too diagonal)
-  let straightnessRatio: CGFloat
-  if direction.dy != 0 {
-    straightnessRatio = abs(translation.height) / max(abs(translation.width), 1)
-  } else {
-    straightnessRatio = abs(translation.width) / max(abs(translation.height), 1)
-  }
-  
-  return isInNameArea && swipeDistance >= minimumSwipeDistance && straightnessRatio > 1.5
-}
+//func isValidCommanderDamageSwipe(translation: CGSize, direction: CGVector, startLocation: CGPoint, geometry: GeometryProxy) -> Bool {
+//  let minimumSwipeDistance: CGFloat = 40 // Reduced for better responsiveness
+//  let nameAreaThreshold: CGFloat = 0.25 // Expanded area (25% from edges)
+//  
+//  // Check if swipe started in the name area (more forgiving detection)
+//  let isInNameArea: Bool
+//  if direction.dy != 0 {
+//    // Vertical swipe - check if started in top/bottom area
+//    if direction.dy > 0 {
+//      // Swipe down - should start in top area
+//      isInNameArea = startLocation.y < geometry.size.height * nameAreaThreshold
+//    } else {
+//      // Swipe up - should start in bottom area  
+//      isInNameArea = startLocation.y > geometry.size.height * (1 - nameAreaThreshold)
+//    }
+//  } else {
+//    // Horizontal swipe - check if started in appropriate side area
+//    if direction.dx > 0 {
+//      // Swipe right - should start in left area
+//      isInNameArea = startLocation.x < geometry.size.width * nameAreaThreshold
+//    } else {
+//      // Swipe left - should start in right area
+//      isInNameArea = startLocation.x > geometry.size.width * (1 - nameAreaThreshold)
+//    }
+//  }
+//  
+//  // Check swipe distance in the correct direction
+//  let swipeDistance: CGFloat
+//  if direction.dy != 0 {
+//    swipeDistance = abs(translation.height * CGFloat(direction.dy))
+//  } else {
+//    swipeDistance = abs(translation.width * CGFloat(direction.dx))
+//  }
+//  
+//  // Also check that the swipe is reasonably straight (not too diagonal)
+//  let straightnessRatio: CGFloat
+//  if direction.dy != 0 {
+//    straightnessRatio = abs(translation.height) / max(abs(translation.width), 1)
+//  } else {
+//    straightnessRatio = abs(translation.width) / max(abs(translation.height), 1)
+//  }
+//  
+//  return isInNameArea && swipeDistance >= minimumSwipeDistance && straightnessRatio > 1.5
+//}
 
 // MARK: - Damage Summary Badge
-struct DamageSummaryBadge: View {
-  let player: Player
-  let allPlayers: [Player]
-  let namePosition: PlayerNamePosition
-  
-  // Calculate total commander damage
-  private var totalCommanderDamage: Int {
-    player.commanderDamage.values.reduce(0, +)
-  }
-  
-  // Check if player is in danger
-  private var isDangerous: Bool {
-    let hasLethalDamage = player.commanderDamage.values.contains { $0 >= 21 }
-    let hasLethalPoison = player.poisonCounters >= 10
-    return hasLethalDamage || hasLethalPoison
-  }
-  
-  // Check if should show badge
-  private var shouldShow: Bool {
-    totalCommanderDamage > 0 || player.poisonCounters > 0
-  }
-  
-  var body: some View {
-    if shouldShow {
-      VStack {
-        if namePosition.isTop {
-          badgeView
-            .padding(.top, 8)
-          Spacer()
-        } else {
-          Spacer()
-          badgeView
-            .padding(.bottom, 8)
-        }
-      }
-    }
-  }
-  
-  private var badgeView: some View {
-    HStack(spacing: 6) {
-      // Warning icon for dangerous states
-      if isDangerous {
-        Image(systemName: "exclamationmark.triangle.fill")
-          .font(.system(size: 12, weight: .bold))
-          .foregroundColor(.red)
-      }
-      
-      // Damage summary text
-      // VStack(spacing: 0) {
-      //   if totalCommanderDamage > 0 {
-      //     HStack(spacing: 2) {
-      //       Text("CMD")
-      //         .font(.system(size: 8, weight: .bold))
-      //         .foregroundColor(.white.opacity(0.8))
-      //       Text("\(totalCommanderDamage)")
-      //         .font(.system(size: 10, weight: .black))
-      //         .foregroundColor(isDangerous ? .red : .white)
-      //     }
-      //   }
-        
-      //   if player.poisonCounters > 0 {
-      //     HStack(spacing: 2) {
-      //       Text("PSN")
-      //         .font(.system(size: 8, weight: .bold))
-      //         .foregroundColor(.white.opacity(0.8))
-      //       Text("\(player.poisonCounters)")
-      //         .font(.system(size: 10, weight: .black))
-      //         .foregroundColor(player.poisonCounters >= 10 ? .red : .white)
-      //     }
-      //   }
-      // }
-    }
-    .padding(.horizontal, 8)
-    .padding(.vertical, 4)
-    .background(
-      RoundedRectangle(cornerRadius: 6)
-        .fill(
-          isDangerous 
-            ? LinearGradient(colors: [Color.red.opacity(0.8), Color.red.opacity(0.6)], startPoint: .top, endPoint: .bottom)
-            : LinearGradient(colors: [Color.black.opacity(0.7), Color.black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
-        )
-        .overlay(
-          RoundedRectangle(cornerRadius: 6)
-            .stroke(
-              isDangerous ? Color.red : Color.white.opacity(0.3),
-              lineWidth: isDangerous ? 1.5 : 1
-            )
-        )
-    )
-    .rotationEffect(namePosition.rotation)
-    .shadow(
-      color: isDangerous ? Color.red.opacity(0.4) : Color.black.opacity(0.3),
-      radius: isDangerous ? 3 : 2,
-      x: 0,
-      y: 1
-    )
-    .scaleEffect(isDangerous ? 1.1 : 1.0)
-    .animation(.easeInOut(duration: 0.2), value: isDangerous)
-  }
-}
+//struct DamageSummaryBadge: View {
+//  let player: Player
+//  let allPlayers: [Player]
+//  let namePosition: PlayerNamePosition
+//  
+//  // Calculate total commander damage
+//  private var totalCommanderDamage: Int {
+//    player.commanderDamage.values.reduce(0, +)
+//  }
+//  
+//  // Check if player is in danger
+//  private var isDangerous: Bool {
+//    let hasLethalDamage = player.commanderDamage.values.contains { $0 >= 21 }
+//    let hasLethalPoison = player.poisonCounters >= 10
+//    return hasLethalDamage || hasLethalPoison
+//  }
+//  
+//  // Check if should show badge
+//  private var shouldShow: Bool {
+//    totalCommanderDamage > 0 || player.poisonCounters > 0
+//  }
+//  
+//  var body: some View {
+//    if shouldShow {
+//      VStack {
+//        if namePosition.isTop {
+//          badgeView
+//            .padding(.top, 8)
+//          Spacer()
+//        } else {
+//          Spacer()
+//          badgeView
+//            .padding(.bottom, 8)
+//        }
+//      }
+//    }
+//  }
+//  
+////  private var badgeView: some View {
+////    HStack(spacing: 6) {
+////      // Warning icon for dangerous states
+////      if isDangerous {
+////        Image(systemName: "exclamationmark.triangle.fill")
+////          .font(.system(size: 12, weight: .bold))
+////          .foregroundColor(.red)
+////      }
+////    }
+////    .padding(.horizontal, 8)
+////    .padding(.vertical, 4)
+////    .background(
+////      RoundedRectangle(cornerRadius: 6)
+////        .fill(
+////          isDangerous 
+////            ? LinearGradient(colors: [Color.red.opacity(0.8), Color.red.opacity(0.6)], startPoint: .top, endPoint: .bottom)
+////            : LinearGradient(colors: [Color.black.opacity(0.7), Color.black.opacity(0.5)], startPoint: .top, endPoint: .bottom)
+////        )
+////        .overlay(
+////          RoundedRectangle(cornerRadius: 6)
+////            .stroke(
+////              isDangerous ? Color.red : Color.white.opacity(0.3),
+////              lineWidth: isDangerous ? 1.5 : 1
+////            )
+////        )
+////    )
+////    .rotationEffect(namePosition.rotation)
+////    .shadow(
+////      color: isDangerous ? Color.red.opacity(0.4) : Color.black.opacity(0.3),
+////      radius: isDangerous ? 3 : 2,
+////      x: 0,
+////      y: 1
+////    )
+////    .scaleEffect(isDangerous ? 1.1 : 1.0)
+////    .animation(.easeInOut(duration: 0.2), value: isDangerous)
+////  }
+//}
 
 // MARK: - Preview
 #Preview("Horizontal Player View") {

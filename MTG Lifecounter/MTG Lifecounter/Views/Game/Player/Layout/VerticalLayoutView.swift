@@ -224,7 +224,6 @@ struct VerticalPlayerView: View {
   var orientation: OrientationLayout
   @State private var showEditSheet = false
   @State private var showOverlay = false
-  @State private var showCommanderDamageOverlay = false
 
   var body: some View {
     GeometryReader { geometry in
@@ -285,23 +284,22 @@ struct VerticalPlayerView: View {
         // Apply rotation based on orientation
         .rotationEffect(orientation.toAngle())
         .clipped()
-        // Add single-finger swipe gesture using DragGesture with minimumDistance  
+        // Add single-finger swipe gesture for Tools access
         .gesture(
           DragGesture(minimumDistance: 30, coordinateSpace: .local)
             .onEnded { value in
-              // Single-finger swipe gesture for commander damage
-              print("🎯 VerticalLayoutView: Swipe gesture detected")
+              // Single-finger swipe gesture for Tools
+              print("🛠️ VerticalLayoutView: Swipe gesture detected for Tools")
               
-              // For now, let's try a different approach to detect commander gesture area
-                _ = value.startLocation
-                _ = CGVector(dx: value.translation.width, dy: value.translation.height)
-                let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
+              let startLocation = value.startLocation
+              let translation = CGVector(dx: value.translation.width, dy: value.translation.height)
+              let distance = sqrt(value.translation.width * value.translation.width + value.translation.height * value.translation.height)
               
               // Only trigger if the drag is significant and in the right area
               if distance > 50 {
-                print("✅ VerticalLayoutView: Potential commander gesture")
+                print("✅ VerticalLayoutView: Opening Tools overlay")
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                  showCommanderDamageOverlay = true
+                  showOverlay = true
                 }
               }
             }
@@ -309,23 +307,13 @@ struct VerticalPlayerView: View {
 
         // Player tools overlay
         if showOverlay {
-          PlayerToolsOverlay(onDismiss: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-              showOverlay = false
-            }
-          })
-          .transition(.move(edge: .bottom).combined(with: .opacity))
-        }
-        
-        // Commander damage overlay
-        if showCommanderDamageOverlay {
-          CommanderDamageOverlay(
+          PlayerToolsOverlay(
             player: $player,
             allPlayers: allPlayers,
-            playerOrientation: orientation, // Add orientation parameter
+            playerOrientation: orientation,
             onDismiss: {
               withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                showCommanderDamageOverlay = false
+                showOverlay = false
               }
             }
           )
@@ -373,9 +361,6 @@ struct VerticalPlayerView: View {
       
       // Commander damage and poison counter indicators
       CommanderDamageIndicators(player: player, allPlayers: allPlayers, geometry: geometry, namePosition: namePosition)
-      
-      // Damage summary badge for quick overview  
-      DamageSummaryBadge(player: player, allPlayers: allPlayers, namePosition: namePosition)
     }
   }
 

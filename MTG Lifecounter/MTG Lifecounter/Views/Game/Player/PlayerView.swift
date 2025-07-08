@@ -76,6 +76,7 @@ struct PlayerView: View {
         LowHealthWarningOverlay()
           .opacity(lowHealthPulse ? 0.8 : 0.3)
           .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: lowHealthPulse)
+          .allowsHitTesting(false) // Allow gestures to pass through
       }
     }
     .scaleEffect(isDying ? 0.95 : 1.0)
@@ -238,9 +239,39 @@ struct ParticleView: View {
 // MARK: - Low Health Warning Overlay
 struct LowHealthWarningOverlay: View {
   var body: some View {
-    Rectangle()
-      .stroke(Color.red, lineWidth: 3)
-      .background(Color.red.opacity(0.1))
-      .ignoresSafeArea()
+    ZStack {
+      // Subtle inner glow effect
+      RoundedRectangle(cornerRadius: 16)
+        .stroke(Color.red.opacity(0.4), lineWidth: 1)
+        .background(
+          RoundedRectangle(cornerRadius: 16)
+            .fill(Color.red.opacity(0.03))
+        )
+      
+      // Minimal corner indicators
+      VStack {
+        HStack {
+          subtleWarningDot
+          Spacer()
+          subtleWarningDot
+        }
+        Spacer()
+        HStack {
+          subtleWarningDot
+          Spacer()
+          subtleWarningDot
+        }
+      }
+      .padding(12)
+    }
+    .ignoresSafeArea()
+    .allowsHitTesting(false) // Ensure this overlay never blocks interactions
+  }
+  
+  private var subtleWarningDot: some View {
+    Circle()
+      .fill(Color.red.opacity(0.6))
+      .frame(width: 8, height: 8)
+      .shadow(color: .red.opacity(0.3), radius: 2, x: 0, y: 0)
   }
 }

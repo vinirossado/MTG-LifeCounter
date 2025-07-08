@@ -73,7 +73,7 @@ struct CommanderDamageOverlay: View {
     ScrollView {
       VStack(spacing: 12) {
         compactCommanderDamageSection
-        compactPoisonCountersSection
+//        compactPoisonCountersSection
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 8)
@@ -112,22 +112,22 @@ struct CommanderDamageOverlay: View {
     )
   }
 
-  private var compactPoisonCountersSection: some View {
-    CompactPoisonCounterCard(
-      counters: tempPoisonCounters,
-      onCountersChanged: { newValue in
-        tempPoisonCounters = newValue
-        // Apply changes immediately
-        player.poisonCounters = newValue
-      }
-    )
-    .scaleEffect(animateAppear ? 1.0 : 0.9)
-    .opacity(animateAppear ? 1.0 : 0.0)
-    .animation(
-      Animation.spring(response: 0.4, dampingFraction: 0.7).delay(Double(otherPlayers.count) * 0.1 + 0.1),
-      value: animateAppear
-    )
-  }
+//  private var compactPoisonCountersSection: some View {
+//    CompactPoisonCounterCard(
+//      counters: tempPoisonCounters,
+//      onCountersChanged: { newValue in
+//        tempPoisonCounters = newValue
+//        // Apply changes immediately
+//        player.poisonCounters = newValue
+//      }
+//    )
+//    .scaleEffect(animateAppear ? 1.0 : 0.9)
+//    .opacity(animateAppear ? 1.0 : 0.0)
+//    .animation(
+//      Animation.spring(response: 0.4, dampingFraction: 0.7).delay(Double(otherPlayers.count) * 0.1 + 0.1),
+//      value: animateAppear
+//    )
+//  }
 
   private func setupInitialValues() {
     // Initialize temp values with current player values using player IDs
@@ -265,95 +265,95 @@ struct CompactCommanderDamageCard: View {
 }
 
 // MARK: - Compact Poison Counter Card
-struct CompactPoisonCounterCard: View {
-  let counters: Int
-  let onCountersChanged: (Int) -> Void
-  
-  var body: some View {
-    HStack(spacing: 12) {
-      // Info section - compact
-      HStack(spacing: 8) {
-        Circle()
-          .fill(counters >= 10 ? Color.red : Color.green)
-          .frame(width: 32, height: 32)
-          .overlay(
-            Image(systemName: "drop.fill")
-              .font(.system(size: 16))
-              .foregroundColor(.white)
-          )
-        
-        VStack(alignment: .leading, spacing: 2) {
-          Text("Poison")
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundColor(.white)
-          
-          // Status indicator
-          HStack(spacing: 4) {
-            Circle()
-              .fill(counters >= 10 ? Color.red : (counters > 0 ? Color.orange : Color.gray))
-              .frame(width: 4, height: 4)
-            
-            Text(counters >= 10 ? "DEFEATED" : (counters > 0 ? "POISONED" : "HEALTHY"))
-              .font(.system(size: 10, weight: .medium))
-              .foregroundColor(counters >= 10 ? .red : (counters > 0 ? .orange : .gray))
-          }
-        }
-      }
-      
-      Spacer()
-      
-      // Counter section
-      HStack(spacing: 8) {
-        // Minus button
-        Button(action: {
-          let newValue = max(0, counters - 1)
-          onCountersChanged(newValue)
-        }) {
-          Image(systemName: "minus.circle.fill")
-            .font(.system(size: 24))
-            .foregroundColor(counters > 0 ? .red : .gray.opacity(0.5))
-        }
-        .disabled(counters <= 0)
-        
-        // Counter display
-        Text("\(counters)")
-          .font(.system(size: 20, weight: .bold, design: .rounded))
-          .foregroundColor(counters >= 10 ? .red : .white)
-          .frame(minWidth: 30)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 4)
-          .background(
-            RoundedRectangle(cornerRadius: 8)
-              .fill(counters >= 10 ? Color.red.opacity(0.2) : Color.gray.opacity(0.2))
-              .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(counters >= 10 ? Color.red : Color.gray.opacity(0.5), lineWidth: 1)
-              )
-          )
-        
-        // Plus button
-        Button(action: {
-          let newValue = counters + 1
-          onCountersChanged(newValue)
-        }) {
-          Image(systemName: "plus.circle.fill")
-            .font(.system(size: 24))
-            .foregroundColor(.green)
-        }
-      }
-    }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
-    .background(
-      RoundedRectangle(cornerRadius: 12)
-        .fill(Color.black.opacity(0.4))
-        .overlay(
-          RoundedRectangle(cornerRadius: 12)
-            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-        )
-    )
-  }
-}
+//struct CompactPoisonCounterCard: View {
+//  let counters: Int
+//  let onCountersChanged: (Int) -> Void
+//  
+//  var body: some View {
+//    HStack(spacing: 12) {
+//      // Info section - compact
+//      HStack(spacing: 8) {
+//        Circle()
+//          .fill(counters >= 10 ? Color.red : Color.green)
+//          .frame(width: 32, height: 32)
+//          .overlay(
+//            Image(systemName: "drop.fill")
+//              .font(.system(size: 16))
+//              .foregroundColor(.white)
+//          )
+//        
+//        VStack(alignment: .leading, spacing: 2) {
+//          Text("Poison")
+//            .font(.system(size: 14, weight: .semibold))
+//            .foregroundColor(.white)
+//          
+//          // Status indicator
+//          HStack(spacing: 4) {
+//            Circle()
+//              .fill(counters >= 10 ? Color.red : (counters > 0 ? Color.orange : Color.gray))
+//              .frame(width: 4, height: 4)
+//            
+//            Text(counters >= 10 ? "DEFEATED" : (counters > 0 ? "POISONED" : "HEALTHY"))
+//              .font(.system(size: 10, weight: .medium))
+//              .foregroundColor(counters >= 10 ? .red : (counters > 0 ? .orange : .gray))
+//          }
+//        }
+//      }
+//      
+//      Spacer()
+//      
+//      // Counter section
+//      HStack(spacing: 8) {
+//        // Minus button
+//        Button(action: {
+//          let newValue = max(0, counters - 1)
+//          onCountersChanged(newValue)
+//        }) {
+//          Image(systemName: "minus.circle.fill")
+//            .font(.system(size: 24))
+//            .foregroundColor(counters > 0 ? .red : .gray.opacity(0.5))
+//        }
+//        .disabled(counters <= 0)
+//        
+//        // Counter display
+//        Text("\(counters)")
+//          .font(.system(size: 20, weight: .bold, design: .rounded))
+//          .foregroundColor(counters >= 10 ? .red : .white)
+//          .frame(minWidth: 30)
+//          .padding(.horizontal, 8)
+//          .padding(.vertical, 4)
+//          .background(
+//            RoundedRectangle(cornerRadius: 8)
+//              .fill(counters >= 10 ? Color.red.opacity(0.2) : Color.gray.opacity(0.2))
+//              .overlay(
+//                RoundedRectangle(cornerRadius: 8)
+//                  .stroke(counters >= 10 ? Color.red : Color.gray.opacity(0.5), lineWidth: 1)
+//              )
+//          )
+//        
+//        // Plus button
+//        Button(action: {
+//          let newValue = counters + 1
+//          onCountersChanged(newValue)
+//        }) {
+//          Image(systemName: "plus.circle.fill")
+//            .font(.system(size: 24))
+//            .foregroundColor(.green)
+//        }
+//      }
+//    }
+//    .padding(.horizontal, 12)
+//    .padding(.vertical, 8)
+//    .background(
+//      RoundedRectangle(cornerRadius: 12)
+//        .fill(Color.black.opacity(0.4))
+//        .overlay(
+//          RoundedRectangle(cornerRadius: 12)
+//            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+//        )
+//    )
+//  }
+//}
 
 // MARK: - Legacy Large Cards (keeping for reference but not used)
 struct ModernCommanderDamageCard: View {
