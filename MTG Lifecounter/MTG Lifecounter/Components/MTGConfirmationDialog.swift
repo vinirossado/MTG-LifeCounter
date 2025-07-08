@@ -139,7 +139,7 @@ struct MTGConfirmationDialog: View {
                             )
                             .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
                         }
-                        .buttonStyle(MTGButtonStyle())
+                        .buttonStyle(MTGPressableButtonStyle())
                         
                         // Confirm button (powerful/destructive magic)
                         Button(action: {
@@ -172,7 +172,7 @@ struct MTGConfirmationDialog: View {
                             )
                             .shadow(color: Color.red.opacity(0.4), radius: 6, x: 0, y: 3)
                         }
-                        .buttonStyle(MTGButtonStyle())
+                        .buttonStyle(MTGPressableButtonStyle())
                     }
                     .padding(.horizontal, 20)
                 }
@@ -276,7 +276,7 @@ extension MTGConfirmationDialog {
 }
 
 // Custom button style for MTG-themed buttons
-struct MTGButtonStyle: ButtonStyle {
+struct MTGPressableButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)

@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct EditPlayerView: View {
     @Binding var player: Player
@@ -11,7 +10,6 @@ struct EditPlayerView: View {
     
     @State private var playerName: String = ""
     @State private var viewHeight: CGFloat = 0
-    @State private var orientation = UIDeviceOrientation.unknown
     @State private var isVisible = false
     @State private var mysticalGlow: Double = 0.3
     @State private var cardRotation: Double = 0
@@ -57,7 +55,7 @@ struct EditPlayerView: View {
     
     // Background color based on color scheme
     private var backgroundColor: Color {
-        colorScheme == .dark ? Color.darkNavyBackground : Color(UIColor.systemGroupedBackground)
+        colorScheme == .dark ? Color.darkNavyBackground : Color(.systemGroupedBackground)
     }
     
     // Text color based on color scheme
@@ -213,17 +211,11 @@ struct EditPlayerView: View {
                     // Initialize with current player name
                     playerName = player.name
                     
-                    // Set initial orientation
-                    updateOrientation()
-                    
                     // Entrance animations
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                         isVisible = true
                     }
                     
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                    updateOrientation()
                 }
                 .onChange(of: playerName) {_, newValue in
                     // Auto-save player name changes
@@ -240,11 +232,6 @@ struct EditPlayerView: View {
         .sheet(isPresented: $showCommanderSearch) {
             CommanderSearchView(player: $player, playerOrientation: playerOrientation)
         }
-    }
-        
-    // Helper method to track orientation changes
-    private func updateOrientation() {
-        orientation = UIDevice.current.orientation
     }
     
     // MTG-themed player input section
@@ -462,7 +449,7 @@ struct EditPlayerView: View {
                             )
                     )
                 }
-                .buttonStyle(MTGButtonStyle())
+                .buttonStyle(MTGPressableButtonStyle())
             }
             
             // Commander background toggle (only show if commander is selected)

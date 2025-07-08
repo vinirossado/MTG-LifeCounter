@@ -341,7 +341,7 @@ struct CommanderDetailView: View {
         )
         .shadow(color: Color.green.opacity(0.4), radius: 8, x: 0, y: 4)
       }
-      .buttonStyle(MTGButtonStyle())
+      .buttonStyle(MTGPressableButtonStyle())
     }
     .padding(.horizontal, isIPad ? 24 : 16)
     .padding(.bottom, isIPad ? 30 : 20)  // Added bottom padding

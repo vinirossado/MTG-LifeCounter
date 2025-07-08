@@ -209,13 +209,13 @@ struct ContentView: View {
     }
   }
   
-  private var gameFormats: [GameFormat] {
+  private var gameFormats: [LocalGameFormat] {
     [
-      GameFormat(name: "Commander", description: "100-card singleton", startingLife: 40, icon: "crown.fill", color: Color.MTG.gold),
-      GameFormat(name: "Standard", description: "Recent sets", startingLife: 20, icon: "star.fill", color: Color.MTG.blue),
-      GameFormat(name: "Modern", description: "2003 onwards", startingLife: 20, icon: "bolt.fill", color: Color.MTG.red),
-      GameFormat(name: "Pioneer", description: "2012 onwards", startingLife: 20, icon: "leaf.fill", color: Color.MTG.green),
-      GameFormat(name: "Legacy", description: "All cards", startingLife: 20, icon: "infinity", color: Color.MTG.white)
+      LocalGameFormat(name: "Commander", description: "100-card singleton", startingLife: 40, icon: "crown.fill", color: Color.MTG.gold),
+      LocalGameFormat(name: "Standard", description: "Recent sets", startingLife: 20, icon: "star.fill", color: Color.MTG.blue),
+      LocalGameFormat(name: "Modern", description: "2003 onwards", startingLife: 20, icon: "bolt.fill", color: Color.MTG.red),
+      LocalGameFormat(name: "Pioneer", description: "2012 onwards", startingLife: 20, icon: "leaf.fill", color: Color.MTG.green),
+      LocalGameFormat(name: "Legacy", description: "All cards", startingLife: 20, icon: "infinity", color: Color.MTG.white)
     ]
   }
   
@@ -293,7 +293,7 @@ struct ContentView: View {
 }
 
 // MARK: - Game Format Data Model
-private struct GameFormat {
+private struct LocalGameFormat {
   let name: String
   let description: String
   let startingLife: Int
@@ -303,7 +303,7 @@ private struct GameFormat {
 
 // MARK: - Game Format Card
 private struct GameFormatCard: View {
-  let format: GameFormat
+  let format: LocalGameFormat
   @State private var isHovered = false
   
   var body: some View {

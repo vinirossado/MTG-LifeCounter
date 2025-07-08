@@ -395,7 +395,7 @@ struct MTGPlayerLayout: View {
                 )
             }
         }
-        .buttonStyle(MTGButtonStyle())
+        .buttonStyle(MTGPressableButtonStyle())
         .onAppear {
             // Only animate if selected and reduce animation frequency
             if isSelected {
@@ -523,7 +523,7 @@ struct MTGLifePointsView: View {
             .scaleEffect(gameSettings.startingLife == points ? 1.05 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: gameSettings.startingLife)
           }
-          .buttonStyle(MTGButtonStyle())
+          .buttonStyle(MTGPressableButtonStyle())
         }
       }
       
@@ -608,7 +608,7 @@ struct MTGLifePointsView: View {
             .scaleEffect(canApplyCustomValue ? 1.0 : 0.95)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: canApplyCustomValue)
           }
-          .buttonStyle(MTGButtonStyle())
+          .buttonStyle(MTGPressableButtonStyle())
           .disabled(!canApplyCustomValue)
         }
       }
