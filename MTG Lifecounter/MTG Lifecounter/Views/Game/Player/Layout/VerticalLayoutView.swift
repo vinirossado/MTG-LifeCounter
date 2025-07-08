@@ -285,12 +285,12 @@ struct VerticalPlayerView: View {
         // Apply rotation based on orientation
         .rotationEffect(orientation.toAngle())
         .clipped()
-        // Add two-finger gesture using DragGesture with minimumDistance  
+        // Add single-finger swipe gesture using DragGesture with minimumDistance  
         .gesture(
           DragGesture(minimumDistance: 30, coordinateSpace: .local)
             .onEnded { value in
-              // This is a simple fallback - we'll implement proper two-finger detection later
-              print("🎯 VerticalLayoutView: Drag gesture detected")
+              // Single-finger swipe gesture for commander damage
+              print("🎯 VerticalLayoutView: Swipe gesture detected")
               
               // For now, let's try a different approach to detect commander gesture area
                 _ = value.startLocation
@@ -483,9 +483,9 @@ func getSwipeDirectionVertical(for orientation: OrientationLayout, translation: 
   }
 }
 
-// MARK: - Two-Finger Gesture Validation
+// MARK: - Swipe Gesture Validation
 
-func isValidTwoFingerCommanderSwipeVertical(
+func isValidCommanderSwipeVertical(
   startPoint: CGPoint,
   movement: CGVector,
   distance: CGFloat,
