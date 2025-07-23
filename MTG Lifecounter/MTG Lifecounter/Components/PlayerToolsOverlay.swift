@@ -104,51 +104,6 @@ struct PlayerToolsOverlay: View {
     .frame(maxHeight: 450)  // Slightly larger for better spacing
   }
 
-  // MARK: - Quick Actions Section
-//  private var quickActionsSection: some View {
-//    VStack(spacing: 12) {
-//      HStack {
-//        Image(systemName: "bolt.fill")
-//          .foregroundColor(.yellow)
-//          .font(.system(size: 14))
-//        Text("Quick Life Changes")
-//          .font(.system(size: 14, weight: .semibold))
-//          .foregroundColor(.white)
-//        Spacer()
-//      }
-//
-//      LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
-//        ToolButton(
-//          icon: "heart.fill",
-//          title: "+1",
-//          color: .green,
-//          action: { adjustLife(1) }
-//        )
-//        
-//        ToolButton(
-//          icon: "heart.fill",
-//          title: "+5",
-//          color: .green,
-//          action: { adjustLife(5) }
-//        )
-//
-//        ToolButton(
-//          icon: "heart.slash",
-//          title: "-1",
-//          color: .red,
-//          action: { adjustLife(-1) }
-//        )
-//        
-//        ToolButton(
-//          icon: "heart.slash",
-//          title: "-5",
-//          color: .red,
-//          action: { adjustLife(-5) }
-//        )
-//      }
-//    }
-//  }
-
   // MARK: - Dice & Random Section
   private var diceAndRandomSection: some View {
     VStack(spacing: 12) {

@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Player Data Model
 public struct Player: Identifiable, Codable {
-    public let id = UUID()
+    public var id = UUID()
     public var HP: Int
     public var name: String
     
@@ -20,6 +20,8 @@ public struct Player: Identifiable, Codable {
     public var commanderColors: [String]?
     public var commanderTypeLine: String?
     public var useCommanderAsBackground: Bool = false
+    public var hasPendingCommanderDamage: Bool = false
+    public var amountOfPendingCommanderDamage: Int = 0
     
     // Combat Tracking
     public var commanderDamage: [String: Int] = [:] // Tracks damage from each opponent's commander by player name

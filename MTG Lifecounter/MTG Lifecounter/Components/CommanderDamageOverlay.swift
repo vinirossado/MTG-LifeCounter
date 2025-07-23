@@ -18,6 +18,7 @@ struct CommanderDamageOverlay: View {
   @State private var tempCommanderDamage: [String: Int] = [:]
   @State private var tempPoisonCounters = 0
 
+
   // Filter out the current player from the list
   private var otherPlayers: [Player] {
     let currentPlayerId = player.id
@@ -32,23 +33,47 @@ struct CommanderDamageOverlay: View {
   }
 
   var body: some View {
+
     ZStack {
       backgroundView
-        .onTapGesture {
-          dismissWithAnimation()
-        }
+            .onTapGesture {
+                dismissWithAnimation()
+                applyCommanderDamageChanges()
+            }
 
       compactContentView
     }
     .rotationEffect(playerOrientation.toAngle()) // Apply player orientation
     .onAppear {
       setupInitialValues()
+
       withAnimation(Animation.spring(response: 0.4, dampingFraction: 0.8).delay(0.1)) {
         animateAppear = true
       }
     }
   }
-
+    
+    private func initializeTempCommanderDamage() {
+        for opponent in otherPlayers {
+            if tempCommanderDamage[opponent.id.uuidString] == nil {
+                tempCommanderDamage[opponent.id.uuidString] = player.commanderDamage[opponent.id.uuidString] ?? 0
+            }
+        }
+    }
+        
+    private func applyCommanderDamageChanges() {
+        if player.hasPendingCommanderDamage {
+            let oldTotalDamage = player.commanderDamage.values.reduce(0, +)
+            let newTotalDamage = tempCommanderDamage.values.reduce(0, +)
+            let damageDifference = newTotalDamage - oldTotalDamage
+            
+            player.commanderDamage = tempCommanderDamage
+            player.HP -= damageDifference
+            player.hasPendingCommanderDamage = false
+            player.amountOfPendingCommanderDamage = newTotalDamage
+        }
+    }
+    
   private var compactContentView: some View {
     VStack(spacing: 0) {
       // Enhanced header with title
@@ -71,30 +96,7 @@ struct CommanderDamageOverlay: View {
           
           Spacer()
           
-          // Quick reset button
-          Button(action: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-              resetAllDamage()
-            }
-          }) {
-            HStack(spacing: 4) {
-              Image(systemName: "arrow.counterclockwise")
-                .font(.system(size: 12, weight: .medium))
-              Text("Reset")
-                .font(.system(size: 12, weight: .medium))
-            }
-            .foregroundColor(.orange)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-              RoundedRectangle(cornerRadius: 6)
-                .fill(Color.orange.opacity(0.2))
-                .overlay(
-                  RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.orange.opacity(0.5), lineWidth: 1)
-                )
-            )
-          }
+
         }
         .padding(.horizontal, 16)
         
@@ -124,6 +126,8 @@ struct CommanderDamageOverlay: View {
     )
     .padding(.horizontal, 20)
     .padding(.bottom, 50)
+    .rotationEffect(playerOrientation.toAngle())
+
   }
 
   private var compactScrollContent: some View {
@@ -148,11 +152,6 @@ struct CommanderDamageOverlay: View {
           }
           .padding(.vertical, 40)
         } else {
-          // Quick actions section (if there are active damages)
-          if tempCommanderDamage.values.contains(where: { $0 > 0 }) {
-            quickActionsSection
-          }
-          
           ForEach(otherPlayers) { opponent in
             compactCommanderDamageCard(for: opponent)
           }
@@ -164,62 +163,6 @@ struct CommanderDamageOverlay: View {
     .frame(maxHeight: 450) // Increased for better content display
   }
   
-  private var quickActionsSection: some View {
-    VStack(spacing: 12) {
-      HStack {
-        Image(systemName: "bolt.fill")
-          .font(.system(size: 12))
-          .foregroundColor(.yellow)
-        
-        Text("Quick Actions")
-          .font(.system(size: 14, weight: .semibold))
-          .foregroundColor(.white)
-        
-        Spacer()
-      }
-      
-      ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
-          // Quick damage buttons
-          ForEach([1, 2, 3, 5, 10], id: \.self) { damage in
-            Button(action: {
-              addDamageToAll(damage)
-            }) {
-              HStack(spacing: 4) {
-                Image(systemName: "plus")
-                  .font(.system(size: 10, weight: .bold))
-                Text("\(damage)")
-                  .font(.system(size: 12, weight: .bold))
-              }
-              .foregroundColor(.white)
-              .padding(.horizontal, 12)
-              .padding(.vertical, 6)
-              .background(
-                RoundedRectangle(cornerRadius: 8)
-                  .fill(Color.red.opacity(0.3))
-                  .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                      .stroke(Color.red.opacity(0.6), lineWidth: 1)
-                  )
-              )
-            }
-          }
-        }
-        .padding(.horizontal, 16)
-      }
-    }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 12)
-    .background(
-      RoundedRectangle(cornerRadius: 12)
-        .fill(Color.black.opacity(0.3))
-        .overlay(
-          RoundedRectangle(cornerRadius: 12)
-            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-        )
-    )
-  }
-
   private func compactCommanderDamageCard(for opponent: Player) -> some View {
     let opponentIndex = otherPlayers.firstIndex { player in
       player.id == opponent.id
@@ -228,11 +171,22 @@ struct CommanderDamageOverlay: View {
     
     return CompactCommanderDamageCard(
       opponent: opponent,
-      damage: tempCommanderDamage[opponent.id.uuidString] ?? 0,
+      damage: tempCommanderDamage[opponent.id.uuidString] ?? (player.commanderDamage[opponent.id.uuidString] ?? 0),
       onDamageChanged: { newValue in
+          print(newValue)
         tempCommanderDamage[opponent.id.uuidString] = newValue
-        // Apply changes immediately
-        player.commanderDamage[opponent.id.uuidString] = newValue
+          
+          let hasChanges = tempCommanderDamage.contains {key, value in
+              print(key, "chegou akey")
+              print(value, "chegou avalue")
+              return value != (player.commanderDamage[key] ?? 0)
+          }
+          
+        player.hasPendingCommanderDamage = hasChanges;
+          
+          if hasChanges {
+              player.amountOfPendingCommanderDamage = tempCommanderDamage.values.reduce(0, +)
+          }
       }
     )
     .scaleEffect(animateAppear ? 1.0 : 0.9)
@@ -246,36 +200,22 @@ struct CommanderDamageOverlay: View {
 
   private func setupInitialValues() {
     // Initialize temp values with current player values using player IDs
-    tempCommanderDamage = player.commanderDamage
+//    tempCommanderDamage = player.commanderDamage
     tempPoisonCounters = player.poisonCounters
-  }
-  
-  private func resetAllDamage() {
-    // Reset all commander damage for this player
-    tempCommanderDamage.removeAll()
-    player.commanderDamage.removeAll()
-    
-    // Haptic feedback
-    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-    impactFeedback.impactOccurred()
-  }
-  
-  private func addDamageToAll(_ damage: Int) {
-    // Add damage to all opponents with existing damage
-    for opponent in otherPlayers {
-      let currentDamage = tempCommanderDamage[opponent.id.uuidString] ?? 0
-      if currentDamage > 0 {
-        let newDamage = min(currentDamage + damage, 99)
-        tempCommanderDamage[opponent.id.uuidString] = newDamage
-        player.commanderDamage[opponent.id.uuidString] = newDamage
-      }
-    }
-    
-    // Haptic feedback
-    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-    impactFeedback.impactOccurred()
-  }
+    initializeTempCommanderDamage()
 
+  }
+  
+//  private func resetAllDamage() {
+//    // Reset all commander damage for this player
+//    tempCommanderDamage.removeAll()
+//    player.commanderDamage.removeAll()
+//    
+//    // Haptic feedback
+//    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+//    impactFeedback.impactOccurred()
+//  }
+    
   private func dismissWithAnimation() {
     withAnimation(Animation.easeIn(duration: 0.15)) {
       animateAppear = false
@@ -363,18 +303,6 @@ struct CompactCommanderDamageCard: View {
               .foregroundColor(.white.opacity(0.7))
               .lineLimit(1)
           }
-          
-          // Enhanced status indicator
-          HStack(spacing: 6) {
-            Circle()
-              .fill(damage >= 21 ? Color.red : (damage > 0 ? Color.orange : Color.green))
-              .frame(width: 6, height: 6)
-              .shadow(color: damage >= 21 ? Color.red.opacity(0.6) : Color.clear, radius: 2)
-            
-            Text(damage >= 21 ? "LETHAL" : (damage > 0 ? "DAMAGED" : "SAFE"))
-              .font(.system(size: 10, weight: .bold))
-              .foregroundColor(damage >= 21 ? .red : (damage > 0 ? .orange : .green))
-          }
         }
       }
       
@@ -412,11 +340,7 @@ struct CompactCommanderDamageCard: View {
             .font(.system(size: 24, weight: .bold, design: .rounded))
             .foregroundColor(damage >= 21 ? .red : .white)
             .frame(minWidth: 35)
-          
-          Text("DMG")
-            .font(.system(size: 8, weight: .bold))
-            .foregroundColor(.white.opacity(0.6))
-        }
+
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(
