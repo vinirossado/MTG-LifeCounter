@@ -96,7 +96,6 @@ struct CommanderDamageOverlay: View {
           
           Spacer()
           
-
         }
         .padding(.horizontal, 16)
         
@@ -151,7 +150,7 @@ struct CommanderDamageOverlay: View {
               .padding(.horizontal, 20)
           }
           .padding(.vertical, 40)
-        } else {
+        } else {   
           ForEach(otherPlayers) { opponent in
             compactCommanderDamageCard(for: opponent)
           }
@@ -200,21 +199,9 @@ struct CommanderDamageOverlay: View {
 
   private func setupInitialValues() {
     // Initialize temp values with current player values using player IDs
-//    tempCommanderDamage = player.commanderDamage
     tempPoisonCounters = player.poisonCounters
     initializeTempCommanderDamage()
-
   }
-  
-//  private func resetAllDamage() {
-//    // Reset all commander damage for this player
-//    tempCommanderDamage.removeAll()
-//    player.commanderDamage.removeAll()
-//    
-//    // Haptic feedback
-//    let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-//    impactFeedback.impactOccurred()
-//  }
     
   private func dismissWithAnimation() {
     withAnimation(Animation.easeIn(duration: 0.15)) {
@@ -303,6 +290,9 @@ struct CompactCommanderDamageCard: View {
               .foregroundColor(.white.opacity(0.7))
               .lineLimit(1)
           }
+          
+          // Enhanced status indicator
+          
         }
       }
       
@@ -340,7 +330,7 @@ struct CompactCommanderDamageCard: View {
             .font(.system(size: 24, weight: .bold, design: .rounded))
             .foregroundColor(damage >= 21 ? .red : .white)
             .frame(minWidth: 35)
-
+        }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(
